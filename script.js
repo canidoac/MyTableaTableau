@@ -292,30 +292,30 @@ let tableauExt = null
     $("#loading").html("<div style='color:red;padding:20px'>" + message + "</div>")
   }
 
-  function waitForTableau(maxAttempts = 20, interval = 100) {
-    let attempts = 0
+function waitForTableau(maxAttempts = 20, interval = 100) {
+  let attempts = 0
 
-    function checkTableau() {
-      attempts++
-      console.log(`[v0] Intento ${attempts}: Buscando tableau.extensions...`)
+  function checkTableau() {
+    attempts++
+    console.log(`[v0] Intento ${attempts}: Buscando tableau.extensions...`)
 
-      if (window.tableau && window.tableau.extensions) {
-        console.log("[v0] tableau.extensions encontrado!")
-        tableauExt = window.tableau.extensions
-        initializeExtension()
-      } else if (attempts < maxAttempts) {
-        setTimeout(checkTableau, interval)
-      } else {
-        console.error("[v0] No se encontró tableau.extensions después de", maxAttempts, "intentos")
-        showError(
-          "No se pudo conectar con la API de Tableau. " +
-            "Intenta recargar la extensión con el botón 'Recargar Extensión'.",
-        )
-      }
+    if (window.tableau && window.tableau.extensions) {
+      console.log("[v0] tableau.extensions encontrado!")
+      tableauExt = window.tableau.extensions
+      initializeExtension()
+    } else if (attempts < maxAttempts) {
+      setTimeout(checkTableau, interval)
+    } else {
+      console.error("[v0] No se encontró tableau.extensions después de", maxAttempts, "intentos")
+      showError(
+        "No se pudo conectar con la API de Tableau. " +
+          "Intenta recargar la extensión con el botón 'Recargar Extensión'.",
+      )
     }
-
-    checkTableau()
   }
+
+  checkTableau()
+}
 
   function initializeExtension() {
     tableauExt.initializeAsync().then(
