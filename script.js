@@ -35,7 +35,7 @@ function waitForTableau(callback, maxAttempts = 40) {
 function showError() {
   document.getElementById("loading").innerHTML = `
     <div style="color: #e74c3c; padding: 20px; text-align: center;">
-      <h3>❌ Error al cargar Tableau Extensions API</h3>
+      <h3>❌ Error al cargar Tableau Extensions API 1.1</h3>
       <p>La extensión no puede conectarse con Tableau.</p>
       <p><strong>Posibles causas:</strong></p>
       <ul style="text-align: left; display: inline-block; margin: 20px auto;">
