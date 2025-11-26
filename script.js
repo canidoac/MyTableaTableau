@@ -8,150 +8,76 @@ const tableConfig = {
   showBorders: true,
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("[v0] DOM cargado")
+// Declare the $ variable
+const $ = window.$ // Assuming jQuery is loaded globally
+const tableau = window.tableau // Declare the tableau variable
 
-  // Esperar a que el script de Tableau termine de cargar
-  if (typeof window.tableau !== "undefined" && window.tableau.extensions) {
-    console.log("[v0] Tableau API ya disponible")
-    initializeExtension()
-  } else {
-    console.log("[v0] Esperando a que Tableau API se cargue...")
-    // Esperar a que se dispare el evento de carga del script de Tableau
-    window.addEventListener("load", () => {
-      console.log("[v0] Window load event disparado")
-      if (typeof window.tableau !== "undefined" && window.tableau.extensions) {
-        console.log("[v0] Tableau API disponible después del load")
-        initializeExtension()
-      } else {
-        console.log("[v0] Intentando inicializar con retraso...")
-        setTimeout(() => {
-          if (typeof window.tableau !== "undefined" && window.tableau.extensions) {
-            initializeExtension()
-          } else {
-            console.error("[v0] Tableau API no disponible")
-            showError()
-          }
-        }, 1000)
-      }
-    })
-  }
+$(document).ready(() => {
+  console.log("[v0] DOM cargado - v1.0.5")
+  console.log("[v0] window.tableau disponible?", typeof window.tableau !== "undefined")
+
+  setTimeout(initExtension, 500)
 })
 
-function showError() {
-  document.getElementById("loading").innerHTML = `
-    <div style="color: #e74c3c; padding: 20px; text-align: center;">
-      <h3>❌ Error al cargar Tableau Extensions API</h3>
-      <p>La extensión no puede conectarse con Tableau.</p>
-      <p><strong>Posibles causas:</strong></p>
-      <ul style="text-align: left; display: inline-block; margin: 20px auto;">
-        <li>Problemas de conectividad a internet</li>
-        <li>Firewall o proxy bloqueando las URLs de recursos</li>
-        <li>La extensión no se está ejecutando dentro de Tableau</li>
-      </ul>
-      <p style="margin-top: 20px;">
-        <button onclick="location.reload()" class="btn btn-primary">
-          Reintentar
-        </button>
-      </p>
-    </div>
-  `
-}
+function initExtension() {
+  if (typeof tableau === "undefined") {
+    console.error("[v0] Tableau API no está disponible")
+    showError("Error: Esta extensión debe ejecutarse dentro de Tableau Desktop o Server.")
+    return
+  }
 
-function initializeExtension() {
-  console.log("[v0] Iniciando inicialización de la extensión...")
+  console.log("[v0] Tableau API encontrada, inicializando...")
 
-  window.tableau.extensions.initializeAsync().then(
+  tableau.extensions.initializeAsync().then(
     () => {
-      console.log("[v0] Extensión inicializada correctamente")
+      console.log("[v0] ✓ Extensión inicializada correctamente")
 
-      try {
-        const dashboardContent = window.tableau.extensions.dashboardContent
-        if (!dashboardContent || !dashboardContent.dashboard) {
-          throw new Error("No se puede acceder al dashboard")
-        }
+      const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets
+      console.log("[v0] Worksheets disponibles:", worksheets.length)
 
-        const worksheets = dashboardContent.dashboard.worksheets
-        console.log("[v0] Worksheets disponibles:", worksheets.length)
-
-        if (worksheets.length > 0) {
-          console.log("[v0] Lista de worksheets:", worksheets.map((w) => w.name).join(", "))
-        }
-
-        if (worksheets.length === 0) {
-          throw new Error("No hay hojas de trabajo en el dashboard. Por favor agrega una hoja con datos.")
-        }
-
+      if (worksheets.length > 0) {
         worksheet = worksheets[0]
         console.log("[v0] Usando worksheet:", worksheet.name)
-
         loadData()
-        setupEventListeners()
-      } catch (error) {
-        console.error("[v0] Error obteniendo worksheet:", error)
-        document.getElementById("loading").innerHTML = `
-          <div style="color: #e74c3c; padding: 20px;">
-            <strong>Error:</strong> ${error.message}<br><br>
-            <small>Asegúrate de que el dashboard contenga al menos una hoja de trabajo con datos.</small>
-          </div>
-        `
+        setupButtons()
+      } else {
+        showError("No hay hojas de trabajo en este dashboard")
       }
     },
     (err) => {
-      console.error("[v0] Error al inicializar:", err)
-      document.getElementById("loading").innerHTML = `
-        <div style="color: #e74c3c; padding: 20px;">
-          <strong>Error al inicializar la extensión:</strong><br>
-          ${err.message || err}
-        </div>
-      `
+      console.error("[v0] Error al inicializar extensión:", err)
+      showError("Error al inicializar: " + err.toString())
     },
   )
 }
 
-function setupEventListeners() {
-  document.getElementById("configure-btn").addEventListener("click", showWorksheetSelector)
-  document.getElementById("close-config").addEventListener("click", toggleConfigPanel)
-  document.getElementById("export-csv").addEventListener("click", exportToCSV)
-  document.getElementById("export-excel").addEventListener("click", exportToExcel)
-  document.getElementById("refresh-btn").addEventListener("click", loadData)
-  document.getElementById("reload-btn").addEventListener("click", reloadExtension)
-
-  document.getElementById("show-totals").addEventListener("change", (e) => {
-    tableConfig.showTotals = e.target.checked
-    renderTable()
+function setupButtons() {
+  $("#configure-btn").click(() => {
+    showWorksheetSelector()
   })
 
-  document.getElementById("alternating-rows").addEventListener("change", (e) => {
-    tableConfig.alternatingRows = e.target.checked
-    renderTable()
+  $("#export-csv").click(() => {
+    exportToCSV()
   })
 
-  document.getElementById("show-borders").addEventListener("change", (e) => {
-    document.getElementById("data-table").style.border = e.target.checked ? "1px solid #e1e8ed" : "none"
+  $("#export-excel").click(() => {
+    exportToExcel()
   })
 
-  document.getElementById("add-format").addEventListener("click", addConditionalFormat)
-}
+  $("#refresh-btn").click(() => {
+    loadData()
+  })
 
-function toggleConfigPanel() {
-  const panel = document.getElementById("config-panel")
-  panel.style.display = panel.style.display === "none" ? "block" : "none"
+  $("#reload-btn").click(() => {
+    location.reload()
+  })
 }
 
 async function loadData() {
   try {
-    console.log("[v0] Iniciando carga de datos...")
-    const loadingDiv = document.getElementById("loading")
-    const dataTableElement = document.getElementById("data-table")
-
-    if (!loadingDiv || !dataTableElement) {
-      console.error("[v0] No se encontraron elementos del DOM")
-      return
-    }
-
-    loadingDiv.style.display = "block"
-    dataTableElement.style.display = "none"
+    console.log("[v0] Loading data from:", worksheet.name)
+    $("#loading").show()
+    $("#data-table").hide()
 
     if (!worksheet) {
       throw new Error("No hay worksheet disponible")
@@ -166,17 +92,12 @@ async function loadData() {
     populateFormatFields()
     renderTable()
 
-    loadingDiv.style.display = "none"
-    dataTableElement.style.display = "table"
+    $("#loading").hide()
+    $("#data-table").show()
     console.log("[v0] Tabla renderizada exitosamente")
   } catch (error) {
     console.error("[v0] Error cargando datos:", error)
-    document.getElementById("loading").innerHTML = `
-      <div style="color: #e74c3c; padding: 20px;">
-        <strong>Error al cargar datos:</strong><br>
-        ${error.message}
-      </div>
-    `
+    $("#loading").html("<div style='color:red;padding:20px'>" + error.message + "</div>")
   }
 }
 
@@ -199,87 +120,84 @@ function renderTable() {
   const data = dataTable.data
 
   // Renderizar encabezados
-  const thead = document.getElementById("table-head")
-  thead.innerHTML = ""
-  const headerRow = document.createElement("tr")
+  const $thead = $("#table-head")
+  $thead.empty()
+  const $headerRow = $("<tr></tr>")
 
   columns.forEach((column, index) => {
-    const th = document.createElement("th")
-    th.textContent = column.fieldName
-    th.className = "sortable"
-    th.dataset.columnIndex = index
-    th.addEventListener("click", () => sortTable(index))
-    headerRow.appendChild(th)
+    const $th = $("<th></th>").text(column.fieldName)
+    $th.addClass("sortable")
+    $th.data("columnIndex", index)
+    $th.click(() => sortTable(index))
+    $headerRow.append($th)
   })
 
-  thead.appendChild(headerRow)
+  $thead.append($headerRow)
 
   // Renderizar datos
-  const tbody = document.getElementById("table-body")
-  tbody.innerHTML = ""
+  const $tbody = $("#table-body")
+  $tbody.empty()
 
   data.forEach((row, rowIndex) => {
-    const tr = document.createElement("tr")
+    const $tr = $("<tr></tr>")
     if (tableConfig.alternatingRows && rowIndex % 2 === 1) {
-      tr.className = "alternate"
+      $tr.addClass("alternate")
     }
 
     columns.forEach((column, colIndex) => {
-      const td = document.createElement("td")
-      const value = row[colIndex].value
-      td.textContent = formatValue(value)
+      const $td = $("<td></td>").text(row[colIndex].value)
 
       // Aplicar formato numérico
-      if (typeof value === "number") {
-        td.className = "number-cell"
+      if (typeof row[colIndex].value === "number") {
+        $td.addClass("number-cell")
       }
 
       // Aplicar formato condicional
-      applyConditionalFormatting(td, value, colIndex)
+      applyConditionalFormatting($td, row[colIndex].value, colIndex)
 
-      tr.appendChild(td)
+      $tr.append($td)
     })
 
-    tbody.appendChild(tr)
+    $tbody.append($tr)
   })
 
   // Renderizar totales
   if (tableConfig.showTotals) {
     renderTotals()
   } else {
-    document.getElementById("table-foot").innerHTML = ""
+    $("#table-foot").empty()
   }
 }
 
 function renderTotals() {
-  const tfoot = document.getElementById("table-foot")
-  tfoot.innerHTML = ""
+  const $tfoot = $("#table-foot")
+  $tfoot.empty()
 
-  const totalRow = document.createElement("tr")
+  const $totalRow = $("<tr></tr>")
   const columns = dataTable.columns
   const data = dataTable.data
 
   columns.forEach((column, colIndex) => {
-    const td = document.createElement("td")
+    const $td = $("<td></td>")
 
     if (colIndex === 0) {
-      td.textContent = "TOTAL"
+      $td.text("TOTAL")
     } else {
       // Calcular suma si es numérico
       const values = data.map((row) => row[colIndex].value).filter((v) => typeof v === "number")
       if (values.length > 0) {
         const sum = values.reduce((a, b) => a + b, 0)
-        td.textContent = formatValue(sum)
-        td.className = "number-cell"
+        $td.text(sum.toLocaleString("es-ES", { maximumFractionDigits: 2 }))
+        $td.addClass("number-cell")
       } else {
-        td.textContent = "-"
+        $td.text("-")
       }
     }
 
-    totalRow.appendChild(td)
+    $totalRow.append($td)
   })
 
-  tfoot.appendChild(totalRow)
+  $tfoot.append($totalRow)
 }
 
 function formatValue(value) {
@@ -442,101 +360,21 @@ function reloadExtension() {
   location.reload()
 }
 
-async function showWorksheetSelector() {
-  try {
-    const dashboardContent = window.tableau.extensions.dashboardContent
-    const worksheets = dashboardContent.dashboard.worksheets
+function showWorksheetSelector() {
+  const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets
+  const names = worksheets.map((w) => w.name)
 
-    if (worksheets.length === 0) {
-      alert("No hay hojas de trabajo disponibles en este dashboard")
-      return
+  const selection = prompt("Selecciona un worksheet:\n" + names.join("\n"))
+
+  if (selection) {
+    const selected = worksheets.find((w) => w.name === selection)
+    if (selected) {
+      worksheet = selected
+      loadData()
     }
-
-    // Crear diálogo con lista de worksheets
-    const worksheetNames = worksheets.map((ws) => ws.name)
-
-    // Usar el diálogo nativo de Tableau para seleccionar worksheet
-    const selectedWorksheet = await promptWorksheetSelection(worksheetNames)
-
-    if (selectedWorksheet) {
-      worksheet = worksheets.find((ws) => ws.name === selectedWorksheet)
-      console.log("[v0] Worksheet seleccionado:", worksheet.name)
-
-      // Recargar datos con el nuevo worksheet
-      await loadData()
-
-      alert(`Ahora usando datos de: ${worksheet.name}`)
-    }
-  } catch (error) {
-    console.error("[v0] Error al seleccionar worksheet:", error)
-    alert("Error al seleccionar worksheet: " + error.message)
   }
 }
 
-function promptWorksheetSelection(worksheetNames) {
-  return new Promise((resolve) => {
-    // Crear un diálogo personalizado en HTML
-    const dialogHTML = `
-      <div id="worksheet-dialog" style="
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        z-index: 10000;
-        min-width: 300px;
-      ">
-        <h3 style="margin-top: 0; color: #1da1f2;">Seleccionar Hoja de Trabajo</h3>
-        <p style="color: #657786; margin-bottom: 20px;">Elige la tabla que deseas visualizar:</p>
-        <select id="worksheet-select" style="
-          width: 100%;
-          padding: 10px;
-          font-size: 14px;
-          border: 1px solid #e1e8ed;
-          border-radius: 4px;
-          margin-bottom: 20px;
-        ">
-          ${worksheetNames.map((name) => `<option value="${name}">${name}</option>`).join("")}
-        </select>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button id="cancel-worksheet" class="btn btn-secondary">Cancelar</button>
-          <button id="select-worksheet" class="btn btn-primary">Seleccionar</button>
-        </div>
-      </div>
-      <div id="worksheet-overlay" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 9999;
-      "></div>
-    `
-
-    // Insertar el diálogo en el DOM
-    const dialogContainer = document.createElement("div")
-    dialogContainer.innerHTML = dialogHTML
-    document.body.appendChild(dialogContainer)
-
-    // Event listeners para los botones
-    document.getElementById("select-worksheet").addEventListener("click", () => {
-      const selected = document.getElementById("worksheet-select").value
-      document.body.removeChild(dialogContainer)
-      resolve(selected)
-    })
-
-    document.getElementById("cancel-worksheet").addEventListener("click", () => {
-      document.body.removeChild(dialogContainer)
-      resolve(null)
-    })
-
-    document.getElementById("worksheet-overlay").addEventListener("click", () => {
-      document.body.removeChild(dialogContainer)
-      resolve(null)
-    })
-  })
+function showError(message) {
+  $("#loading").html("<div style='color:red;padding:20px'>" + message + "</div>")
 }
