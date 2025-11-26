@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Table Extension</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://extensions.tableau.com/lib/tableau.extensions.1.latest.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <h2>Super Table</h2>
+            <div class="controls">
+                <button id="configure-btn" class="btn btn-primary">⚙️ Configurar</button>
+                <button id="export-csv" class="btn btn-secondary">📥 Exportar CSV</button>
+                <button id="export-excel" class="btn btn-secondary">📊 Exportar Excel</button>
+                <button id="refresh-btn" class="btn btn-secondary">🔄 Actualizar</button>
+            </div>
+        </div>
+        
+        <div class="config-panel" id="config-panel" style="display: none;">
+            <h3>Configuración de Tabla</h3>
+            <div class="config-section">
+                <label>
+                    <input type="checkbox" id="show-totals"> Mostrar Totales
+                </label>
+                <label>
+                    <input type="checkbox" id="alternating-rows" checked> Filas Alternadas
+                </label>
+                <label>
+                    <input type="checkbox" id="show-borders" checked> Mostrar Bordes
+                </label>
+            </div>
+            
+            <div class="config-section">
+                <h4>Formato Condicional</h4>
+                <label>Campo para formato:
+                    <select id="format-field"></select>
+                </label>
+                <label>Condición:
+                    <select id="format-condition">
+                        <option value="greater">Mayor que</option>
+                        <option value="less">Menor que</option>
+                        <option value="equal">Igual a</option>
+                        <option value="between">Entre</option>
+                    </select>
+                </label>
+                <label>Valor:
+                    <input type="number" id="format-value" placeholder="Valor de referencia">
+                </label>
+                <label>Color:
+                    <input type="color" id="format-color" value="#ff6b6b">
+                </label>
+                <button id="add-format" class="btn btn-small">Agregar Formato</button>
+            </div>
+            
+            <button id="close-config" class="btn btn-primary">Cerrar</button>
+        </div>
+        
+        <div class="table-container">
+            <div id="loading">Cargando datos...</div>
+            <table id="data-table" style="display: none;">
+                <thead id="table-head"></thead>
+                <tbody id="table-body"></tbody>
+                <tfoot id="table-foot"></tfoot>
+            </table>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
