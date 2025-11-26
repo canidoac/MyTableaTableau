@@ -292,18 +292,32 @@ let tableauExt = null
     $("#loading").html("<div style='color:red;padding:20px'>" + message + "</div>")
   }
 
-  $(document).ready(() => {
-    if (typeof window.tableau === "undefined" || !window.tableau.extensions) {
-      showError(
-        "Esta extensión debe ejecutarse dentro de Tableau Desktop o Tableau Server. " +
-          "Por favor, cárgala como una extensión de dashboard.",
-      )
-      console.error("[v0] tableau.extensions no está disponible. ¿Estás ejecutando dentro de Tableau?")
-      return
+  function waitForTableau(maxAttempts = 20, interval = 100) {
+    let attempts = 0
+
+    function checkTableau() {
+      attempts++
+      console.log(`[v0] Intento ${attempts}: Buscando tableau.extensions...`)
+
+      if (window.tableau && window.tableau.extensions) {
+        console.log("[v0] tableau.extensions encontrado!")
+        tableauExt = window.tableau.extensions
+        initializeExtension()
+      } else if (attempts < maxAttempts) {
+        setTimeout(checkTableau, interval)
+      } else {
+        console.error("[v0] No se encontró tableau.extensions después de", maxAttempts, "intentos")
+        showError(
+          "No se pudo conectar con la API de Tableau. " +
+            "Intenta recargar la extensión con el botón 'Recargar Extensión'.",
+        )
+      }
     }
 
-    tableauExt = window.tableau.extensions
+    checkTableau()
+  }
 
+  function initializeExtension() {
     tableauExt.initializeAsync().then(
       () => {
         console.log("[v0] Extension inicializada correctamente")
@@ -314,5 +328,8 @@ let tableauExt = null
         showError("Error al inicializar: " + err.toString())
       },
     )
-  })
+  }
+
+  // Start waiting for Tableau API
+  waitForTableau()
 })()
