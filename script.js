@@ -13,8 +13,20 @@ const $ = window.$ // Assuming jQuery is loaded globally
 const tableau = window.tableau // Declare the tableau variable
 
 $(document).ready(() => {
-  console.log("[v0] DOM cargado - v1.0.5")
-  console.log("[v0] window.tableau disponible?", typeof window.tableau !== "undefined")
+  console.log("[v0] ==============================================")
+  console.log("[v0] Super Table Extension v1.0.6 iniciando...")
+  console.log("[v0] ==============================================")
+  console.log("[v0] DOM cargado correctamente")
+  console.log("[v0] jQuery disponible:", typeof $ !== "undefined")
+  console.log("[v0] window.tableau existe?", typeof window.tableau !== "undefined")
+  console.log("[v0] window.tableau value:", window.tableau)
+
+  console.log("[v0] Propiedades de window que contienen 'tableau':")
+  Object.keys(window)
+    .filter((key) => key.toLowerCase().includes("tableau"))
+    .forEach((key) => {
+      console.log(`[v0]   - window.${key}:`, window[key])
+    })
 
   setTimeout(initExtension, 500)
 })
