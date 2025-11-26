@@ -110,7 +110,7 @@ function initializeExtension() {
 }
 
 function setupEventListeners() {
-  document.getElementById("configure-btn").addEventListener("click", toggleConfigPanel)
+  document.getElementById("configure-btn").addEventListener("click", showWorksheetSelector)
   document.getElementById("close-config").addEventListener("click", toggleConfigPanel)
   document.getElementById("export-csv").addEventListener("click", exportToCSV)
   document.getElementById("export-excel").addEventListener("click", exportToExcel)
@@ -440,4 +440,103 @@ function exportToExcel() {
 function reloadExtension() {
   console.log("[v0] Recargando extensión completa...")
   location.reload()
+}
+
+async function showWorksheetSelector() {
+  try {
+    const dashboardContent = window.tableau.extensions.dashboardContent
+    const worksheets = dashboardContent.dashboard.worksheets
+
+    if (worksheets.length === 0) {
+      alert("No hay hojas de trabajo disponibles en este dashboard")
+      return
+    }
+
+    // Crear diálogo con lista de worksheets
+    const worksheetNames = worksheets.map((ws) => ws.name)
+
+    // Usar el diálogo nativo de Tableau para seleccionar worksheet
+    const selectedWorksheet = await promptWorksheetSelection(worksheetNames)
+
+    if (selectedWorksheet) {
+      worksheet = worksheets.find((ws) => ws.name === selectedWorksheet)
+      console.log("[v0] Worksheet seleccionado:", worksheet.name)
+
+      // Recargar datos con el nuevo worksheet
+      await loadData()
+
+      alert(`Ahora usando datos de: ${worksheet.name}`)
+    }
+  } catch (error) {
+    console.error("[v0] Error al seleccionar worksheet:", error)
+    alert("Error al seleccionar worksheet: " + error.message)
+  }
+}
+
+function promptWorksheetSelection(worksheetNames) {
+  return new Promise((resolve) => {
+    // Crear un diálogo personalizado en HTML
+    const dialogHTML = `
+      <div id="worksheet-dialog" style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 10000;
+        min-width: 300px;
+      ">
+        <h3 style="margin-top: 0; color: #1da1f2;">Seleccionar Hoja de Trabajo</h3>
+        <p style="color: #657786; margin-bottom: 20px;">Elige la tabla que deseas visualizar:</p>
+        <select id="worksheet-select" style="
+          width: 100%;
+          padding: 10px;
+          font-size: 14px;
+          border: 1px solid #e1e8ed;
+          border-radius: 4px;
+          margin-bottom: 20px;
+        ">
+          ${worksheetNames.map((name) => `<option value="${name}">${name}</option>`).join("")}
+        </select>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button id="cancel-worksheet" class="btn btn-secondary">Cancelar</button>
+          <button id="select-worksheet" class="btn btn-primary">Seleccionar</button>
+        </div>
+      </div>
+      <div id="worksheet-overlay" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+      "></div>
+    `
+
+    // Insertar el diálogo en el DOM
+    const dialogContainer = document.createElement("div")
+    dialogContainer.innerHTML = dialogHTML
+    document.body.appendChild(dialogContainer)
+
+    // Event listeners para los botones
+    document.getElementById("select-worksheet").addEventListener("click", () => {
+      const selected = document.getElementById("worksheet-select").value
+      document.body.removeChild(dialogContainer)
+      resolve(selected)
+    })
+
+    document.getElementById("cancel-worksheet").addEventListener("click", () => {
+      document.body.removeChild(dialogContainer)
+      resolve(null)
+    })
+
+    document.getElementById("worksheet-overlay").addEventListener("click", () => {
+      document.body.removeChild(dialogContainer)
+      resolve(null)
+    })
+  })
 }
