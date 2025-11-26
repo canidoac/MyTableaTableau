@@ -8,86 +8,88 @@ const tableConfig = {
   showBorders: true,
 }
 
-// Función para esperar a que tableau esté disponible
-function waitForTableau(callback, maxAttempts = 20) {
+function waitForTableau(callback, maxAttempts = 40) {
   let attempts = 0
+  console.log("[v0] Esperando que Tableau API esté disponible...")
+
   const interval = setInterval(() => {
     attempts++
-    console.log(`[v0] Intento ${attempts} de cargar tableau API...`)
 
     if (window.tableau && window.tableau.extensions) {
-      console.log("[v0] Tableau API cargada exitosamente")
+      console.log("[v0] ✓ Tableau API detectada en intento", attempts)
       clearInterval(interval)
       callback()
     } else if (attempts >= maxAttempts) {
-      console.error("[v0] No se pudo cargar la API de Tableau después de", attempts, "intentos")
+      console.error("[v0] ✗ Timeout: Tableau API no disponible después de", attempts, "intentos")
       clearInterval(interval)
-      document.getElementById("loading").innerHTML = `
-        <div style="color: #e74c3c; padding: 20px; text-align: center;">
-          <h3>❌ Error al cargar Tableau Extensions API</h3>
-          <p>La extensión no puede conectarse con Tableau.</p>
-          <p><strong>Posibles causas:</strong></p>
-          <ul style="text-align: left; display: inline-block;">
-            <li>Problemas de conectividad a internet</li>
-            <li>Firewall o proxy bloqueando las URLs de recursos</li>
-            <li>La extensión no se está ejecutando dentro de Tableau</li>
-          </ul>
-          <p style="margin-top: 20px;">
-            <button onclick="location.reload()" style="padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer;">
-              Reintentar
-            </button>
-          </p>
-        </div>
-      `
+      showError()
+    } else {
+      // Solo mostrar cada 5 intentos para no saturar el log
+      if (attempts % 5 === 0) {
+        console.log(`[v0] Esperando... (intento ${attempts}/${maxAttempts})`)
+      }
     }
-  }, 500)
+  }, 250) // Reducido a 250ms para respuesta más rápida
 }
 
-// Iniciar cuando el DOM esté listo y tableau esté disponible
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    console.log("[v0] DOM cargado, esperando Tableau API...")
-    waitForTableau(initializeExtension)
-  })
-} else {
-  console.log("[v0] DOM ya estaba listo, esperando Tableau API...")
-  waitForTableau(initializeExtension)
+function showError() {
+  document.getElementById("loading").innerHTML = `
+    <div style="color: #e74c3c; padding: 20px; text-align: center;">
+      <h3>❌ Error al cargar Tableau Extensions API</h3>
+      <p>La extensión no puede conectarse con Tableau.</p>
+      <p><strong>Posibles causas:</strong></p>
+      <ul style="text-align: left; display: inline-block; margin: 20px auto;">
+        <li>Problemas de conectividad a internet</li>
+        <li>Firewall o proxy bloqueando las URLs de recursos</li>
+        <li>La extensión no se está ejecutando dentro de Tableau</li>
+      </ul>
+      <p style="margin-top: 20px;">
+        <button onclick="location.reload()" class="btn btn-primary">
+          Reintentar
+        </button>
+      </p>
+    </div>
+  `
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("[v0] DOM cargado, iniciando extensión...")
+  waitForTableau(initializeExtension)
+})
 
 function initializeExtension() {
   console.log("[v0] Iniciando inicialización de la extensión...")
   const tableau = window.tableau
 
-  // Inicializar la extensión de Tableau
   tableau.extensions.initializeAsync().then(
     () => {
-      console.log("[v0] Extensión inicializada correctamente")
+      console.log("[v0] ✓ Extensión inicializada correctamente")
       console.log("[v0] Contexto:", tableau.extensions.environment.context)
 
       try {
         const dashboardContent = tableau.extensions.dashboardContent
-        if (dashboardContent && dashboardContent.dashboard) {
-          const worksheets = dashboardContent.dashboard.worksheets
-          console.log("[v0] Worksheets disponibles:", worksheets.length)
-          console.log(
-            "[v0] Lista de worksheets:",
-            worksheets.map((w) => w.name),
-          )
-
-          if (worksheets.length === 0) {
-            throw new Error("No hay hojas de trabajo en el dashboard. Por favor agrega una hoja con datos.")
-          }
-
-          worksheet = worksheets[0]
-          console.log("[v0] Usando worksheet:", worksheet.name)
-        } else {
+        if (!dashboardContent || !dashboardContent.dashboard) {
           throw new Error("No se puede acceder al dashboard")
         }
+
+        const worksheets = dashboardContent.dashboard.worksheets
+        console.log("[v0] Worksheets disponibles:", worksheets.length)
+
+        if (worksheets.length > 0) {
+          console.log("[v0] Lista de worksheets:", worksheets.map((w) => w.name).join(", "))
+        }
+
+        if (worksheets.length === 0) {
+          throw new Error("No hay hojas de trabajo en el dashboard. Por favor agrega una hoja con datos.")
+        }
+
+        worksheet = worksheets[0]
+        console.log("[v0] ✓ Usando worksheet:", worksheet.name)
 
         loadData()
         setupEventListeners()
       } catch (error) {
-        console.error("[v0] Error obteniendo worksheet:", error)
+        console.error("[v0] ✗ Error obteniendo worksheet:", error)
         document.getElementById("loading").innerHTML = `
           <div style="color: #e74c3c; padding: 20px;">
             <strong>Error:</strong> ${error.message}<br><br>
@@ -97,7 +99,7 @@ function initializeExtension() {
       }
     },
     (err) => {
-      console.error("[v0] Error al inicializar:", err)
+      console.error("[v0] ✗ Error al inicializar:", err)
       document.getElementById("loading").innerHTML = `
         <div style="color: #e74c3c; padding: 20px;">
           <strong>Error al inicializar la extensión:</strong><br>
