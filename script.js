@@ -8,34 +8,24 @@ const tableConfig = {
   showBorders: true,
 }
 
-function waitForTableau(callback, maxAttempts = 40) {
-  let attempts = 0
-  console.log("[v0] Esperando que Tableau API esté disponible...")
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("[v0] DOM cargado, iniciando extensión...")
 
-  const interval = setInterval(() => {
-    attempts++
+  // Verificar que tableau esté disponible
+  if (!window.tableau || !window.tableau.extensions) {
+    console.error("[v0] Tableau API no está disponible")
+    showError()
+    return
+  }
 
-    if (window.tableau && window.tableau.extensions) {
-      console.log("[v0] ✓ Tableau API detectada en intento", attempts)
-      clearInterval(interval)
-      callback()
-    } else if (attempts >= maxAttempts) {
-      console.error("[v0] ✗ Timeout: Tableau API no disponible después de", attempts, "intentos")
-      clearInterval(interval)
-      showError()
-    } else {
-      // Solo mostrar cada 5 intentos para no saturar el log
-      if (attempts % 5 === 0) {
-        console.log(`[v0] Esperando... (intento ${attempts}/${maxAttempts})`)
-      }
-    }
-  }, 250) // Reducido a 250ms para respuesta más rápida
-}
+  console.log("[v0] Tableau API detectada, inicializando...")
+  initializeExtension()
+})
 
 function showError() {
   document.getElementById("loading").innerHTML = `
     <div style="color: #e74c3c; padding: 20px; text-align: center;">
-      <h3>❌ Error al cargar Tableau Extensions API 1.1</h3>
+      <h3>❌ Error al cargar Tableau Extensions API</h3>
       <p>La extensión no puede conectarse con Tableau.</p>
       <p><strong>Posibles causas:</strong></p>
       <ul style="text-align: left; display: inline-block; margin: 20px auto;">
@@ -52,22 +42,15 @@ function showError() {
   `
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("[v0] DOM cargado, iniciando extensión...")
-  waitForTableau(initializeExtension)
-})
-
 function initializeExtension() {
   console.log("[v0] Iniciando inicialización de la extensión...")
-  const tableau = window.tableau
 
-  tableau.extensions.initializeAsync().then(
+  window.tableau.extensions.initializeAsync().then(
     () => {
-      console.log("[v0] ✓ Extensión inicializada correctamente")
-      console.log("[v0] Contexto:", tableau.extensions.environment.context)
+      console.log("[v0] Extensión inicializada correctamente")
 
       try {
-        const dashboardContent = tableau.extensions.dashboardContent
+        const dashboardContent = window.tableau.extensions.dashboardContent
         if (!dashboardContent || !dashboardContent.dashboard) {
           throw new Error("No se puede acceder al dashboard")
         }
@@ -84,12 +67,12 @@ function initializeExtension() {
         }
 
         worksheet = worksheets[0]
-        console.log("[v0] ✓ Usando worksheet:", worksheet.name)
+        console.log("[v0] Usando worksheet:", worksheet.name)
 
         loadData()
         setupEventListeners()
       } catch (error) {
-        console.error("[v0] ✗ Error obteniendo worksheet:", error)
+        console.error("[v0] Error obteniendo worksheet:", error)
         document.getElementById("loading").innerHTML = `
           <div style="color: #e74c3c; padding: 20px;">
             <strong>Error:</strong> ${error.message}<br><br>
@@ -99,7 +82,7 @@ function initializeExtension() {
       }
     },
     (err) => {
-      console.error("[v0] ✗ Error al inicializar:", err)
+      console.error("[v0] Error al inicializar:", err)
       document.getElementById("loading").innerHTML = `
         <div style="color: #e74c3c; padding: 20px;">
           <strong>Error al inicializar la extensión:</strong><br>
