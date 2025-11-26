@@ -9,18 +9,32 @@ const tableConfig = {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("[v0] DOM cargado, iniciando extensión...")
+  console.log("[v0] DOM cargado, esperando API de Tableau...")
 
-  // Verificar que tableau esté disponible
-  if (!window.tableau || !window.tableau.extensions) {
-    console.error("[v0] Tableau API no está disponible")
-    showError()
+  // Intentar inicializar directamente sin verificar primero
+  attemptInitialization()
+})
+
+function attemptInitialization(attempts = 0) {
+  const maxAttempts = 10
+
+  console.log(`[v0] Intento ${attempts + 1}/${maxAttempts} de inicialización...`)
+
+  // Verificar si tableau existe
+  if (typeof window.tableau === "undefined" || !window.tableau.extensions) {
+    if (attempts < maxAttempts) {
+      console.log("[v0] Tableau API aún no disponible, reintentando en 300ms...")
+      setTimeout(() => attemptInitialization(attempts + 1), 300)
+    } else {
+      console.error("[v0] Tableau API no se cargó después de múltiples intentos")
+      showError()
+    }
     return
   }
 
-  console.log("[v0] Tableau API detectada, inicializando...")
+  console.log("[v0] ✓ Tableau API detectada, iniciando extensión...")
   initializeExtension()
-})
+}
 
 function showError() {
   document.getElementById("loading").innerHTML = `
