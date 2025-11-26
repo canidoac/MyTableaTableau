@@ -113,6 +113,7 @@ function setupEventListeners() {
   document.getElementById("export-csv").addEventListener("click", exportToCSV)
   document.getElementById("export-excel").addEventListener("click", exportToExcel)
   document.getElementById("refresh-btn").addEventListener("click", loadData)
+  document.getElementById("reload-btn").addEventListener("click", reloadExtension)
 
   document.getElementById("show-totals").addEventListener("change", (e) => {
     tableConfig.showTotals = e.target.checked
@@ -432,4 +433,9 @@ function exportToExcel() {
   link.href = URL.createObjectURL(blob)
   link.download = "tableau_export.xls"
   link.click()
+}
+
+function reloadExtension() {
+  console.log("[v0] Recargando extensión completa...")
+  location.reload()
 }
