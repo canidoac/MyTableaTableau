@@ -5,35 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Table Extension</title>
     <link rel="stylesheet" href="styles.css">
-
-    <!-- 1) Cargar la API de extensiones de Tableau -->
+    
+    <!-- SheetJS para Excel con formato profesional -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
+    <!-- Tableau Extensions API -->
     <script src="https://tableau.github.io/extensions-api/lib/tableau.extensions.1.latest.js"></script>
-
-    <!-- 2) Cargar jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="toolbar">
-            <!-- Actualizando versión a 1.0.7 -->
-            <h2>Super Table <span style="font-size: 0.7em; color: #657786;">v1.0.8</span></h2>
-            <div class="controls">
-                <button id="configure-btn" class="btn btn-primary">⚙️ Configurar</button>
-                <button id="export-csv" class="btn btn-secondary">📊 Exportar CSV</button>
-                <button id="export-excel" class="btn btn-secondary">📈 Exportar Excel</button>
-                <button id="refresh-btn" class="btn btn-secondary">🔄 Actualizar</button>
-                <button id="reload-btn" class="btn btn-secondary">🔁 Recargar Extensión</button>
+        <header class="toolbar">
+            <div class="toolbar-left">
+                <h1>Super Table <span class="version">v2.0.0</span></h1>
+                <span id="status" class="status">Conectando...</span>
             </div>
-        </div>
+            <div class="controls">
+                <button id="export-all-excel" class="btn btn-primary" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    Exportar Todo a Excel
+                </button>
+                <button id="export-csv" class="btn btn-secondary" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    CSV
+                </button>
+                <button id="refresh-btn" class="btn btn-icon" disabled title="Actualizar datos">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
         
-        <div class="table-container">
-            <div id="loading">Cargando datos...</div>
-            <table id="data-table" style="display: none;">
-                <thead id="table-head"></thead>
-                <tbody id="table-body"></tbody>
-                <tfoot id="table-foot"></tfoot>
-            </table>
-        </div>
+        <main class="content">
+            <div id="loading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Conectando con Tableau...</p>
+            </div>
+            
+            <div id="error" class="error-state" style="display: none;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <h3>Error de conexión</h3>
+                <p id="error-message"></p>
+                <button id="retry-btn" class="btn btn-primary">Reintentar</button>
+            </div>
+            
+            <div id="dashboard-info" style="display: none;">
+                <div class="info-header">
+                    <h2 id="dashboard-name"></h2>
+                    <p id="worksheet-count"></p>
+                </div>
+                
+                <div id="worksheets-list" class="worksheets-grid"></div>
+            </div>
+        </main>
     </div>
     
     <script src="script.js"></script>

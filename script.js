@@ -1,335 +1,336 @@
-// Declare the tableau variable
-let worksheet = null
-let dataTable = null
-const conditionalFormats = []
-const sortState = { column: -1, ascending: true }
-const tableConfig = {
-  showTotals: false,
-  alternatingRows: true,
-  showBorders: true,
-}
+// Super Table Extension v2.0.0
+// Exportación profesional de datos de Tableau
 
-// Declare the $ variable
-const $ = window.$ // Assuming jQuery is loaded globally
-let tableauExt = null
 ;(() => {
-  async function init() {
-    console.log("[v0] Inicializando Super Table Extension...")
+  // State
+  let dashboard = null
+  const worksheetsData = new Map()
+
+  // DOM Elements
+  const elements = {
+    loading: document.getElementById("loading"),
+    error: document.getElementById("error"),
+    errorMessage: document.getElementById("error-message"),
+    dashboardInfo: document.getElementById("dashboard-info"),
+    dashboardName: document.getElementById("dashboard-name"),
+    worksheetCount: document.getElementById("worksheet-count"),
+    worksheetsList: document.getElementById("worksheets-list"),
+    status: document.getElementById("status"),
+    exportAllBtn: document.getElementById("export-all-excel"),
+    exportCsvBtn: document.getElementById("export-csv"),
+    refreshBtn: document.getElementById("refresh-btn"),
+    retryBtn: document.getElementById("retry-btn"),
+  }
+
+  // Tableau and SheetJS variables
+  const tableau = window.tableau
+  const XLSX = window.XLSX
+
+  // Initialize when DOM is ready
+  document.addEventListener("DOMContentLoaded", initExtension)
+
+  function initExtension() {
+    console.log("[v0] Super Table Extension v2.0.0 iniciando...")
+
+    // Setup event listeners
+    elements.retryBtn?.addEventListener("click", initExtension)
+    elements.refreshBtn?.addEventListener("click", refreshAllData)
+    elements.exportAllBtn?.addEventListener("click", exportAllToExcel)
+    elements.exportCsvBtn?.addEventListener("click", exportAllToCSV)
+
+    // Check if Tableau API is available
+    if (typeof tableau === "undefined" || !tableau.extensions) {
+      showError(
+        "La API de Tableau no está disponible. Asegúrate de cargar esta extensión dentro de Tableau Desktop o Server.",
+      )
+      return
+    }
+
+    // Initialize Tableau Extensions API
+    tableau.extensions.initializeAsync().then(onInitialized, onInitError)
+  }
+
+  function onInitialized() {
+    console.log("[v0] Extension inicializada correctamente")
+
+    dashboard = tableau.extensions.dashboardContent.dashboard
+    console.log("[v0] Dashboard:", dashboard.name)
+    console.log("[v0] Worksheets:", dashboard.worksheets.length)
+
+    // Update UI
+    setStatus("Conectado", "connected")
+    elements.dashboardName.textContent = dashboard.name
+    elements.worksheetCount.textContent = `${dashboard.worksheets.length} hojas de trabajo disponibles`
+
+    // Enable buttons
+    elements.exportAllBtn.disabled = false
+    elements.exportCsvBtn.disabled = false
+    elements.refreshBtn.disabled = false
+
+    // Load all worksheets data
+    loadAllWorksheets()
+  }
+
+  function onInitError(err) {
+    console.error("[v0] Error de inicialización:", err)
+    showError("No se pudo conectar con Tableau: " + err.toString())
+  }
+
+  async function loadAllWorksheets() {
+    showLoading()
+    worksheetsData.clear()
+
+    const worksheets = dashboard.worksheets
+    console.log("[v0] Cargando datos de", worksheets.length, "worksheets...")
 
     try {
-      const dashboard = tableauExt.dashboardContent.dashboard
-      console.log("[v0] Dashboard cargado:", dashboard.name)
-
-      const worksheets = dashboard.worksheets
-      console.log("[v0] Worksheets disponibles:", worksheets.length)
-
-      if (worksheets.length > 0) {
-        worksheet = worksheets[0]
-        console.log("[v0] Usando worksheet:", worksheet.name)
-        await loadData()
-        setupButtons()
-      } else {
-        showError("No hay hojas de trabajo en este dashboard")
-      }
-    } catch (error) {
-      console.error("[v0] Error en init:", error)
-      showError("Error al inicializar: " + error.message)
-    }
-  }
-
-  function setupButtons() {
-    $("#configure-btn").click(() => {
-      showWorksheetSelector()
-    })
-
-    $("#export-csv").click(() => {
-      exportToCSV()
-    })
-
-    $("#export-excel").click(() => {
-      exportToExcel()
-    })
-
-    $("#refresh-btn").click(() => {
-      loadData()
-    })
-
-    $("#reload-btn").click(() => {
-      location.reload()
-    })
-  }
-
-  async function loadData() {
-    try {
-      console.log("[v0] Cargando datos de:", worksheet.name)
-      $("#loading").show()
-      $("#data-table").hide()
-
-      const dataTableReader = await worksheet.getSummaryDataAsync()
-      dataTable = dataTableReader
-
-      console.log("[v0] Datos obtenidos:", dataTable.data.length, "filas")
-
-      renderTable()
-
-      $("#loading").hide()
-      $("#data-table").show()
-    } catch (error) {
-      console.error("[v0] Error cargando datos:", error)
-      showError("Error al cargar datos: " + error.message)
-    }
-  }
-
-  function renderTable() {
-    if (!dataTable) return
-
-    const columns = dataTable.columns
-    const data = dataTable.data
-
-    // Renderizar encabezados
-    const $thead = $("#table-head")
-    $thead.empty()
-    const $headerRow = $("<tr></tr>")
-
-    columns.forEach((column, index) => {
-      const $th = $("<th></th>").text(column.fieldName)
-      $th.addClass("sortable")
-      $th.attr("data-column-index", index)
-      $th.click(() => sortTable(index))
-      $headerRow.append($th)
-    })
-
-    $thead.append($headerRow)
-
-    // Renderizar datos
-    const $tbody = $("#table-body")
-    $tbody.empty()
-
-    data.forEach((row, rowIndex) => {
-      const $tr = $("<tr></tr>")
-      if (tableConfig.alternatingRows && rowIndex % 2 === 1) {
-        $tr.addClass("alternate")
-      }
-
-      columns.forEach((column, colIndex) => {
-        const $td = $("<td></td>").text(row[colIndex].value)
-
-        if (typeof row[colIndex].value === "number") {
-          $td.addClass("number-cell")
+      // Load all worksheets in parallel
+      const promises = worksheets.map(async (ws) => {
+        try {
+          const dataTable = await ws.getSummaryDataAsync()
+          worksheetsData.set(ws.name, {
+            worksheet: ws,
+            columns: dataTable.columns,
+            data: dataTable.data,
+            totalRows: dataTable.data.length,
+          })
+          console.log(`[v0] ${ws.name}: ${dataTable.data.length} filas cargadas`)
+        } catch (err) {
+          console.warn(`[v0] Error cargando ${ws.name}:`, err)
+          worksheetsData.set(ws.name, {
+            worksheet: ws,
+            error: err.toString(),
+          })
         }
-
-        applyConditionalFormatting($td, row[colIndex].value, colIndex)
-        $tr.append($td)
       })
 
-      $tbody.append($tr)
-    })
-
-    if (tableConfig.showTotals) {
-      renderTotals()
-    } else {
-      $("#table-foot").empty()
+      await Promise.all(promises)
+      renderDashboard()
+    } catch (err) {
+      console.error("[v0] Error cargando worksheets:", err)
+      showError("Error al cargar los datos: " + err.toString())
     }
   }
 
-  function renderTotals() {
-    const $tfoot = $("#table-foot")
-    $tfoot.empty()
+  function renderDashboard() {
+    elements.loading.style.display = "none"
+    elements.error.style.display = "none"
+    elements.dashboardInfo.style.display = "block"
 
-    const $totalRow = $("<tr></tr>")
-    const columns = dataTable.columns
-    const data = dataTable.data
+    elements.worksheetsList.innerHTML = ""
 
-    columns.forEach((column, colIndex) => {
-      const $td = $("<td></td>")
-
-      if (colIndex === 0) {
-        $td.text("TOTAL")
-      } else {
-        const values = data.map((row) => row[colIndex].value).filter((v) => typeof v === "number")
-        if (values.length > 0) {
-          const sum = values.reduce((a, b) => a + b, 0)
-          $td.text(sum.toLocaleString("es-ES", { maximumFractionDigits: 2 }))
-          $td.addClass("number-cell")
-        } else {
-          $td.text("-")
-        }
-      }
-
-      $totalRow.append($td)
-    })
-
-    $tfoot.append($totalRow)
-  }
-
-  function applyConditionalFormatting(cell, cellValue, columnIndex) {
-    conditionalFormats.forEach((format) => {
-      if (format.fieldIndex === columnIndex && typeof cellValue === "number") {
-        let shouldApply = false
-
-        switch (format.condition) {
-          case "greater":
-            shouldApply = cellValue > format.value
-            break
-          case "less":
-            shouldApply = cellValue < format.value
-            break
-          case "equal":
-            shouldApply = cellValue === format.value
-            break
-        }
-
-        if (shouldApply) {
-          cell.css("backgroundColor", format.color)
-          cell.addClass("cell-highlight")
-          const rgb = Number.parseInt(format.color.slice(1), 16)
-          const brightness = ((rgb >> 16) & 0xff) * 0.299 + ((rgb >> 8) & 0xff) * 0.587 + (rgb & 0xff) * 0.114
-          cell.css("color", brightness > 128 ? "#000" : "#fff")
-        }
-      }
+    worksheetsData.forEach((wsData, name) => {
+      const card = createWorksheetCard(name, wsData)
+      elements.worksheetsList.appendChild(card)
     })
   }
 
-  function sortTable(columnIndex) {
-    if (sortState.column === columnIndex) {
-      sortState.ascending = !sortState.ascending
-    } else {
-      sortState.column = columnIndex
-      sortState.ascending = true
+  function createWorksheetCard(name, wsData) {
+    const card = document.createElement("div")
+    card.className = "worksheet-card"
+
+    if (wsData.error) {
+      card.innerHTML = `
+                <div class="worksheet-header">
+                    <h3>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
+                        ${escapeHtml(name)}
+                    </h3>
+                    <span class="row-count" style="background:#fee2e2;color:#991b1b;">Error</span>
+                </div>
+                <div style="padding: 16px; color: #64748b; font-size: 13px;">
+                    No se pudieron cargar los datos
+                </div>
+            `
+      return card
     }
 
-    const data = dataTable.data
-    data.sort((a, b) => {
-      const aVal = a[columnIndex].value
-      const bVal = b[columnIndex].value
+    // Create preview table (first 5 rows)
+    const previewRows = wsData.data.slice(0, 5)
+    const columns = wsData.columns
 
-      if (aVal === bVal) return 0
-
-      let comparison = 0
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        comparison = aVal - bVal
-      } else {
-        comparison = String(aVal).localeCompare(String(bVal))
-      }
-
-      return sortState.ascending ? comparison : -comparison
+    let tableHtml = "<table><thead><tr>"
+    columns.forEach((col) => {
+      tableHtml += `<th>${escapeHtml(col.fieldName)}</th>`
     })
+    tableHtml += "</tr></thead><tbody>"
 
-    $("#table-head th").removeClass("sorted-asc sorted-desc")
-    $(`#table-head th[data-column-index="${columnIndex}"]`).addClass(sortState.ascending ? "sorted-asc" : "sorted-desc")
-
-    renderTable()
-  }
-
-  function exportToCSV() {
-    if (!dataTable) return
-
-    let csv = ""
-    csv += dataTable.columns.map((col) => col.fieldName).join(",") + "\n"
-
-    dataTable.data.forEach((row) => {
-      const rowData = row
-        .map((cell) => {
-          const value = cell.value
-          if (typeof value === "string" && value.includes(",")) {
-            return `"${value}"`
-          }
-          return value
-        })
-        .join(",")
-      csv += rowData + "\n"
-    })
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
-    const link = document.createElement("a")
-    link.href = URL.createObjectURL(blob)
-    link.download = "tableau_export.csv"
-    link.click()
-  }
-
-  function exportToExcel() {
-    if (!dataTable) return
-
-    let content = "<table>"
-    content += "<tr>"
-    dataTable.columns.forEach((col) => {
-      content += `<th>${col.fieldName}</th>`
-    })
-    content += "</tr>"
-
-    dataTable.data.forEach((row) => {
-      content += "<tr>"
-      row.forEach((cell) => {
-        content += `<td>${cell.value}</td>`
+    previewRows.forEach((row) => {
+      tableHtml += "<tr>"
+      row.forEach((cell, idx) => {
+        const isNumber = typeof cell.value === "number"
+        const formattedValue = isNumber
+          ? cell.value.toLocaleString("es-ES", { maximumFractionDigits: 2 })
+          : escapeHtml(String(cell.value ?? ""))
+        tableHtml += `<td class="${isNumber ? "number-cell" : ""}">${formattedValue}</td>`
       })
-      content += "</tr>"
+      tableHtml += "</tr>"
     })
-    content += "</table>"
+    tableHtml += "</tbody></table>"
 
-    const blob = new Blob([content], { type: "application/vnd.ms-excel" })
-    const link = document.createElement("a")
-    link.href = URL.createObjectURL(blob)
-    link.download = "tableau_export.xls"
-    link.click()
+    card.innerHTML = `
+            <div class="worksheet-header">
+                <h3>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    ${escapeHtml(name)}
+                </h3>
+                <span class="row-count">${wsData.totalRows.toLocaleString()} filas</span>
+            </div>
+            <div class="worksheet-preview">
+                ${tableHtml}
+            </div>
+            <div class="worksheet-actions">
+                <button class="btn btn-secondary btn-sm export-single-excel" data-worksheet="${escapeHtml(name)}">
+                    Excel
+                </button>
+                <button class="btn btn-secondary btn-sm export-single-csv" data-worksheet="${escapeHtml(name)}">
+                    CSV
+                </button>
+            </div>
+        `
+
+    // Add event listeners for individual export
+    card.querySelector(".export-single-excel").addEventListener("click", (e) => {
+      exportSingleToExcel(e.target.dataset.worksheet)
+    })
+    card.querySelector(".export-single-csv").addEventListener("click", (e) => {
+      exportSingleToCSV(e.target.dataset.worksheet)
+    })
+
+    return card
   }
 
-  function showWorksheetSelector() {
-    const worksheets = tableauExt.dashboardContent.dashboard.worksheets
-    const names = worksheets.map((w) => w.name)
+  // Export functions using SheetJS for professional Excel formatting
+  function exportAllToExcel() {
+    console.log("[v0] Exportando todo a Excel...")
 
-    const selection = prompt("Selecciona un worksheet:\n" + names.join("\n"))
+    const workbook = XLSX.utils.book_new()
 
-    if (selection) {
-      const selected = worksheets.find((w) => w.name === selection)
-      if (selected) {
-        worksheet = selected
-        loadData()
+    worksheetsData.forEach((wsData, name) => {
+      if (wsData.error) return
+
+      const sheetData = prepareSheetData(wsData)
+      const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
+
+      // Apply column widths
+      worksheet["!cols"] = wsData.columns.map((col) => ({ wch: Math.max(col.fieldName.length, 12) }))
+
+      // Sanitize sheet name (max 31 chars, no special chars)
+      const safeName = name.substring(0, 31).replace(/[\\/*?:[\]]/g, "_")
+      XLSX.utils.book_append_sheet(workbook, worksheet, safeName)
+    })
+
+    const filename = `${dashboard.name}_${getTimestamp()}.xlsx`
+    XLSX.writeFile(workbook, filename)
+    console.log("[v0] Excel exportado:", filename)
+  }
+
+  function exportSingleToExcel(worksheetName) {
+    const wsData = worksheetsData.get(worksheetName)
+    if (!wsData || wsData.error) return
+
+    const workbook = XLSX.utils.book_new()
+    const sheetData = prepareSheetData(wsData)
+    const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
+
+    worksheet["!cols"] = wsData.columns.map((col) => ({ wch: Math.max(col.fieldName.length, 12) }))
+
+    const safeName = worksheetName.substring(0, 31).replace(/[\\/*?:[\]]/g, "_")
+    XLSX.utils.book_append_sheet(workbook, worksheet, safeName)
+
+    const filename = `${worksheetName}_${getTimestamp()}.xlsx`
+    XLSX.writeFile(workbook, filename)
+  }
+
+  function exportAllToCSV() {
+    worksheetsData.forEach((wsData, name) => {
+      if (!wsData.error) {
+        exportSingleToCSV(name)
       }
-    }
+    })
+  }
+
+  function exportSingleToCSV(worksheetName) {
+    const wsData = worksheetsData.get(worksheetName)
+    if (!wsData || wsData.error) return
+
+    const sheetData = prepareSheetData(wsData)
+    const csv = sheetData
+      .map((row) =>
+        row
+          .map((cell) => {
+            const str = String(cell ?? "")
+            return str.includes(",") || str.includes('"') || str.includes("\n") ? `"${str.replace(/"/g, '""')}"` : str
+          })
+          .join(","),
+      )
+      .join("\n")
+
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.download = `${worksheetName}_${getTimestamp()}.csv`
+    link.click()
+    URL.revokeObjectURL(link.href)
+  }
+
+  function prepareSheetData(wsData) {
+    const data = []
+
+    // Header row
+    data.push(wsData.columns.map((col) => col.fieldName))
+
+    // Data rows
+    wsData.data.forEach((row) => {
+      data.push(row.map((cell) => cell.value))
+    })
+
+    return data
+  }
+
+  async function refreshAllData() {
+    console.log("[v0] Actualizando datos...")
+    setStatus("Actualizando...", "")
+    await loadAllWorksheets()
+    setStatus("Conectado", "connected")
+  }
+
+  // UI Helpers
+  function showLoading() {
+    elements.loading.style.display = "flex"
+    elements.error.style.display = "none"
+    elements.dashboardInfo.style.display = "none"
   }
 
   function showError(message) {
-    $("#loading").html("<div style='color:red;padding:20px'>" + message + "</div>")
+    elements.loading.style.display = "none"
+    elements.error.style.display = "flex"
+    elements.dashboardInfo.style.display = "none"
+    elements.errorMessage.textContent = message
+    setStatus("Error", "error")
   }
 
-function waitForTableau(maxAttempts = 20, interval = 100) {
-  let attempts = 0
-
-  function checkTableau() {
-    attempts++
-    console.log(`[v0] Intento ${attempts}: Buscando tableau.extensions...`)
-
-    if (window.tableau && window.tableau.extensions) {
-      console.log("[v0] tableau.extensions encontrado!")
-      tableauExt = window.tableau.extensions
-      initializeExtension()
-    } else if (attempts < maxAttempts) {
-      setTimeout(checkTableau, interval)
-    } else {
-      console.error("[v0] No se encontró tableau.extensions después de", maxAttempts, "intentos")
-      showError(
-        "No se pudo conectar con la API de Tableau. " +
-          "Intenta recargar la extensión con el botón 'Recargar Extensión'.",
-      )
-    }
+  function setStatus(text, className) {
+    elements.status.textContent = text
+    elements.status.className = "status" + (className ? " " + className : "")
   }
 
-  checkTableau()
-}
-
-  function initializeExtension() {
-    tableauExt.initializeAsync().then(
-      () => {
-        console.log("[v0] Extension inicializada correctamente")
-        init()
-      },
-      (err) => {
-        console.error("[v0] Error al inicializar extension:", err)
-        showError("Error al inicializar: " + err.toString())
-      },
-    )
+  function escapeHtml(str) {
+    const div = document.createElement("div")
+    div.textContent = str
+    return div.innerHTML
   }
 
-  // Start waiting for Tableau API
-  waitForTableau()
+  function getTimestamp() {
+    const now = new Date()
+    return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}_${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`
+  }
 })()
