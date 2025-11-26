@@ -9,32 +9,34 @@ const tableConfig = {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("[v0] DOM cargado, esperando API de Tableau...")
+  console.log("[v0] DOM cargado")
 
-  // Intentar inicializar directamente sin verificar primero
-  attemptInitialization()
-})
-
-function attemptInitialization(attempts = 0) {
-  const maxAttempts = 10
-
-  console.log(`[v0] Intento ${attempts + 1}/${maxAttempts} de inicialización...`)
-
-  // Verificar si tableau existe
-  if (typeof window.tableau === "undefined" || !window.tableau.extensions) {
-    if (attempts < maxAttempts) {
-      console.log("[v0] Tableau API aún no disponible, reintentando en 300ms...")
-      setTimeout(() => attemptInitialization(attempts + 1), 300)
-    } else {
-      console.error("[v0] Tableau API no se cargó después de múltiples intentos")
-      showError()
-    }
-    return
+  // Esperar a que el script de Tableau termine de cargar
+  if (typeof window.tableau !== "undefined" && window.tableau.extensions) {
+    console.log("[v0] Tableau API ya disponible")
+    initializeExtension()
+  } else {
+    console.log("[v0] Esperando a que Tableau API se cargue...")
+    // Esperar a que se dispare el evento de carga del script de Tableau
+    window.addEventListener("load", () => {
+      console.log("[v0] Window load event disparado")
+      if (typeof window.tableau !== "undefined" && window.tableau.extensions) {
+        console.log("[v0] Tableau API disponible después del load")
+        initializeExtension()
+      } else {
+        console.log("[v0] Intentando inicializar con retraso...")
+        setTimeout(() => {
+          if (typeof window.tableau !== "undefined" && window.tableau.extensions) {
+            initializeExtension()
+          } else {
+            console.error("[v0] Tableau API no disponible")
+            showError()
+          }
+        }, 1000)
+      }
+    })
   }
-
-  console.log("[v0] ✓ Tableau API detectada, iniciando extensión...")
-  initializeExtension()
-}
+})
 
 function showError() {
   document.getElementById("loading").innerHTML = `
