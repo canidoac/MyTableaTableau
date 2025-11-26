@@ -11,7 +11,7 @@ const tableConfig = {
 
 // Declare the $ variable
 const $ = window.$ // Assuming jQuery is loaded globally
-const tableauExt = window.tableau.extensions
+let tableauExt = null
 ;(() => {
   async function init() {
     console.log("[v0] Inicializando Super Table Extension...")
@@ -293,6 +293,17 @@ const tableauExt = window.tableau.extensions
   }
 
   $(document).ready(() => {
+    if (typeof window.tableau === "undefined" || !window.tableau.extensions) {
+      showError(
+        "Esta extensión debe ejecutarse dentro de Tableau Desktop o Tableau Server. " +
+          "Por favor, cárgala como una extensión de dashboard.",
+      )
+      console.error("[v0] tableau.extensions no está disponible. ¿Estás ejecutando dentro de Tableau?")
+      return
+    }
+
+    tableauExt = window.tableau.extensions
+
     tableauExt.initializeAsync().then(
       () => {
         console.log("[v0] Extension inicializada correctamente")
