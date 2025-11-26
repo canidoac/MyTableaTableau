@@ -5,7 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Table Extension</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://extensions.tableau.com/lib/tableau.extensions.1.latest.js"></script>
+    <!-- Usando URL correcta de la API de Tableau Extensions con fallback -->
+    <script src="https://unpkg.com/@tableau/extensions-api-types@1.11.0/tableau.extensions.1.latest.js" 
+            onerror="loadTableauFallback()"></script>
+    <script>
+        // Fallback si la primera URL falla
+        function loadTableauFallback() {
+            console.log('[v0] Primera URL falló, intentando URL alternativa');
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@tableau/extensions-api-types@1.11.0/tableau.extensions.1.latest.js';
+            script.onerror = function() {
+                console.error('[v0] ERROR: No se pudo cargar la API de Tableau desde ninguna fuente');
+                document.getElementById('loading').innerHTML = 
+                    '<div style="color: red; padding: 20px;">❌ Error: No se pudo cargar la API de Tableau Extensions.<br>Verifica tu conexión a internet.</div>';
+            };
+            document.head.appendChild(script);
+        }
+    </script>
 </head>
 <body>
     <div class="container">

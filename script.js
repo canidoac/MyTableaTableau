@@ -1,4 +1,4 @@
-const tableau = window.tableau // Declare the tableau variable
+// Declare the tableau variable
 let worksheet = null
 let dataTable = null
 const conditionalFormats = []
@@ -8,50 +8,105 @@ const tableConfig = {
   showBorders: true,
 }
 
-// Inicializar la extensión de Tableau
-tableau.extensions.initializeAsync().then(
-  () => {
-    console.log("[v0] Extensión inicializada correctamente")
-    console.log("[v0] Contexto:", tableau.extensions.environment.context)
+// Función para esperar a que tableau esté disponible
+function waitForTableau(callback, maxAttempts = 20) {
+  let attempts = 0
+  const interval = setInterval(() => {
+    attempts++
+    console.log(`[v0] Intento ${attempts} de cargar tableau API...`)
 
-    try {
-      const dashboardContent = tableau.extensions.dashboardContent
-      if (dashboardContent && dashboardContent.dashboard) {
-        const worksheets = dashboardContent.dashboard.worksheets
-        console.log("[v0] Worksheets disponibles:", worksheets.length)
-
-        if (worksheets.length === 0) {
-          throw new Error("No hay hojas de trabajo en el dashboard. Por favor agrega una hoja con datos.")
-        }
-
-        worksheet = worksheets[0]
-        console.log("[v0] Usando worksheet:", worksheet.name)
-      } else {
-        throw new Error("No se puede acceder al dashboard")
-      }
-
-      loadData()
-      setupEventListeners()
-    } catch (error) {
-      console.error("[v0] Error obteniendo worksheet:", error)
+    if (window.tableau && window.tableau.extensions) {
+      console.log("[v0] Tableau API cargada exitosamente")
+      clearInterval(interval)
+      callback()
+    } else if (attempts >= maxAttempts) {
+      console.error("[v0] No se pudo cargar la API de Tableau después de", attempts, "intentos")
+      clearInterval(interval)
       document.getElementById("loading").innerHTML = `
-        <div style="color: #e74c3c; padding: 20px;">
-          <strong>Error:</strong> ${error.message}<br><br>
-          <small>Asegúrate de que el dashboard contenga al menos una hoja de trabajo con datos.</small>
+        <div style="color: #e74c3c; padding: 20px; text-align: center;">
+          <h3>❌ Error al cargar Tableau Extensions API</h3>
+          <p>La extensión no puede conectarse con Tableau.</p>
+          <p><strong>Posibles causas:</strong></p>
+          <ul style="text-align: left; display: inline-block;">
+            <li>Problemas de conectividad a internet</li>
+            <li>Firewall o proxy bloqueando las URLs de recursos</li>
+            <li>La extensión no se está ejecutando dentro de Tableau</li>
+          </ul>
+          <p style="margin-top: 20px;">
+            <button onclick="location.reload()" style="padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Reintentar
+            </button>
+          </p>
         </div>
       `
     }
-  },
-  (err) => {
-    console.error("[v0] Error al inicializar:", err)
-    document.getElementById("loading").innerHTML = `
-      <div style="color: #e74c3c; padding: 20px;">
-        <strong>Error al inicializar la extensión:</strong><br>
-        ${err.message || err}
-      </div>
-    `
-  },
-)
+  }, 500)
+}
+
+// Iniciar cuando el DOM esté listo y tableau esté disponible
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log("[v0] DOM cargado, esperando Tableau API...")
+    waitForTableau(initializeExtension)
+  })
+} else {
+  console.log("[v0] DOM ya estaba listo, esperando Tableau API...")
+  waitForTableau(initializeExtension)
+}
+
+function initializeExtension() {
+  console.log("[v0] Iniciando inicialización de la extensión...")
+  const tableau = window.tableau
+
+  // Inicializar la extensión de Tableau
+  tableau.extensions.initializeAsync().then(
+    () => {
+      console.log("[v0] Extensión inicializada correctamente")
+      console.log("[v0] Contexto:", tableau.extensions.environment.context)
+
+      try {
+        const dashboardContent = tableau.extensions.dashboardContent
+        if (dashboardContent && dashboardContent.dashboard) {
+          const worksheets = dashboardContent.dashboard.worksheets
+          console.log("[v0] Worksheets disponibles:", worksheets.length)
+          console.log(
+            "[v0] Lista de worksheets:",
+            worksheets.map((w) => w.name),
+          )
+
+          if (worksheets.length === 0) {
+            throw new Error("No hay hojas de trabajo en el dashboard. Por favor agrega una hoja con datos.")
+          }
+
+          worksheet = worksheets[0]
+          console.log("[v0] Usando worksheet:", worksheet.name)
+        } else {
+          throw new Error("No se puede acceder al dashboard")
+        }
+
+        loadData()
+        setupEventListeners()
+      } catch (error) {
+        console.error("[v0] Error obteniendo worksheet:", error)
+        document.getElementById("loading").innerHTML = `
+          <div style="color: #e74c3c; padding: 20px;">
+            <strong>Error:</strong> ${error.message}<br><br>
+            <small>Asegúrate de que el dashboard contenga al menos una hoja de trabajo con datos.</small>
+          </div>
+        `
+      }
+    },
+    (err) => {
+      console.error("[v0] Error al inicializar:", err)
+      document.getElementById("loading").innerHTML = `
+        <div style="color: #e74c3c; padding: 20px;">
+          <strong>Error al inicializar la extensión:</strong><br>
+          ${err.message || err}
+        </div>
+      `
+    },
+  )
+}
 
 function setupEventListeners() {
   document.getElementById("configure-btn").addEventListener("click", toggleConfigPanel)
@@ -71,7 +126,6 @@ function setupEventListeners() {
   })
 
   document.getElementById("show-borders").addEventListener("change", (e) => {
-    tableConfig.showBorders = e.target.checked
     document.getElementById("data-table").style.border = e.target.checked ? "1px solid #e1e8ed" : "none"
   })
 
@@ -86,8 +140,16 @@ function toggleConfigPanel() {
 async function loadData() {
   try {
     console.log("[v0] Iniciando carga de datos...")
-    document.getElementById("loading").style.display = "block"
-    document.getElementById("data-table").style.display = "none"
+    const loadingDiv = document.getElementById("loading")
+    const dataTableElement = document.getElementById("data-table")
+
+    if (!loadingDiv || !dataTableElement) {
+      console.error("[v0] No se encontraron elementos del DOM")
+      return
+    }
+
+    loadingDiv.style.display = "block"
+    dataTableElement.style.display = "none"
 
     if (!worksheet) {
       throw new Error("No hay worksheet disponible")
@@ -102,8 +164,9 @@ async function loadData() {
     populateFormatFields()
     renderTable()
 
-    document.getElementById("loading").style.display = "none"
-    document.getElementById("data-table").style.display = "table"
+    loadingDiv.style.display = "none"
+    dataTableElement.style.display = "table"
+    console.log("[v0] Tabla renderizada exitosamente")
   } catch (error) {
     console.error("[v0] Error cargando datos:", error)
     document.getElementById("loading").innerHTML = `
