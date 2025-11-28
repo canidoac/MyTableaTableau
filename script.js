@@ -238,7 +238,7 @@ function renderTable() {
       } else if (typeof value === "number") {
         td.className = "cell-number"
 
-        var formatting = applyConditionalFormat(value, colName)
+        var formatting = applyConditionalFormat(value, colName, "number")
         if (formatting.icon) {
           td.innerHTML = formatting.icon + " " + formatting.text
           td.className += " " + formatting.className
@@ -258,7 +258,13 @@ function renderTable() {
         td.className = "cell-date"
         td.textContent = value.toLocaleDateString("es-ES")
       } else {
-        td.textContent = String(value)
+        var textFormatting = applyConditionalFormat(String(value), colName, "text")
+        if (textFormatting.icon) {
+          td.innerHTML = textFormatting.icon + " " + escapeHtml(textFormatting.text)
+          td.className = textFormatting.className
+        } else {
+          td.textContent = String(value)
+        }
       }
 
       tr.appendChild(td)
@@ -286,65 +292,310 @@ function renderTable() {
   console.log("[v0] Tabla renderizada correctamente")
 }
 
-function applyConditionalFormat(value, columnName) {
+function applyConditionalFormat(value, columnName, dataType) {
   var rules = config.conditionalFormatting[columnName]
   if (!rules || !rules.enabled) {
-    return { text: value.toLocaleString("es-ES", { maximumFractionDigits: 2 }), className: "", icon: null }
+    if (dataType === "number") {
+      return { text: value.toLocaleString("es-ES", { maximumFractionDigits: 2 }), className: "", icon: null }
+    }
+    return { text: String(value), className: "", icon: null }
   }
 
   var icon = ""
   var className = ""
 
-  if (rules.useIcons) {
-    if (value > rules.greenThreshold) {
-      icon = '<span class="icon-positive">●</span>'
-      className = "formatted-positive"
-    } else if (value < rules.redThreshold) {
-      icon = '<span class="icon-negative">●</span>'
-      className = "formatted-negative"
-    } else {
-      icon = '<span class="icon-neutral">●</span>'
-      className = "formatted-neutral"
+  if (dataType === "number") {
+    // Formato condicional numérico (por umbrales)
+    if (rules.useIcons) {
+      if (value > rules.greenThreshold) {
+        icon = '<span class="icon-positive">●</span>'
+        className = "formatted-positive"
+      } else if (value < rules.redThreshold) {
+        icon = '<span class="icon-negative">●</span>'
+        className = "formatted-negative"
+      } else {
+        icon = '<span class="icon-neutral">●</span>'
+        className = "formatted-neutral"
+      }
+    }
+    return {
+      text: value.toLocaleString("es-ES", { maximumFractionDigits: 2 }),
+      className: className,
+      icon: icon,
+    }
+  } else if (dataType === "text") {
+    // Formato condicional de texto (por etiquetas)
+    if (rules.useIcons && rules.textRules) {
+      var textValue = String(value).toLowerCase().trim()
+
+      // Buscar coincidencia en reglas de texto
+      for (var i = 0; i < rules.textRules.length; i++) {
+        var rule = rules.textRules[i]
+        var ruleText = rule.text.toLowerCase().trim()
+
+        if (textValue === ruleText || textValue.indexOf(ruleText) >= 0) {
+          if (rule.color === "green") {
+            icon = '<span class="icon-positive">●</span>'
+            className = "formatted-positive"
+          } else if (rule.color === "red") {
+            icon = '<span class="icon-negative">●</span>'
+            className = "formatted-negative"
+          } else if (rule.color === "yellow") {
+            icon = '<span class="icon-neutral">●</span>'
+            className = "formatted-neutral"
+          }
+          break
+        }
+      }
+    }
+    return {
+      text: String(value),
+      className: className,
+      icon: icon,
     }
   }
 
-  return {
-    text: value.toLocaleString("es-ES", { maximumFractionDigits: 2 }),
-    className: className,
-    icon: icon,
+  return { text: String(value), className: "", icon: null }
+}
+
+function detectColumnType(colIndex) {
+  if (!currentData || !currentData.rows || currentData.rows.length === 0) {
+    return "text"
   }
+
+  // Revisar las primeras filas para detectar el tipo
+  for (var i = 0; i < Math.min(10, currentData.rows.length); i++) {
+    var value = currentData.rows[i][colIndex].value
+    if (value != null) {
+      if (typeof value === "number") {
+        return "number"
+      } else if (value instanceof Date) {
+        return "date"
+      }
+    }
+  }
+
+  return "text"
 }
 
 function openColumnConfig(colIndex) {
   var colName = currentData.columns[colIndex].fieldName
+  var colType = detectColumnType(colIndex)
   var existingRules = config.conditionalFormatting[colName] || {
     enabled: false,
     useIcons: true,
     greenThreshold: 0,
     redThreshold: 0,
+    textRules: [],
   }
 
   var modal = document.getElementById("config-modal")
   document.getElementById("config-column-name").textContent = colName
   document.getElementById("config-enabled").checked = existingRules.enabled
   document.getElementById("config-icons").checked = existingRules.useIcons
-  document.getElementById("config-green").value = existingRules.greenThreshold
-  document.getElementById("config-red").value = existingRules.redThreshold
+
+  // Mostrar/ocultar secciones según tipo
+  var numberConfig = document.getElementById("number-config")
+  var textConfig = document.getElementById("text-config")
+
+  if (colType === "number") {
+    numberConfig.style.display = "block"
+    textConfig.style.display = "none"
+    document.getElementById("config-green").value = existingRules.greenThreshold
+    document.getElementById("config-red").value = existingRules.redThreshold
+  } else {
+    numberConfig.style.display = "none"
+    textConfig.style.display = "block"
+
+    // Renderizar reglas de texto existentes
+    renderTextRules(existingRules.textRules)
+  }
 
   modal.style.display = "flex"
 
-  document.getElementById("save-config-btn").onclick = () => {
-    config.conditionalFormatting[colName] = {
-      enabled: document.getElementById("config-enabled").checked,
-      useIcons: document.getElementById("config-icons").checked,
-      greenThreshold: Number.parseFloat(document.getElementById("config-green").value) || 0,
-      redThreshold: Number.parseFloat(document.getElementById("config-red").value) || 0,
-    }
+  // Guardar el índice de columna para uso posterior
+  modal.setAttribute("data-col-index", colIndex)
+}
 
-    saveConfig()
-    modal.style.display = "none"
-    renderTable()
+function renderTextRules(rules) {
+  var container = document.getElementById("text-rules-list")
+  container.innerHTML = ""
+
+  if (!rules || rules.length === 0) {
+    container.innerHTML = '<p class="help-text">No hay reglas definidas. Agrega una regla para comenzar.</p>'
+    return
   }
+
+  rules.forEach((rule, index) => {
+    var ruleDiv = document.createElement("div")
+    ruleDiv.className = "text-rule-item"
+
+    var iconColor = rule.color === "green" ? "#16a34a" : rule.color === "red" ? "#dc2626" : "#f59e0b"
+
+    ruleDiv.innerHTML =
+      '<span class="rule-preview" style="color: ' +
+      iconColor +
+      ';">●</span>' +
+      '<span class="rule-text">"' +
+      escapeHtml(rule.text) +
+      '"</span>' +
+      '<button class="rule-delete-btn" data-index="' +
+      index +
+      '">×</button>'
+
+    container.appendChild(ruleDiv)
+  })
+
+  // Event listeners para botones de eliminar
+  container.querySelectorAll(".rule-delete-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      var idx = Number.parseInt(this.getAttribute("data-index"))
+      rules.splice(idx, 1)
+      renderTextRules(rules)
+    })
+  })
+}
+
+function saveColumnConfig() {
+  var modal = document.getElementById("config-modal")
+  var colIndex = Number.parseInt(modal.getAttribute("data-col-index"))
+  var colName = currentData.columns[colIndex].fieldName
+  var colType = detectColumnType(colIndex)
+
+  var rules = {
+    enabled: document.getElementById("config-enabled").checked,
+    useIcons: document.getElementById("config-icons").checked,
+  }
+
+  if (colType === "number") {
+    rules.greenThreshold = Number.parseFloat(document.getElementById("config-green").value) || 0
+    rules.redThreshold = Number.parseFloat(document.getElementById("config-red").value) || 0
+    rules.textRules = []
+  } else {
+    rules.greenThreshold = 0
+    rules.redThreshold = 0
+    // Mantener las reglas de texto existentes o crear nuevas
+    var existingRules = config.conditionalFormatting[colName]
+    rules.textRules = existingRules && existingRules.textRules ? existingRules.textRules : []
+  }
+
+  config.conditionalFormatting[colName] = rules
+  saveConfig()
+  modal.style.display = "none"
+  renderTable()
+}
+
+function addTextRule() {
+  var modal = document.getElementById("config-modal")
+  var colIndex = Number.parseInt(modal.getAttribute("data-col-index"))
+  var colName = currentData.columns[colIndex].fieldName
+
+  var text = document.getElementById("text-rule-input").value.trim()
+  var color = document.getElementById("text-rule-color").value
+
+  if (!text) {
+    alert("Por favor ingresa un texto para la regla")
+    return
+  }
+
+  if (!config.conditionalFormatting[colName]) {
+    config.conditionalFormatting[colName] = {
+      enabled: true,
+      useIcons: true,
+      greenThreshold: 0,
+      redThreshold: 0,
+      textRules: [],
+    }
+  }
+
+  if (!config.conditionalFormatting[colName].textRules) {
+    config.conditionalFormatting[colName].textRules = []
+  }
+
+  config.conditionalFormatting[colName].textRules.push({
+    text: text,
+    color: color,
+  })
+
+  // Limpiar inputs
+  document.getElementById("text-rule-input").value = ""
+  document.getElementById("text-rule-color").value = "green"
+
+  // Re-renderizar lista
+  renderTextRules(config.conditionalFormatting[colName].textRules)
+}
+
+function refreshData() {
+  if (currentWorksheet) {
+    if (isWorksheetContext) {
+      loadWorksheetData()
+    } else {
+      loadWorksheet(currentWorksheet.name)
+    }
+  }
+}
+
+function showLoading() {
+  document.getElementById("loading").style.display = "flex"
+  document.getElementById("error").style.display = "none"
+  document.getElementById("table-container").style.display = "none"
+}
+
+function showError(message) {
+  document.getElementById("loading").style.display = "none"
+  document.getElementById("error").style.display = "flex"
+  document.getElementById("table-container").style.display = "none"
+  document.getElementById("error-message").textContent = message
+  updateStatus("Error", "error")
+}
+
+function updateStatus(text, className) {
+  var el = document.getElementById("status")
+  el.textContent = text
+  el.className = "status" + (className ? " " + className : "")
+}
+
+function escapeHtml(str) {
+  var div = document.createElement("div")
+  div.textContent = str
+  return div.innerHTML
+}
+
+function getTimestamp() {
+  var now = new Date()
+  return (
+    now.getFullYear() +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0") +
+    "_" +
+    String(now.getHours()).padStart(2, "0") +
+    String(now.getMinutes()).padStart(2, "0")
+  )
+}
+
+function openSettings() {
+  var modal = document.getElementById("settings-modal")
+  document.getElementById("settings-search").checked = config.showSearch
+  document.getElementById("settings-export").checked = config.showExportButtons
+  document.getElementById("settings-refresh").checked = config.showRefreshButton
+
+  modal.style.display = "flex"
+
+  switchTab("general")
+}
+
+function switchTab(tabName) {
+  // Desactivar todas las pestañas
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.classList.remove("active")
+  })
+  document.querySelectorAll(".tab-content").forEach((content) => {
+    content.classList.remove("active")
+  })
+
+  // Activar pestaña seleccionada
+  document.querySelector('[data-tab="' + tabName + '"]').classList.add("active")
+  document.getElementById(tabName + "-tab").classList.add("active")
 }
 
 function saveConfig() {
@@ -362,66 +613,6 @@ function loadConfig() {
       console.error("[v0] Error cargando configuración:", e)
     }
   }
-}
-
-function openSettings() {
-  var modal = document.getElementById("settings-modal")
-  document.getElementById("settings-search").checked = config.showSearch
-  document.getElementById("settings-export").checked = config.showExportButtons
-  document.getElementById("settings-refresh").checked = config.showRefreshButton
-
-  modal.style.display = "flex"
-}
-
-function sortTable(colIndex) {
-  if (sortColumn === colIndex) {
-    sortAsc = !sortAsc
-  } else {
-    sortColumn = colIndex
-    sortAsc = true
-  }
-
-  var dataToSort = filteredData || currentData.rows
-
-  dataToSort.sort((a, b) => {
-    var aVal = a[colIndex].value
-    var bVal = b[colIndex].value
-
-    if (aVal == null && bVal == null) return 0
-    if (aVal == null) return 1
-    if (bVal == null) return -1
-
-    var comparison = 0
-    if (typeof aVal === "number" && typeof bVal === "number") {
-      comparison = aVal - bVal
-    } else {
-      comparison = String(aVal).localeCompare(String(bVal))
-    }
-
-    return sortAsc ? comparison : -comparison
-  })
-
-  renderTable()
-}
-
-function searchTable(query) {
-  if (!query || query.trim() === "") {
-    filteredData = null
-    renderTable()
-    return
-  }
-
-  var searchLower = query.toLowerCase().trim()
-
-  filteredData = currentData.rows.filter((row) =>
-    row.some((cell) => {
-      var value = cell.value
-      if (value == null) return false
-      return String(value).toLowerCase().indexOf(searchLower) !== -1
-    }),
-  )
-
-  renderTable()
 }
 
 function exportToExcel() {
@@ -478,52 +669,45 @@ function escapeCSV(value) {
   return str
 }
 
-function refreshData() {
-  if (currentWorksheet) {
-    if (isWorksheetContext) {
-      loadWorksheetData()
-    } else {
-      loadWorksheet(currentWorksheet.name)
-    }
+function sortTable(colIndex) {
+  if (sortColumn === colIndex) {
+    sortAsc = !sortAsc
+  } else {
+    sortColumn = colIndex
+    sortAsc = true
   }
+
+  var displayData = filteredData || currentData.rows
+
+  displayData.sort((a, b) => {
+    var col = currentData.columns[colIndex]
+    var valA = a[colIndex].value
+    var valB = b[colIndex].value
+
+    if (valA == null) return 1
+    if (valB == null) return -1
+
+    if (col.dataType === tableau.dataTypeEnum.number) {
+      return sortAsc ? valA - valB : valB - valA
+    } else {
+      return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA))
+    }
+  })
+
+  renderTable()
 }
 
-function showLoading() {
-  document.getElementById("loading").style.display = "flex"
-  document.getElementById("error").style.display = "none"
-  document.getElementById("table-container").style.display = "none"
-}
+function searchTable(query) {
+  if (!currentData) return
 
-function showError(message) {
-  document.getElementById("loading").style.display = "none"
-  document.getElementById("error").style.display = "flex"
-  document.getElementById("table-container").style.display = "none"
-  document.getElementById("error-message").textContent = message
-  updateStatus("Error", "error")
-}
+  query = query.toLowerCase().trim()
+  filteredData = currentData.rows.filter((row) => {
+    return row.some((cell) => {
+      return cell.value != null && String(cell.value).toLowerCase().includes(query)
+    })
+  })
 
-function updateStatus(text, className) {
-  var el = document.getElementById("status")
-  el.textContent = text
-  el.className = "status" + (className ? " " + className : "")
-}
-
-function escapeHtml(str) {
-  var div = document.createElement("div")
-  div.textContent = str
-  return div.innerHTML
-}
-
-function getTimestamp() {
-  var now = new Date()
-  return (
-    now.getFullYear() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0") +
-    "_" +
-    String(now.getHours()).padStart(2, "0") +
-    String(now.getMinutes()).padStart(2, "0")
-  )
+  renderTable()
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -560,17 +744,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("settings-modal").style.display = "none"
   })
 
-  // Cerrar modales
-  document.querySelectorAll(".close-modal").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      this.closest(".modal").style.display = "none"
-    })
-  })
+  document.getElementById("save-config-btn").addEventListener("click", saveColumnConfig)
 
-  window.addEventListener("click", (e) => {
-    if (e.target.classList.contains("modal")) {
-      e.target.style.display = "none"
-    }
+  document.getElementById("add-text-rule-btn").addEventListener("click", addTextRule)
+
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      var tabName = this.getAttribute("data-tab")
+      switchTab(tabName)
+    })
   })
 
   // Inicializar extensión
