@@ -1,270 +1,265 @@
-// Super Table Pro Extension v3.1
+// Super Table Pro Extension v4.0 - Completamente refactorizado
 
-// Importar variables necesarias
 var tableau = window.tableau
 var XLSX = window.XLSX
 
 // Variables globales
-var dashboard = null
 var currentWorksheet = null
-var currentData = null
-var filteredData = null
-var sortColumn = null
-var sortAsc = true
+var fullData = null
+var visibleData = null
 var isWorksheetContext = false
 
+// Configuración completa
 var config = {
+  // General
+  showOnlineStatus: true,
   showSearch: true,
   showExportButtons: true,
   showRefreshButton: true,
-  conditionalFormatting: {},
+
+  // Columnas
+  columns: {}, // { columnName: { visible: true, visibleToUser: true, includeInExport: true, tooltip: '', width: 'auto' } }
+
+  // Formato condicional por columna
+  columnFormatting: {}, // { columnName: { type: 'number'|'text', rules: [...] } }
+
+  // Formato condicional de filas
+  rowFormatting: {
+    enabled: false,
+    rules: [], // [{ column: 'Status', operator: '=', value: 'Alerta', backgroundColor: '#fee2e2', textColor: '#991b1b' }]
+  },
+
+  // Performance
+  virtualization: true,
+  rowsPerPage: 100,
 }
 
-// Función de inicialización
+var sortState = { column: null, ascending: true }
+var searchQuery = ""
+var currentPage = 0
+
+// Inicialización
 function initializeExtension() {
-  console.log("[v0] Inicializando extensión...")
+  console.log("[v0] Iniciando Super Table Pro v4.0")
 
-  tableau.extensions.initializeAsync().then(
-    () => {
-      console.log("[v0] Extensión inicializada correctamente")
-
+  tableau.extensions
+    .initializeAsync()
+    .then(() => {
+      console.log("[v0] Extensión inicializada")
       loadConfig()
 
       if (tableau.extensions.dashboardContent) {
-        // Contexto de dashboard
         isWorksheetContext = false
-        dashboard = tableau.extensions.dashboardContent.dashboard
-        console.log("[v0] Dashboard:", dashboard.name)
-        console.log("[v0] Worksheets:", dashboard.worksheets.length)
-
-        updateStatus("Conectado", "connected")
-
-        // Poblar selector de worksheets
-        var selector = document.getElementById("worksheet-selector")
-        selector.innerHTML = ""
-
-        dashboard.worksheets.forEach((ws, index) => {
-          var option = document.createElement("option")
-          option.value = ws.name
-          option.textContent = ws.name
-          if (index === 0) option.selected = true
-          selector.appendChild(option)
-        })
-
-        selector.disabled = false
-        selector.parentElement.style.display = "block"
-
-        enableControls()
-
-        if (dashboard.worksheets.length > 0) {
-          console.log("[v0] Cargando primer worksheet...")
-          loadWorksheet(dashboard.worksheets[0].name)
-        }
+        setupDashboardContext()
       } else if (tableau.extensions.worksheetContent) {
         isWorksheetContext = true
-        currentWorksheet = tableau.extensions.worksheetContent.worksheet
-        console.log("[v0] Worksheet:", currentWorksheet.name)
-
-        updateStatus("Conectado", "connected")
-
-        // Ocultar selector de worksheets
-        document.getElementById("worksheet-selector").parentElement.style.display = "none"
-
-        enableControls()
-        console.log("[v0] Cargando datos del worksheet...")
-        loadWorksheetData()
-      } else {
-        showError("No se pudo detectar el contexto de la extensión")
+        setupWorksheetContext()
       }
-    },
-    (err) => {
-      console.error("[v0] Error inicializando:", err)
-      showError("Error al conectar con Tableau: " + err.toString())
-    },
-  )
+
+      setupEventListeners()
+    })
+    .catch((err) => {
+      console.error("[v0] Error:", err)
+      showError("Error al inicializar: " + err.toString())
+    })
 }
 
-function enableControls() {
-  document.getElementById("search-input").disabled = false
-  document.getElementById("export-excel").disabled = false
-  document.getElementById("export-csv").disabled = false
-  document.getElementById("refresh-btn").disabled = false
+function setupDashboardContext() {
+  var dashboard = tableau.extensions.dashboardContent.dashboard
+  var selector = document.getElementById("worksheet-selector")
+  selector.innerHTML = ""
 
-  applyConfig()
-}
-
-function applyConfig() {
-  var searchBox = document.querySelector(".search-box")
-  var exportButtons = document.querySelectorAll("#export-excel, #export-csv")
-  var refreshBtn = document.getElementById("refresh-btn")
-
-  searchBox.style.display = config.showSearch ? "flex" : "none"
-  exportButtons.forEach((btn) => {
-    btn.style.display = config.showExportButtons ? "inline-flex" : "none"
+  dashboard.worksheets.forEach((ws, i) => {
+    var opt = document.createElement("option")
+    opt.value = ws.name
+    opt.textContent = ws.name
+    if (i === 0) opt.selected = true
+    selector.appendChild(opt)
   })
-  refreshBtn.style.display = config.showRefreshButton ? "inline-flex" : "none"
+
+  selector.parentElement.style.display = "block"
+  updateStatus("Conectado", "connected")
+
+  if (dashboard.worksheets.length > 0) {
+    loadWorksheet(dashboard.worksheets[0].name)
+  }
 }
 
-function loadWorksheet(worksheetName) {
-  console.log("[v0] loadWorksheet:", worksheetName)
-  showLoading()
+function setupWorksheetContext() {
+  currentWorksheet = tableau.extensions.worksheetContent.worksheet
+  document.getElementById("worksheet-selector").parentElement.style.display = "none"
+  updateStatus("Conectado", "connected")
+  loadWorksheetData()
+}
 
-  var worksheet = dashboard.worksheets.find((ws) => ws.name === worksheetName)
+function setupEventListeners() {
+  document.getElementById("search-input").addEventListener("input", handleSearch)
+  document.getElementById("worksheet-selector").addEventListener("change", (e) => loadWorksheet(e.target.value))
+  document.getElementById("export-excel").addEventListener("click", exportToExcel)
+  document.getElementById("export-csv").addEventListener("click", exportToCSV)
+  document.getElementById("refresh-btn").addEventListener("click", refreshData)
+  document.getElementById("settings-btn").addEventListener("click", openSettings)
+  document.getElementById("columns-btn").addEventListener("click", openColumnManager)
+  document.getElementById("clear-filter").addEventListener("click", clearSearch)
 
-  if (!worksheet) {
-    showError("No se encontró el worksheet: " + worksheetName)
-    return
-  }
+  // Modales
+  document.querySelectorAll(".close-modal").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      this.closest(".modal").style.display = "none"
+    })
+  })
 
-  currentWorksheet = worksheet
+  document.getElementById("save-settings-btn").addEventListener("click", saveSettings)
+  document.getElementById("add-row-rule-btn").addEventListener("click", addRowRule)
+}
+
+function loadWorksheet(name) {
+  var dashboard = tableau.extensions.dashboardContent.dashboard
+  currentWorksheet = dashboard.worksheets.find((ws) => ws.name === name)
   loadWorksheetData()
 }
 
 function loadWorksheetData() {
-  console.log("[v0] loadWorksheetData - inicio")
-  if (!currentData) {
-    showLoading()
-  }
+  showLoading()
 
   currentWorksheet
-    .getSummaryDataAsync()
+    .getSummaryDataAsync({ maxRows: 10000 })
     .then((dataTable) => {
-      console.log("[v0] Datos cargados:", dataTable.data.length, "filas", dataTable.columns.length, "columnas")
+      console.log("[v0] Datos cargados:", dataTable.data.length, "filas")
 
-      currentData = {
-        columns: dataTable.columns,
-        rows: dataTable.data,
+      fullData = {
+        columns: dataTable.columns.map((col) => ({
+          name: col.fieldName,
+          type: col.dataType,
+          index: col.index,
+        })),
+        rows: dataTable.data.map((row) => row.map((cell) => cell.value)),
       }
 
-      filteredData = null
-      sortColumn = null
-      sortAsc = true
+      // Inicializar configuración de columnas si no existe
+      fullData.columns.forEach((col) => {
+        if (!config.columns[col.name]) {
+          config.columns[col.name] = {
+            visible: true,
+            visibleToUser: true, // Usuario puede mostrar/ocultar
+            includeInExport: true,
+            tooltip: "",
+            width: "auto",
+          }
+        }
+      })
 
-      console.log("[v0] Renderizando tabla...")
+      applyFiltersAndSort()
       renderTable()
     })
     .catch((err) => {
       console.error("[v0] Error cargando datos:", err)
-      showError("Error cargando datos: " + err.toString())
+      showError("Error: " + err.toString())
     })
 }
 
-function renderTable() {
-  console.log("[v0] renderTable - inicio")
-  document.getElementById("loading").style.display = "none"
-  document.getElementById("error").style.display = "none"
-  document.getElementById("table-container").style.display = "block"
+function applyFiltersAndSort() {
+  var filtered = fullData.rows
 
-  var displayData = filteredData || currentData.rows
-
-  // Actualizar información
-  document.getElementById("table-title").textContent = currentWorksheet.name
-  document.getElementById("row-count").textContent = displayData.length.toLocaleString() + " filas"
-
-  if (filteredData) {
-    document.getElementById("filter-info").style.display = "flex"
-    document.getElementById("filtered-count").textContent =
-      "Mostrando " + filteredData.length + " de " + currentData.rows.length + " filas"
-  } else {
-    document.getElementById("filter-info").style.display = "none"
+  // Búsqueda
+  if (searchQuery) {
+    filtered = filtered.filter((row) => {
+      return row.some((cell) => {
+        if (cell == null) return false
+        return String(cell).toLowerCase().includes(searchQuery.toLowerCase())
+      })
+    })
   }
 
-  // Renderizar header
+  // Ordenamiento
+  if (sortState.column !== null) {
+    filtered = filtered.slice().sort((a, b) => {
+      var valA = a[sortState.column]
+      var valB = b[sortState.column]
+
+      if (valA == null) return 1
+      if (valB == null) return -1
+
+      var comparison = 0
+      if (typeof valA === "number" && typeof valB === "number") {
+        comparison = valA - valB
+      } else {
+        comparison = String(valA).localeCompare(String(valB))
+      }
+
+      return sortState.ascending ? comparison : -comparison
+    })
+  }
+
+  visibleData = filtered
+  currentPage = 0
+}
+
+function renderTable() {
+  document.getElementById("loading").style.display = "none"
+  document.getElementById("table-container").style.display = "block"
+
+  var visibleColumns = fullData.columns.filter((col) => config.columns[col.name]?.visible)
+
+  // Header
   var thead = document.getElementById("table-header")
   thead.innerHTML = ""
   var headerRow = document.createElement("tr")
 
-  currentData.columns.forEach((col, index) => {
+  visibleColumns.forEach((col) => {
     var th = document.createElement("th")
-    th.innerHTML =
-      '<div class="th-content">' +
-      "<span>" +
-      escapeHtml(col.fieldName) +
-      "</span>" +
-      '<button class="sort-btn" data-index="' +
-      index +
-      '">' +
-      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-      '<polyline points="6 9 12 15 18 9"></polyline>' +
-      "</svg>" +
-      "</button>" +
-      '<button class="config-btn" data-index="' +
-      index +
-      '" title="Configurar formato">' +
-      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-      '<circle cx="12" cy="12" r="3"></circle>' +
-      '<path d="M12 1v6m0 6v6M5.6 5.6l4.2 4.2m4.2 4.2l4.2 4.2M1 12h6m6 0h6m-16.4.4l4.2-4.2m4.2-4.2l4.2-4.2"></path>' +
-      "</svg>" +
-      "</button>" +
-      "</div>"
+    var colConfig = config.columns[col.name]
 
-    if (sortColumn === index) {
-      th.className = sortAsc ? "sorted-asc" : "sorted-desc"
-    }
+    var sortIcon = sortState.column === col.index ? (sortState.ascending ? "↑" : "↓") : "↕"
+
+    th.innerHTML = `
+      <div class="th-content" title="${colConfig.tooltip || col.name}">
+        <span>${escapeHtml(col.name)}</span>
+        <button class="sort-btn" data-index="${col.index}">${sortIcon}</button>
+      </div>
+    `
 
     headerRow.appendChild(th)
   })
 
   thead.appendChild(headerRow)
 
-  // Renderizar body
+  // Body con virtualización
   var tbody = document.getElementById("table-body")
   tbody.innerHTML = ""
 
-  if (displayData.length === 0) {
-    var emptyRow = document.createElement("tr")
-    var emptyCell = document.createElement("td")
-    emptyCell.colSpan = currentData.columns.length
-    emptyCell.className = "empty-state"
-    emptyCell.textContent = filteredData ? "No se encontraron resultados" : "No hay datos para mostrar"
-    emptyRow.appendChild(emptyCell)
-    tbody.appendChild(emptyRow)
-    return
-  }
+  var startRow = currentPage * config.rowsPerPage
+  var endRow = Math.min(startRow + config.rowsPerPage, visibleData.length)
+  var pageData = visibleData.slice(startRow, endRow)
 
-  displayData.forEach((row, rowIndex) => {
+  pageData.forEach((row, rowIdx) => {
     var tr = document.createElement("tr")
-    if (rowIndex % 2 === 1) tr.className = "row-alt"
 
-    row.forEach((cell, colIndex) => {
+    var rowStyle = getRowFormatting(row)
+    if (rowStyle.backgroundColor) {
+      tr.style.backgroundColor = rowStyle.backgroundColor
+    }
+    if (rowStyle.textColor) {
+      tr.style.color = rowStyle.textColor
+    }
+
+    visibleColumns.forEach((col) => {
       var td = document.createElement("td")
-      var value = cell.value
-      var colName = currentData.columns[colIndex].fieldName
+      var value = row[col.index]
+      var colConfig = config.columns[col.name]
 
-      // Formatear según tipo
+      // Tooltip
+      if (colConfig.tooltip) {
+        td.title = colConfig.tooltip
+      }
+
       if (value == null) {
         td.className = "cell-null"
         td.textContent = "-"
-      } else if (typeof value === "number") {
-        td.className = "cell-number"
-
-        var formatting = applyConditionalFormat(value, colName, "number")
-        if (formatting.icon) {
-          td.innerHTML = formatting.icon + " " + formatting.text
-          td.className += " " + formatting.className
-        } else {
-          if (value > 0) {
-            td.classList.add("positive")
-          } else if (value < 0) {
-            td.classList.add("negative")
-          }
-
-          td.textContent = value.toLocaleString("es-ES", {
-            maximumFractionDigits: 2,
-            minimumFractionDigits: 0,
-          })
-        }
-      } else if (value instanceof Date) {
-        td.className = "cell-date"
-        td.textContent = value.toLocaleDateString("es-ES")
       } else {
-        var textFormatting = applyConditionalFormat(String(value), colName, "text")
-        if (textFormatting.icon) {
-          td.innerHTML = textFormatting.icon + " " + escapeHtml(textFormatting.text)
-          td.className = textFormatting.className
-        } else {
-          td.textContent = String(value)
-        }
+        var formatted = formatCell(value, col.name, col.type)
+        td.innerHTML = formatted.html
+        td.className = formatted.className
       }
 
       tr.appendChild(td)
@@ -273,329 +268,475 @@ function renderTable() {
     tbody.appendChild(tr)
   })
 
-  // Event listeners para botones de ordenamiento
-  document.querySelectorAll(".sort-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      var colIndex = Number.parseInt(this.getAttribute("data-index"))
-      sortTable(colIndex)
-    })
-  })
-
-  document.querySelectorAll(".config-btn").forEach((btn) => {
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation()
-      var colIndex = Number.parseInt(this.getAttribute("data-index"))
-      openColumnConfig(colIndex)
-    })
-  })
-
-  console.log("[v0] Tabla renderizada correctamente")
+  // Info y paginación
+  updateTableInfo()
+  setupSortListeners()
 }
 
-function applyConditionalFormat(value, columnName, dataType) {
-  var rules = config.conditionalFormatting[columnName]
-  if (!rules || !rules.enabled) {
-    if (dataType === "number") {
-      return { text: value.toLocaleString("es-ES", { maximumFractionDigits: 2 }), className: "", icon: null }
-    }
-    return { text: String(value), className: "", icon: null }
+function getRowFormatting(row) {
+  if (!config.rowFormatting.enabled || !config.rowFormatting.rules.length) {
+    return {}
   }
 
-  var icon = ""
+  for (var i = 0; i < config.rowFormatting.rules.length; i++) {
+    var rule = config.rowFormatting.rules[i]
+    var colIndex = fullData.columns.findIndex((c) => c.name === rule.column)
+
+    if (colIndex === -1) continue
+
+    var cellValue = row[colIndex]
+    var matches = false
+
+    switch (rule.operator) {
+      case "=":
+        matches = String(cellValue).toLowerCase() === String(rule.value).toLowerCase()
+        break
+      case "!=":
+        matches = String(cellValue).toLowerCase() !== String(rule.value).toLowerCase()
+        break
+      case "contains":
+        matches = String(cellValue).toLowerCase().includes(String(rule.value).toLowerCase())
+        break
+      case ">":
+        matches = Number(cellValue) > Number(rule.value)
+        break
+      case "<":
+        matches = Number(cellValue) < Number(rule.value)
+        break
+    }
+
+    if (matches) {
+      return {
+        backgroundColor: rule.backgroundColor,
+        textColor: rule.textColor,
+      }
+    }
+  }
+
+  return {}
+}
+
+function formatCell(value, columnName, dataType) {
+  var formatting = config.columnFormatting[columnName]
+  var html = ""
   var className = ""
 
-  if (dataType === "number") {
-    // Formato condicional numérico (por umbrales)
-    if (rules.useIcons) {
-      if (value > rules.greenThreshold) {
-        icon = '<span class="icon-positive">●</span>'
-        className = "formatted-positive"
-      } else if (value < rules.redThreshold) {
-        icon = '<span class="icon-negative">●</span>'
-        className = "formatted-negative"
-      } else {
-        icon = '<span class="icon-neutral">●</span>'
-        className = "formatted-neutral"
+  if (formatting && formatting.rules && formatting.rules.length > 0) {
+    for (var i = 0; i < formatting.rules.length; i++) {
+      var rule = formatting.rules[i]
+      var matches = false
+
+      if (formatting.type === "text") {
+        matches = String(value).toLowerCase().includes(rule.text.toLowerCase())
+      } else if (formatting.type === "number" && typeof value === "number") {
+        if (rule.operator === ">") matches = value > rule.value
+        else if (rule.operator === "<") matches = value < rule.value
+        else if (rule.operator === "=") matches = value === rule.value
       }
-    }
-    return {
-      text: value.toLocaleString("es-ES", { maximumFractionDigits: 2 }),
-      className: className,
-      icon: icon,
-    }
-  } else if (dataType === "text") {
-    // Formato condicional de texto (por etiquetas)
-    if (rules.useIcons && rules.textRules) {
-      var textValue = String(value).toLowerCase().trim()
 
-      // Buscar coincidencia en reglas de texto
-      for (var i = 0; i < rules.textRules.length; i++) {
-        var rule = rules.textRules[i]
-        var ruleText = rule.text.toLowerCase().trim()
-
-        if (textValue === ruleText || textValue.indexOf(ruleText) >= 0) {
-          if (rule.color === "green") {
-            icon = '<span class="icon-positive">●</span>'
-            className = "formatted-positive"
-          } else if (rule.color === "red") {
-            icon = '<span class="icon-negative">●</span>'
-            className = "formatted-negative"
-          } else if (rule.color === "yellow") {
-            icon = '<span class="icon-neutral">●</span>'
-            className = "formatted-neutral"
-          }
-          break
+      if (matches) {
+        var icon = ""
+        if (rule.icon === "circle") {
+          var iconColor = rule.color || "#64748b"
+          icon = `<span style="color: ${iconColor}; font-size: 14px; margin-right: 6px;">●</span>`
+        } else if (rule.icon === "diamond") {
+          icon = `<span style="color: ${rule.color || "#64748b"}; font-size: 14px; margin-right: 6px;">◆</span>`
+        } else if (rule.icon === "arrow-up") {
+          icon = `<span style="color: #16a34a; font-size: 14px; margin-right: 6px;">▲</span>`
+        } else if (rule.icon === "arrow-down") {
+          icon = `<span style="color: #dc2626; font-size: 14px; margin-right: 6px;">▼</span>`
         }
-      }
-    }
-    return {
-      text: String(value),
-      className: className,
-      icon: icon,
-    }
-  }
 
-  return { text: String(value), className: "", icon: null }
-}
-
-function detectColumnType(colIndex) {
-  if (!currentData || !currentData.rows || currentData.rows.length === 0) {
-    return "text"
-  }
-
-  // Revisar las primeras filas para detectar el tipo
-  for (var i = 0; i < Math.min(10, currentData.rows.length); i++) {
-    var value = currentData.rows[i][colIndex].value
-    if (value != null) {
-      if (typeof value === "number") {
-        return "number"
-      } else if (value instanceof Date) {
-        return "date"
+        html = icon + escapeHtml(String(value))
+        className = "cell-formatted"
+        break
       }
     }
   }
 
-  return "text"
-}
-
-function openColumnConfig(colIndex) {
-  var colName = currentData.columns[colIndex].fieldName
-  var colType = detectColumnType(colIndex)
-  var existingRules = config.conditionalFormatting[colName] || {
-    enabled: false,
-    useIcons: true,
-    greenThreshold: 0,
-    redThreshold: 0,
-    textRules: [],
+  if (!html) {
+    if (typeof value === "number") {
+      html = value.toLocaleString("es-ES", { maximumFractionDigits: 2 })
+      className = "cell-number"
+    } else if (value instanceof Date) {
+      html = value.toLocaleDateString("es-ES")
+      className = "cell-date"
+    } else {
+      html = escapeHtml(String(value))
+    }
   }
 
-  var modal = document.getElementById("config-modal")
-  document.getElementById("config-column-name").textContent = colName
-  document.getElementById("config-enabled").checked = existingRules.enabled
-  document.getElementById("config-icons").checked = existingRules.useIcons
+  return { html, className }
+}
 
-  // Mostrar/ocultar secciones según tipo
-  var numberConfig = document.getElementById("number-config")
-  var textConfig = document.getElementById("text-config")
+function updateTableInfo() {
+  document.getElementById("table-title").textContent = currentWorksheet.name
 
-  if (colType === "number") {
-    numberConfig.style.display = "block"
-    textConfig.style.display = "none"
-    document.getElementById("config-green").value = existingRules.greenThreshold
-    document.getElementById("config-red").value = existingRules.redThreshold
+  var totalRows = visibleData.length
+  var startRow = currentPage * config.rowsPerPage + 1
+  var endRow = Math.min((currentPage + 1) * config.rowsPerPage, totalRows)
+
+  document.getElementById("row-count").textContent =
+    `Mostrando ${startRow}-${endRow} de ${totalRows.toLocaleString()} filas`
+
+  if (searchQuery) {
+    document.getElementById("filter-info").style.display = "flex"
+    document.getElementById("filtered-count").textContent =
+      `Filtrado de ${fullData.rows.length.toLocaleString()} filas totales`
   } else {
-    numberConfig.style.display = "none"
-    textConfig.style.display = "block"
-
-    // Renderizar reglas de texto existentes
-    renderTextRules(existingRules.textRules)
+    document.getElementById("filter-info").style.display = "none"
   }
 
-  modal.style.display = "flex"
-
-  // Guardar el índice de columna para uso posterior
-  modal.setAttribute("data-col-index", colIndex)
+  // Paginación
+  updatePagination()
 }
 
-function renderTextRules(rules) {
-  var container = document.getElementById("text-rules-list")
+function updatePagination() {
+  var container = document.getElementById("pagination")
   container.innerHTML = ""
 
-  if (!rules || rules.length === 0) {
-    container.innerHTML = '<p class="help-text">No hay reglas definidas. Agrega una regla para comenzar.</p>'
+  var totalPages = Math.ceil(visibleData.length / config.rowsPerPage)
+
+  if (totalPages <= 1) {
+    container.style.display = "none"
     return
   }
 
-  rules.forEach((rule, index) => {
+  container.style.display = "flex"
+
+  // Botón anterior
+  var prevBtn = document.createElement("button")
+  prevBtn.className = "btn btn-sm btn-secondary"
+  prevBtn.textContent = "← Anterior"
+  prevBtn.disabled = currentPage === 0
+  prevBtn.onclick = () => {
+    currentPage--
+    renderTable()
+  }
+  container.appendChild(prevBtn)
+
+  // Info de página
+  var pageInfo = document.createElement("span")
+  pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`
+  pageInfo.style.padding = "0 16px"
+  container.appendChild(pageInfo)
+
+  // Botón siguiente
+  var nextBtn = document.createElement("button")
+  nextBtn.className = "btn btn-sm btn-secondary"
+  nextBtn.textContent = "Siguiente →"
+  nextBtn.disabled = currentPage >= totalPages - 1
+  nextBtn.onclick = () => {
+    currentPage++
+    renderTable()
+  }
+  container.appendChild(nextBtn)
+}
+
+function setupSortListeners() {
+  document.querySelectorAll(".sort-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      var colIndex = Number.parseInt(this.getAttribute("data-index"))
+
+      if (sortState.column === colIndex) {
+        sortState.ascending = !sortState.ascending
+      } else {
+        sortState.column = colIndex
+        sortState.ascending = true
+      }
+
+      applyFiltersAndSort()
+      renderTable()
+    })
+  })
+}
+
+function handleSearch(e) {
+  searchQuery = e.target.value.trim()
+  applyFiltersAndSort()
+  renderTable()
+}
+
+function clearSearch() {
+  document.getElementById("search-input").value = ""
+  searchQuery = ""
+  applyFiltersAndSort()
+  renderTable()
+}
+
+function openColumnManager() {
+  var modal = document.getElementById("columns-modal")
+  var list = document.getElementById("columns-list")
+  list.innerHTML = ""
+
+  fullData.columns.forEach((col) => {
+    var colConfig = config.columns[col.name]
+    var div = document.createElement("div")
+    div.className = "column-item"
+
+    div.innerHTML = `
+      <div class="column-item-header">
+        <label class="checkbox-label">
+          <input type="checkbox" class="column-visibility" data-column="${col.name}" 
+            ${colConfig.visible ? "checked" : ""}>
+          <span>${escapeHtml(col.name)}</span>
+        </label>
+        <button class="btn-icon btn-sm config-column-btn" data-column="${col.name}" title="Configurar">
+          ⚙️
+        </button>
+      </div>
+      <div class="column-options" style="margin-left: 28px; font-size: 12px; color: #64748b;">
+        <label class="checkbox-label" style="font-size: 12px;">
+          <input type="checkbox" class="column-user-toggle" data-column="${col.name}"
+            ${colConfig.visibleToUser ? "checked" : ""}>
+          <span>Usuario puede mostrar/ocultar</span>
+        </label>
+        <label class="checkbox-label" style="font-size: 12px;">
+          <input type="checkbox" class="column-export" data-column="${col.name}"
+            ${colConfig.includeInExport ? "checked" : ""}>
+          <span>Incluir en exportación</span>
+        </label>
+      </div>
+    `
+
+    list.appendChild(div)
+  })
+
+  // Event listeners
+  list.querySelectorAll(".column-visibility").forEach((checkbox) => {
+    checkbox.addEventListener("change", function () {
+      var colName = this.getAttribute("data-column")
+      config.columns[colName].visible = this.checked
+    })
+  })
+
+  list.querySelectorAll(".column-user-toggle").forEach((checkbox) => {
+    checkbox.addEventListener("change", function () {
+      var colName = this.getAttribute("data-column")
+      config.columns[colName].visibleToUser = this.checked
+    })
+  })
+
+  list.querySelectorAll(".column-export").forEach((checkbox) => {
+    checkbox.addEventListener("change", function () {
+      var colName = this.getAttribute("data-column")
+      config.columns[colName].includeInExport = this.checked
+    })
+  })
+
+  list.querySelectorAll(".config-column-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      var colName = this.getAttribute("data-column")
+      openColumnConfig(colName)
+    })
+  })
+
+  modal.style.display = "flex"
+}
+
+function openColumnConfig(columnName) {
+  var modal = document.getElementById("column-config-modal")
+  var colConfig = config.columns[columnName]
+  var formatting = config.columnFormatting[columnName] || { type: "text", rules: [] }
+
+  document.getElementById("config-col-name").textContent = columnName
+  document.getElementById("config-col-tooltip").value = colConfig.tooltip || ""
+
+  // Tipo de formato
+  document.getElementById("config-format-type").value = formatting.type || "text"
+
+  // Mostrar reglas existentes
+  renderFormatRules(columnName, formatting.rules)
+
+  modal.setAttribute("data-column", columnName)
+  modal.style.display = "flex"
+}
+
+function renderFormatRules(columnName, rules) {
+  var container = document.getElementById("format-rules-list")
+  container.innerHTML = ""
+
+  if (!rules || rules.length === 0) {
+    container.innerHTML = '<p class="help-text">No hay reglas de formato. Agrega una para comenzar.</p>'
+    return
+  }
+
+  rules.forEach((rule, idx) => {
     var ruleDiv = document.createElement("div")
-    ruleDiv.className = "text-rule-item"
+    ruleDiv.className = "format-rule-item"
 
-    var iconColor = rule.color === "green" ? "#16a34a" : rule.color === "red" ? "#dc2626" : "#f59e0b"
+    var ruleText = ""
+    if (rule.text) {
+      ruleText = `Contiene "${rule.text}"`
+    } else if (rule.operator && rule.value !== undefined) {
+      ruleText = `${rule.operator} ${rule.value}`
+    }
 
-    ruleDiv.innerHTML =
-      '<span class="rule-preview" style="color: ' +
-      iconColor +
-      ';">●</span>' +
-      '<span class="rule-text">"' +
-      escapeHtml(rule.text) +
-      '"</span>' +
-      '<button class="rule-delete-btn" data-index="' +
-      index +
-      '">×</button>'
+    var iconPreview = ""
+    if (rule.icon === "circle") {
+      iconPreview = `<span style="color: ${rule.color};">●</span>`
+    } else if (rule.icon === "diamond") {
+      iconPreview = `<span style="color: ${rule.color};">◆</span>`
+    } else if (rule.icon === "arrow-up") {
+      iconPreview = '<span style="color: #16a34a;">▲</span>'
+    } else if (rule.icon === "arrow-down") {
+      iconPreview = '<span style="color: #dc2626;">▼</span>'
+    }
+
+    ruleDiv.innerHTML = `
+      ${iconPreview}
+      <span class="rule-text">${ruleText}</span>
+      <button class="rule-delete-btn" data-index="${idx}">×</button>
+    `
 
     container.appendChild(ruleDiv)
   })
 
-  // Event listeners para botones de eliminar
+  // Delete listeners
   container.querySelectorAll(".rule-delete-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
       var idx = Number.parseInt(this.getAttribute("data-index"))
       rules.splice(idx, 1)
-      renderTextRules(rules)
+      renderFormatRules(columnName, rules)
     })
   })
 }
 
 function saveColumnConfig() {
-  var modal = document.getElementById("config-modal")
-  var colIndex = Number.parseInt(modal.getAttribute("data-col-index"))
-  var colName = currentData.columns[colIndex].fieldName
-  var colType = detectColumnType(colIndex)
+  var modal = document.getElementById("column-config-modal")
+  var columnName = modal.getAttribute("data-column")
 
-  var rules = {
-    enabled: document.getElementById("config-enabled").checked,
-    useIcons: document.getElementById("config-icons").checked,
-  }
+  // Guardar tooltip
+  config.columns[columnName].tooltip = document.getElementById("config-col-tooltip").value
 
-  if (colType === "number") {
-    rules.greenThreshold = Number.parseFloat(document.getElementById("config-green").value) || 0
-    rules.redThreshold = Number.parseFloat(document.getElementById("config-red").value) || 0
-    rules.textRules = []
-  } else {
-    rules.greenThreshold = 0
-    rules.redThreshold = 0
-    // Mantener las reglas de texto existentes o crear nuevas
-    var existingRules = config.conditionalFormatting[colName]
-    rules.textRules = existingRules && existingRules.textRules ? existingRules.textRules : []
-  }
-
-  config.conditionalFormatting[colName] = rules
+  // Guardar en configuración
   saveConfig()
   modal.style.display = "none"
+
+  // Re-renderizar
   renderTable()
 }
 
-function addTextRule() {
-  var modal = document.getElementById("config-modal")
-  var colIndex = Number.parseInt(modal.getAttribute("data-col-index"))
-  var colName = currentData.columns[colIndex].fieldName
-
-  var text = document.getElementById("text-rule-input").value.trim()
-  var color = document.getElementById("text-rule-color").value
-
-  if (!text) {
-    alert("Por favor ingresa un texto para la regla")
-    return
-  }
-
-  if (!config.conditionalFormatting[colName]) {
-    config.conditionalFormatting[colName] = {
-      enabled: true,
-      useIcons: true,
-      greenThreshold: 0,
-      redThreshold: 0,
-      textRules: [],
-    }
-  }
-
-  if (!config.conditionalFormatting[colName].textRules) {
-    config.conditionalFormatting[colName].textRules = []
-  }
-
-  config.conditionalFormatting[colName].textRules.push({
-    text: text,
-    color: color,
-  })
-
-  // Limpiar inputs
-  document.getElementById("text-rule-input").value = ""
-  document.getElementById("text-rule-color").value = "green"
-
-  // Re-renderizar lista
-  renderTextRules(config.conditionalFormatting[colName].textRules)
-}
-
-function refreshData() {
-  if (currentWorksheet) {
-    if (isWorksheetContext) {
-      loadWorksheetData()
-    } else {
-      loadWorksheet(currentWorksheet.name)
-    }
-  }
-}
-
-function showLoading() {
-  document.getElementById("loading").style.display = "flex"
-  document.getElementById("error").style.display = "none"
-  document.getElementById("table-container").style.display = "none"
-}
-
-function showError(message) {
-  document.getElementById("loading").style.display = "none"
-  document.getElementById("error").style.display = "flex"
-  document.getElementById("table-container").style.display = "none"
-  document.getElementById("error-message").textContent = message
-  updateStatus("Error", "error")
-}
-
-function updateStatus(text, className) {
-  var el = document.getElementById("status")
-  el.textContent = text
-  el.className = "status" + (className ? " " + className : "")
-}
-
-function escapeHtml(str) {
-  var div = document.createElement("div")
-  div.textContent = str
-  return div.innerHTML
-}
-
-function getTimestamp() {
-  var now = new Date()
-  return (
-    now.getFullYear() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0") +
-    "_" +
-    String(now.getHours()).padStart(2, "0") +
-    String(now.getMinutes()).padStart(2, "0")
-  )
+function saveColumnManager() {
+  saveConfig()
+  document.getElementById("columns-modal").style.display = "none"
+  renderTable()
 }
 
 function openSettings() {
   var modal = document.getElementById("settings-modal")
+
+  // Cargar valores actuales
+  document.getElementById("settings-online").checked = config.showOnlineStatus
   document.getElementById("settings-search").checked = config.showSearch
   document.getElementById("settings-export").checked = config.showExportButtons
   document.getElementById("settings-refresh").checked = config.showRefreshButton
+  document.getElementById("settings-virtualization").checked = config.virtualization
+  document.getElementById("settings-rows-per-page").value = config.rowsPerPage
+
+  // Reglas de formato de fila
+  renderRowRules()
 
   modal.style.display = "flex"
-
   switchTab("general")
 }
 
 function switchTab(tabName) {
-  // Desactivar todas las pestañas
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.classList.remove("active")
-  })
-  document.querySelectorAll(".tab-content").forEach((content) => {
-    content.classList.remove("active")
+  document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
+  document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
+
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
+  document.getElementById(tabName + "-tab").classList.add("active")
+}
+
+function renderRowRules() {
+  var container = document.getElementById("row-rules-list")
+  container.innerHTML = ""
+
+  var rules = config.rowFormatting.rules || []
+
+  if (rules.length === 0) {
+    container.innerHTML =
+      '<p class="help-text">No hay reglas de fila. Las reglas pintan toda la fila según condiciones.</p>'
+    return
+  }
+
+  rules.forEach((rule, idx) => {
+    var div = document.createElement("div")
+    div.className = "row-rule-item"
+
+    div.innerHTML = `
+      <div style="flex: 1;">
+        <strong>${rule.column}</strong> ${rule.operator} "${rule.value}"
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="width: 24px; height: 24px; background: ${rule.backgroundColor}; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
+        <button class="rule-delete-btn" data-index="${idx}">×</button>
+      </div>
+    `
+
+    container.appendChild(div)
   })
 
-  // Activar pestaña seleccionada
-  document.querySelector('[data-tab="' + tabName + '"]').classList.add("active")
-  document.getElementById(tabName + "-tab").classList.add("active")
+  // Delete listeners
+  container.querySelectorAll(".rule-delete-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      var idx = Number.parseInt(this.getAttribute("data-index"))
+      config.rowFormatting.rules.splice(idx, 1)
+      renderRowRules()
+    })
+  })
+}
+
+function addRowRule() {
+  var column = document.getElementById("row-rule-column").value
+  var operator = document.getElementById("row-rule-operator").value
+  var value = document.getElementById("row-rule-value").value
+  var bgColor = document.getElementById("row-rule-bgcolor").value
+  var textColor = document.getElementById("row-rule-textcolor").value
+
+  if (!column || !value) {
+    alert("Por favor completa todos los campos")
+    return
+  }
+
+  if (!config.rowFormatting.rules) {
+    config.rowFormatting.rules = []
+  }
+
+  config.rowFormatting.rules.push({
+    column: column,
+    operator: operator,
+    value: value,
+    backgroundColor: bgColor,
+    textColor: textColor,
+  })
+
+  // Limpiar
+  document.getElementById("row-rule-value").value = ""
+
+  renderRowRules()
+}
+
+function saveSettings() {
+  config.showOnlineStatus = document.getElementById("settings-online").checked
+  config.showSearch = document.getElementById("settings-search").checked
+  config.showExportButtons = document.getElementById("settings-export").checked
+  config.showRefreshButton = document.getElementById("settings-refresh").checked
+  config.virtualization = document.getElementById("settings-virtualization").checked
+  config.rowsPerPage = Number.parseInt(document.getElementById("settings-rows-per-page").value) || 100
+  config.rowFormatting.enabled = document.getElementById("settings-row-format").checked
+
+  // Aplicar cambios visuales
+  document.getElementById("online-indicator").style.display = config.showOnlineStatus ? "flex" : "none"
+  document.querySelector(".search-box").style.display = config.showSearch ? "flex" : "none"
+  document.getElementById("export-excel").style.display = config.showExportButtons ? "inline-flex" : "none"
+  document.getElementById("export-csv").style.display = config.showExportButtons ? "inline-flex" : "none"
+  document.getElementById("refresh-btn").style.display = config.showRefreshButton ? "inline-flex" : "none"
+
+  saveConfig()
+  document.getElementById("settings-modal").style.display = "none"
+  renderTable()
 }
 
 function saveConfig() {
@@ -608,153 +749,93 @@ function loadConfig() {
   if (saved) {
     try {
       var parsed = JSON.parse(saved)
-      config = parsed
+      config = Object.assign(config, parsed)
     } catch (e) {
-      console.error("[v0] Error cargando configuración:", e)
+      console.error("[v0] Error cargando config:", e)
     }
   }
 }
 
+function refreshData() {
+  loadWorksheetData()
+}
+
 function exportToExcel() {
-  if (!currentData) return
+  if (!fullData) return
 
-  var workbook = XLSX.utils.book_new()
-  var displayData = filteredData || currentData.rows
+  var wb = XLSX.utils.book_new()
+  var exportData = []
 
-  var sheetData = []
-  sheetData.push(currentData.columns.map((col) => col.fieldName))
+  // Headers (solo columnas marcadas para exportación)
+  var exportColumns = fullData.columns.filter((col) => config.columns[col.name]?.includeInExport)
+  exportData.push(exportColumns.map((col) => col.name))
 
-  displayData.forEach((row) => {
-    sheetData.push(row.map((cell) => cell.value))
+  // Datos
+  visibleData.forEach((row) => {
+    exportData.push(exportColumns.map((col) => row[col.index]))
   })
 
-  var worksheet = XLSX.utils.aoa_to_sheet(sheetData)
+  var ws = XLSX.utils.aoa_to_sheet(exportData)
+  ws["!cols"] = exportColumns.map(() => ({ wch: 15 }))
 
-  worksheet["!cols"] = currentData.columns.map((col) => ({ wch: Math.max(col.fieldName.length + 2, 15) }))
-
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Datos")
-
-  var filename = currentWorksheet.name + "_" + getTimestamp() + ".xlsx"
-  XLSX.writeFile(workbook, filename)
+  XLSX.utils.book_append_sheet(wb, ws, "Datos")
+  XLSX.writeFile(wb, `${currentWorksheet.name}_${Date.now()}.xlsx`)
 }
 
 function exportToCSV() {
-  if (!currentData) return
+  if (!fullData) return
 
-  var displayData = filteredData || currentData.rows
+  var exportColumns = fullData.columns.filter((col) => config.columns[col.name]?.includeInExport)
   var csv = []
 
-  // Headers
-  csv.push(currentData.columns.map((col) => escapeCSV(col.fieldName)).join(","))
+  csv.push(exportColumns.map((col) => escapeCSV(col.name)).join(","))
 
-  // Datos
-  displayData.forEach((row) => {
-    csv.push(row.map((cell) => escapeCSV(cell.value)).join(","))
+  visibleData.forEach((row) => {
+    csv.push(exportColumns.map((col) => escapeCSV(row[col.index])).join(","))
   })
 
   var blob = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" })
   var link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
-  link.download = currentWorksheet.name + "_" + getTimestamp() + ".csv"
+  link.download = `${currentWorksheet.name}_${Date.now()}.csv`
   link.click()
-  URL.revokeObjectURL(link.href)
 }
 
-function escapeCSV(value) {
-  if (value == null) return ""
-  var str = String(value)
-  if (str.indexOf(",") >= 0 || str.indexOf('"') >= 0 || str.indexOf("\n") >= 0) {
+function escapeCSV(val) {
+  if (val == null) return ""
+  var str = String(val)
+  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
     return '"' + str.replace(/"/g, '""') + '"'
   }
   return str
 }
 
-function sortTable(colIndex) {
-  if (sortColumn === colIndex) {
-    sortAsc = !sortAsc
-  } else {
-    sortColumn = colIndex
-    sortAsc = true
-  }
-
-  var displayData = filteredData || currentData.rows
-
-  displayData.sort((a, b) => {
-    var col = currentData.columns[colIndex]
-    var valA = a[colIndex].value
-    var valB = b[colIndex].value
-
-    if (valA == null) return 1
-    if (valB == null) return -1
-
-    if (col.dataType === tableau.dataTypeEnum.number) {
-      return sortAsc ? valA - valB : valB - valA
-    } else {
-      return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA))
-    }
-  })
-
-  renderTable()
+function showLoading() {
+  document.getElementById("loading").style.display = "flex"
+  document.getElementById("table-container").style.display = "none"
 }
 
-function searchTable(query) {
-  if (!currentData) return
-
-  query = query.toLowerCase().trim()
-  filteredData = currentData.rows.filter((row) => {
-    return row.some((cell) => {
-      return cell.value != null && String(cell.value).toLowerCase().includes(query)
-    })
-  })
-
-  renderTable()
+function showError(msg) {
+  document.getElementById("error").style.display = "flex"
+  document.getElementById("error-message").textContent = msg
+  document.getElementById("loading").style.display = "none"
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("retry-btn").addEventListener("click", () => {
-    location.reload()
-  })
+function updateStatus(text, className) {
+  var el = document.getElementById("status")
+  el.textContent = text
+  el.className = "status " + (className || "")
+}
 
-  document.getElementById("worksheet-selector").addEventListener("change", function () {
-    loadWorksheet(this.value)
-  })
+function escapeHtml(str) {
+  var div = document.createElement("div")
+  div.textContent = str
+  return div.innerHTML
+}
 
-  document.getElementById("search-input").addEventListener("input", function () {
-    searchTable(this.value)
-  })
-
-  document.getElementById("clear-filter").addEventListener("click", () => {
-    document.getElementById("search-input").value = ""
-    searchTable("")
-  })
-
-  document.getElementById("refresh-btn").addEventListener("click", refreshData)
-  document.getElementById("export-excel").addEventListener("click", exportToExcel)
-  document.getElementById("export-csv").addEventListener("click", exportToCSV)
-
-  document.getElementById("settings-btn").addEventListener("click", openSettings)
-
-  document.getElementById("save-settings-btn").addEventListener("click", () => {
-    config.showSearch = document.getElementById("settings-search").checked
-    config.showExportButtons = document.getElementById("settings-export").checked
-    config.showRefreshButton = document.getElementById("settings-refresh").checked
-
-    saveConfig()
-    applyConfig()
-    document.getElementById("settings-modal").style.display = "none"
-  })
-
-  document.getElementById("save-config-btn").addEventListener("click", saveColumnConfig)
-
-  document.getElementById("add-text-rule-btn").addEventListener("click", addTextRule)
-
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      var tabName = this.getAttribute("data-tab")
-      switchTab(tabName)
-    })
-  })
-
-  // Inicializar extensión
+// Iniciar cuando el DOM esté listo
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeExtension)
+} else {
   initializeExtension()
-})
+}

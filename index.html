@@ -6,10 +6,7 @@
     <title>Super Table Pro</title>
     <link rel="stylesheet" href="styles.css">
     
-    <!-- SheetJS para Excel con formato profesional -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    
-    <!-- Tableau Extensions API - URL que funciona -->
     <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.min.js"></script>
 </head>
 <body>
@@ -17,6 +14,8 @@
         <header class="toolbar">
             <div class="toolbar-left">
                 <h1>Super Table Pro <span class="version">v4.0</span></h1>
+                <!-- Indicador online configurable -->
+                <span id="online-indicator" class="online-indicator">● Online</span>
                 <span id="status" class="status">Conectando...</span>
             </div>
             <div class="controls">
@@ -25,51 +24,48 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <input type="text" id="search-input" placeholder="Buscar en la tabla..." disabled>
+                    <input type="text" id="search-input" placeholder="Buscar...">
                 </div>
-                <select id="worksheet-selector" class="worksheet-select" disabled style="display: none;">
-                    <option value="">Cargando...</option>
+                <select id="worksheet-selector" class="worksheet-select" style="display: none;">
+                    <option>Cargando...</option>
                 </select>
-                <button id="export-excel" class="btn btn-primary" disabled title="Exportar a Excel">
+                <!-- Nuevo botón para gestionar columnas -->
+                <button id="columns-btn" class="btn btn-secondary" title="Gestionar columnas">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Columnas
+                </button>
+                <button id="export-excel" class="btn btn-primary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                     </svg>
                     Excel
                 </button>
-                <button id="export-csv" class="btn btn-secondary" disabled title="Exportar a CSV">
-                    CSV
-                </button>
-                <button id="refresh-btn" class="btn btn-icon" disabled title="Actualizar datos">
+                <button id="export-csv" class="btn btn-secondary">CSV</button>
+                <button id="refresh-btn" class="btn btn-icon" title="Actualizar">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="23 4 23 10 17 10"></polyline>
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                     </svg>
                 </button>
-                <button id="settings-btn" class="btn btn-icon" title="Configuración">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v6m0 6v6M5.6 5.6l4.2 4.2m4.2 4.2l4.2 4.2M1 12h6m6 0h6m-16.4.4l4.2-4.2m4.2-4.2l4.2-4.2"></path>
-                    </svg>
-                </button>
+                <button id="settings-btn" class="btn btn-icon" title="Configuración">⚙️</button>
             </div>
         </header>
         
         <main class="content">
             <div id="loading" class="loading-state">
                 <div class="spinner"></div>
-                <p>Conectando con Tableau...</p>
+                <p>Cargando datos...</p>
             </div>
             
             <div id="error" class="error-state" style="display: none;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <h3>Error de conexión</h3>
+                <h3>Error</h3>
                 <p id="error-message"></p>
-                <button id="retry-btn" class="btn btn-primary">Reintentar</button>
             </div>
             
             <div id="table-container" style="display: none;">
@@ -80,39 +76,44 @@
                     </div>
                     <div id="filter-info" class="filter-info" style="display: none;">
                         <span id="filtered-count"></span>
-                        <button id="clear-filter" class="btn-link">Limpiar filtro</button>
+                        <button id="clear-filter" class="btn-link">Limpiar</button>
                     </div>
                 </div>
                 
                 <div class="table-wrapper">
-                    <table id="data-table" class="data-table">
+                    <table class="data-table">
                         <thead id="table-header"></thead>
                         <tbody id="table-body"></tbody>
                     </table>
                 </div>
+                
+                <!-- Paginación -->
+                <div id="pagination" class="pagination"></div>
             </div>
         </main>
     </div>
     
-    <!-- Modal de configuración general con pestañas -->
+    <!-- Modal de configuración general -->
     <div id="settings-modal" class="modal">
         <div class="modal-content modal-large">
             <div class="modal-header">
-                <h2>Configuración de SuperTable</h2>
-                <button class="close-modal">&times;</button>
+                <h2>Configuración</h2>
+                <button class="close-modal">×</button>
             </div>
             
-            <!-- Pestañas -->
             <div class="tabs">
                 <button class="tab-btn active" data-tab="general">General</button>
-                <button class="tab-btn" data-tab="appearance">Apariencia</button>
-                <button class="tab-btn" data-tab="export">Exportación</button>
+                <button class="tab-btn" data-tab="row-format">Formato de Filas</button>
+                <button class="tab-btn" data-tab="performance">Rendimiento</button>
             </div>
             
             <div class="modal-body">
-                <!-- Pestaña General -->
                 <div id="general-tab" class="tab-content active">
-                    <h3>Configuración General</h3>
+                    <h3>Opciones Generales</h3>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="settings-online" checked>
+                        <span>Mostrar indicador "Online"</span>
+                    </label>
                     <label class="checkbox-label">
                         <input type="checkbox" id="settings-search" checked>
                         <span>Mostrar buscador</span>
@@ -127,16 +128,59 @@
                     </label>
                 </div>
                 
-                <!-- Pestaña Apariencia -->
-                <div id="appearance-tab" class="tab-content">
-                    <h3>Apariencia</h3>
-                    <p class="help-text">Personaliza el formato condicional de cada columna haciendo clic en el ícono de engranaje en el encabezado.</p>
+                <!-- Nueva pestaña para formato de filas -->
+                <div id="row-format-tab" class="tab-content">
+                    <h3>Formato Condicional de Filas</h3>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="settings-row-format">
+                        <span>Activar formato condicional de filas</span>
+                    </label>
+                    
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label>Reglas de formato (pintan toda la fila):</label>
+                        <div id="row-rules-list" class="rules-container"></div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Agregar nueva regla:</label>
+                        <div style="display: grid; grid-template-columns: 1fr 100px 1fr; gap: 8px; margin-bottom: 8px;">
+                            <select id="row-rule-column" class="form-input">
+                                <option value="">Columna...</option>
+                            </select>
+                            <select id="row-rule-operator" class="form-input">
+                                <option value="=">=</option>
+                                <option value="!=">≠</option>
+                                <option value="contains">Contiene</option>
+                                <option value=">">></option>
+                                <option value="<"><</option>
+                            </select>
+                            <input type="text" id="row-rule-value" placeholder="Valor..." class="form-input">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px;">
+                            <div>
+                                <label style="font-size: 12px; color: #64748b;">Color de fondo:</label>
+                                <input type="color" id="row-rule-bgcolor" value="#fee2e2" class="form-input">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #64748b;">Color de texto:</label>
+                                <input type="color" id="row-rule-textcolor" value="#991b1b" class="form-input">
+                            </div>
+                            <button id="add-row-rule-btn" class="btn btn-primary" style="align-self: flex-end;">Agregar</button>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Pestaña Exportación -->
-                <div id="export-tab" class="tab-content">
-                    <h3>Opciones de Exportación</h3>
-                    <p class="help-text">Los datos se exportarán con formato profesional incluyendo anchos de columna automáticos.</p>
+                <div id="performance-tab" class="tab-content">
+                    <h3>Rendimiento</h3>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="settings-virtualization" checked>
+                        <span>Activar virtualización (solo renderiza filas visibles)</span>
+                    </label>
+                    <div class="form-group">
+                        <label>Filas por página:</label>
+                        <input type="number" id="settings-rows-per-page" value="100" min="10" max="1000" step="10" class="form-input">
+                        <p class="help-text">Menos filas = mejor rendimiento</p>
+                    </div>
                 </div>
             </div>
             
@@ -146,66 +190,53 @@
         </div>
     </div>
     
-    <!-- Modal de configuración de columna -->
-    <div id="config-modal" class="modal">
-        <div class="modal-content">
+    <!-- Modal de gestión de columnas -->
+    <div id="columns-modal" class="modal">
+        <div class="modal-content modal-large">
             <div class="modal-header">
-                <h2>Formato: <span id="config-column-name"></span></h2>
-                <button class="close-modal">&times;</button>
+                <h2>Gestión de Columnas</h2>
+                <button class="close-modal">×</button>
             </div>
             <div class="modal-body">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="config-enabled">
-                    <span>Activar formato condicional</span>
-                </label>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="config-icons" checked>
-                    <span>Mostrar iconos</span>
-                </label>
-                
-                <!-- Configuración para columnas numéricas -->
-                <div id="number-config" style="display: none;">
-                    <div class="form-group">
-                        <label>Umbral positivo (verde):</label>
-                        <input type="number" id="config-green" step="0.01" value="0" class="form-input">
-                        <p class="help-text">Valores mayores a este número mostrarán <span style="color: #16a34a; font-size: 16px;">●</span></p>
-                    </div>
-                    <div class="form-group">
-                        <label>Umbral negativo (rojo):</label>
-                        <input type="number" id="config-red" step="0.01" value="0" class="form-input">
-                        <p class="help-text">Valores menores a este número mostrarán <span style="color: #dc2626; font-size: 16px;">●</span></p>
-                    </div>
-                    <p class="help-text" style="margin-top: 16px; padding: 12px; background: #f8fafc; border-radius: 4px;">
-                        Los valores entre ambos umbrales mostrarán <span style="color: #f59e0b; font-size: 16px;">●</span>
-                    </p>
+                <p class="help-text" style="margin-bottom: 16px;">
+                    Controla qué columnas se muestran en la tabla, cuáles puede ver el usuario final, y cuáles se incluyen en la exportación.
+                </p>
+                <div id="columns-list" class="columns-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveColumnManager()" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de configuración de columna individual -->
+    <div id="column-config-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configurar: <span id="config-col-name"></span></h2>
+                <button class="close-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Tooltip (ayuda al pasar el mouse):</label>
+                    <input type="text" id="config-col-tooltip" placeholder="Descripción de la columna..." class="form-input">
                 </div>
                 
-                <!-- Configuración para columnas de texto -->
-                <div id="text-config" style="display: none;">
-                    <div class="form-group">
-                        <label>Reglas de formato de texto:</label>
-                        <div id="text-rules-list" class="text-rules-container">
-                            <p class="help-text">No hay reglas definidas. Agrega una regla para comenzar.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label>Agregar nueva regla:</label>
-                        <div class="text-rule-input-group">
-                            <input type="text" id="text-rule-input" placeholder='Ej: "Activo", "Completo"' class="form-input" style="flex: 1;">
-                            <select id="text-rule-color" class="form-input" style="width: 120px;">
-                                <option value="green">Verde ●</option>
-                                <option value="yellow">Amarillo ●</option>
-                                <option value="red">Rojo ●</option>
-                            </select>
-                            <button id="add-text-rule-btn" class="btn btn-primary btn-sm">Agregar</button>
-                        </div>
-                        <p class="help-text" style="margin-top: 8px;">Las reglas se aplican si el texto contiene o es igual a la palabra especificada.</p>
-                    </div>
+                <div class="form-group">
+                    <label>Tipo de formato:</label>
+                    <select id="config-format-type" class="form-input">
+                        <option value="text">Texto</option>
+                        <option value="number">Numérico</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Reglas de formato:</label>
+                    <div id="format-rules-list" class="rules-container"></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="save-config-btn" class="btn btn-primary">Guardar</button>
+                <button onclick="saveColumnConfig()" class="btn btn-primary">Guardar</button>
             </div>
         </div>
     </div>
