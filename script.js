@@ -1,4 +1,4 @@
-// Super Table Extension v2.0.1
+// Super Table Extension v2.0.2
 // Exportación profesional de datos de Tableau
 
 ;(() => {
@@ -10,16 +10,23 @@
 
   // Inicializar cuando el DOM esté listo
   document.addEventListener("DOMContentLoaded", () => {
-    // Inicializar la API de Tableau directamente (patrón oficial)
+    // Configurar event listeners primero
+    document.getElementById("retry-btn").addEventListener("click", () => {
+      location.reload()
+    })
+    document.getElementById("refresh-btn").addEventListener("click", refreshAllData)
+    document.getElementById("export-all-excel").addEventListener("click", exportAllToExcel)
+    document.getElementById("export-csv").addEventListener("click", exportAllToCSV)
+
     tableau.extensions.initializeAsync().then(
       () => {
         // Extensión inicializada correctamente
-        console.log("Extension inicializada")
+        console.log("[v0] Extension inicializada")
 
         // Obtener el dashboard
         dashboard = tableau.extensions.dashboardContent.dashboard
-        console.log("Dashboard:", dashboard.name)
-        console.log("Worksheets:", dashboard.worksheets.length)
+        console.log("[v0] Dashboard:", dashboard.name)
+        console.log("[v0] Worksheets:", dashboard.worksheets.length)
 
         // Actualizar UI
         updateStatus("Conectado", "connected")
@@ -37,20 +44,10 @@
       },
       (err) => {
         // Error de inicialización
-        console.error("Error inicializando:", err)
+        console.error("[v0] Error inicializando:", err)
         showError("Error al conectar: " + err.toString())
       },
     )
-  })
-
-  // Event listeners
-  document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("retry-btn").addEventListener("click", () => {
-      location.reload()
-    })
-    document.getElementById("refresh-btn").addEventListener("click", refreshAllData)
-    document.getElementById("export-all-excel").addEventListener("click", exportAllToExcel)
-    document.getElementById("export-csv").addEventListener("click", exportAllToCSV)
   })
 
   // Cargar datos de todos los worksheets
