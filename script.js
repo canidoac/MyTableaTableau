@@ -102,29 +102,40 @@ function initializeExtension() {
 
 function openSettings() {
   // Guardar las columnas actuales antes de abrir el diálogo
+  var savePromise = Promise.resolve()
+
   if (fullData && fullData.columns && fullData.columns.length > 0) {
     var currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
     currentConfig.columns = fullData.columns.map((col) => ({
-      name: col.name,
-      dataType: col.type,
+      name: col.fieldName || col.name,
+      dataType: col.dataType || col.type,
     }))
     tableau.extensions.settings.set("config", JSON.stringify(currentConfig))
-    tableau.extensions.settings.saveAsync()
+    savePromise = tableau.extensions.settings.saveAsync()
+  } else {
+    console.log("[v0] No hay datos todavía. Abre la configuración después de cargar datos.")
   }
 
-  var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
+  savePromise
+    .then(() => {
+      var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
 
-  tableau.extensions.ui
-    .displayDialogAsync(popupUrl, "", { height: 700, width: 1200 })
-    .then((closePayload) => {
-      if (closePayload === "saved") {
-        console.log("[v0] Configuration saved, reloading data")
-        loadData()
-        applyGeneralSettings()
-      }
+      tableau.extensions.ui
+        .displayDialogAsync(popupUrl, "", { height: 700, width: 1200 })
+        .then((closePayload) => {
+          if (closePayload === "saved") {
+            console.log("[v0] Configuration saved, reloading data")
+            loadData()
+            applyGeneralSettings()
+          }
+        })
+        .catch((error) => {
+          console.log("[v0] Dialog closed or error:", error)
+        })
     })
     .catch((error) => {
-      console.log("[v0] Dialog closed or error:", error)
+      console.error("[v0] Error saving settings before opening dialog:", error)
+      showError("Error al guardar configuración: " + error.toString())
     })
 }
 
