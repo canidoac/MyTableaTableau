@@ -6,7 +6,7 @@ var XLSX = window.XLSX
 // Variables globales
 var currentWorksheet = null
 var fullData = null
-var visibleData = null
+var visibleData = [] // Changed from null to empty array
 var isWorksheetContext = false
 
 // Configuración completa
@@ -404,12 +404,17 @@ function loadWorksheet(name) {
 }
 
 function loadWorksheetData() {
+  console.log("[v0] loadWorksheetData iniciado")
   showLoading()
 
   currentWorksheet
     .getSummaryDataAsync({ maxRows: 10000 })
     .then((dataTable) => {
       console.log("[v0] Datos cargados:", dataTable.data.length, "filas")
+      console.log(
+        "[v0] Columnas:",
+        dataTable.columns.map((c) => c.fieldName),
+      )
 
       fullData = {
         columns: dataTable.columns.map((col) => ({
@@ -420,20 +425,23 @@ function loadWorksheetData() {
         rows: dataTable.data.map((row) => row.map((cell) => cell.value)),
       }
 
-      // Inicializar configuración de columnas si no existe
+      console.log("[v0] fullData creado con", fullData.rows.length, "filas y", fullData.columns.length, "columnas")
+
       fullData.columns.forEach((col) => {
         if (!config.columns[col.name]) {
           config.columns[col.name] = {
             visible: true,
-            visibleToUser: true, // Usuario puede mostrar/ocultar
+            visibleToUser: true,
             includeInExport: true,
             tooltip: "",
             width: "auto",
           }
+          console.log("[v0] Columna configurada:", col.name)
         }
       })
 
       applyFiltersAndSort()
+      console.log("[v0] visibleData después de filtrar:", visibleData.length, "filas")
       renderTable()
     })
     .catch((err) => {
@@ -480,10 +488,23 @@ function applyFiltersAndSort() {
 }
 
 function renderTable() {
+  console.log("[v0] renderTable iniciado")
+  console.log("[v0] fullData:", fullData ? fullData.rows.length : "null")
+  console.log("[v0] visibleData:", visibleData ? visibleData.length : "null")
+
+  if (!fullData || !fullData.columns || !visibleData) {
+    console.error("[v0] No hay datos para renderizar")
+    return
+  }
+
   document.getElementById("loading").style.display = "none"
   document.getElementById("table-container").style.display = "block"
 
   var visibleColumns = fullData.columns.filter((col) => config.columns[col.name]?.visible)
+  console.log(
+    "[v0] Columnas visibles:",
+    visibleColumns.map((c) => c.name),
+  )
 
   // Header
   var thead = document.getElementById("table-header")
@@ -657,12 +678,14 @@ function updateTableInfo() {
   var title = config.tableTitle || (currentWorksheet ? currentWorksheet.name : "Super Table Pro")
   document.getElementById("table-title").textContent = title
 
-  var totalRows = visibleData.length
-  var startRow = currentPage * config.rowsPerPage + 1
+  var totalRows = visibleData ? visibleData.length : 0
+  var startRow = totalRows > 0 ? currentPage * config.rowsPerPage + 1 : 0
   var endRow = Math.min((currentPage + 1) * config.rowsPerPage, totalRows)
 
+  console.log("[v0] updateTableInfo:", { totalRows, startRow, endRow })
+
   document.getElementById("row-count").textContent =
-    `Mostrando ${startRow}-${endRow} de ${totalRows.toLocaleString()} filas`
+    totalRows > 0 ? `Mostrando ${startRow}-${endRow} de ${totalRows.toLocaleString()} filas` : "Sin datos para mostrar"
 }
 
 function applyGeneralSettings() {
