@@ -44,7 +44,7 @@ function initializeExtension() {
   console.log("[v0] Iniciando Super Table Pro v4.0")
 
   tableau.extensions
-    .initializeAsync({ configure: openConfigDialog })
+    .initializeAsync({ configure: openSettings }) // Properly implement configure callback for the "Extensión de formato" button
     .then(() => {
       console.log("[v0] Extensión inicializada")
       loadConfig()
@@ -65,31 +65,232 @@ function initializeExtension() {
     })
 }
 
-function openConfigDialog() {
-  console.log("[v0] Abriendo diálogo de configuración")
+function openSettings() {
+  var modal = document.getElementById("settings-modal")
 
-  // Guardar las columnas actuales en config para que el diálogo las pueda usar
+  // Cargar valores actuales
+  document.getElementById("settings-title").value = config.tableTitle || "" // Load table title
+  document.getElementById("settings-online").checked = config.showOnlineStatus
+  document.getElementById("settings-search").checked = config.showSearch
+  document.getElementById("settings-export").checked = config.showExportButtons
+  document.getElementById("settings-refresh").checked = config.showRefreshButton
+
+  var columnSelector = document.getElementById("row-rule-column")
+  columnSelector.innerHTML = '<option value="">Selecciona una columna...</option>'
   if (fullData && fullData.columns) {
-    config.columns = fullData.columns.map((col) => ({ name: col.fieldName }))
-    tableau.extensions.settings.set("config", JSON.stringify(config))
+    fullData.columns.forEach((col) => {
+      var option = document.createElement("option")
+      option.value = col.name
+      option.textContent = col.name
+      columnSelector.appendChild(option)
+    })
   }
 
-  var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
+  // Cargar estado del formato de fila
+  document.getElementById("settings-row-format").checked = config.rowFormatting.enabled
 
-  tableau.extensions.ui
-    .displayDialogAsync(popupUrl, "", { height: 600, width: 800 })
-    .then((closePayload) => {
-      console.log("[v0] Diálogo cerrado:", closePayload)
-      if (closePayload === "saved") {
-        loadConfig()
-        if (currentWorksheet) {
-          loadWorksheetData()
-        }
-      }
+  // Reglas de formato de fila
+  renderRowRules()
+
+  modal.style.display = "flex"
+  switchTab("general")
+}
+
+function switchTab(tabName) {
+  document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
+  document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
+
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
+  document.getElementById(tabName + "-tab").classList.add("active")
+}
+
+function renderRowRules() {
+  var container = document.getElementById("row-rules-list")
+  container.innerHTML = ""
+
+  var rules = config.rowFormatting.rules || []
+
+  if (rules.length === 0) {
+    container.innerHTML =
+      '<p class="help-text">No hay reglas de fila. Las reglas pintan toda la fila según condiciones.</p>'
+    return
+  }
+
+  rules.forEach((rule, idx) => {
+    var div = document.createElement("div")
+    div.className = "row-rule-item"
+
+    div.innerHTML = `
+      <div style="flex: 1;">
+        <strong>${rule.column}</strong> ${rule.operator} "${rule.value}"
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="width: 24px; height: 24px; background: ${rule.backgroundColor}; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
+        <button class="rule-delete-btn" data-index="${idx}">×</button>
+      </div>
+    `
+
+    container.appendChild(div)
+  })
+
+  // Delete listeners
+  container.querySelectorAll(".rule-delete-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      var idx = Number.parseInt(this.getAttribute("data-index"))
+      config.rowFormatting.rules.splice(idx, 1)
+      renderRowRules()
     })
-    .catch((error) => {
-      console.error("[v0] Error al abrir diálogo:", error)
-    })
+  })
+}
+
+function addRowRule() {
+  var column = document.getElementById("row-rule-column").value
+  var operator = document.getElementById("row-rule-operator").value
+  var value = document.getElementById("row-rule-value").value
+  var bgColor = document.getElementById("row-rule-bgcolor").value
+  var textColor = document.getElementById("row-rule-textcolor").value
+
+  if (!column || !value) {
+    alert("Por favor completa todos los campos")
+    return
+  }
+
+  if (!config.rowFormatting.rules) {
+    config.rowFormatting.rules = []
+  }
+
+  config.rowFormatting.rules.push({
+    column: column,
+    operator: operator,
+    value: value,
+    backgroundColor: bgColor,
+    textColor: textColor,
+  })
+
+  // Limpiar
+  document.getElementById("row-rule-value").value = ""
+
+  renderRowRules()
+}
+
+function saveSettings() {
+  config.tableTitle = document.getElementById("settings-title").value.trim() // Save custom title
+  config.showOnlineStatus = document.getElementById("settings-online").checked
+  config.showSearch = document.getElementById("settings-search").checked
+  config.showExportButtons = document.getElementById("settings-export").checked
+  config.showRefreshButton = document.getElementById("settings-refresh").checked
+  config.rowFormatting.enabled = document.getElementById("settings-row-format").checked
+
+  document.getElementById("online-indicator").style.display = config.showOnlineStatus ? "flex" : "none"
+  document.querySelector(".search-box").style.display = config.showSearch ? "flex" : "none"
+  document.getElementById("export-excel").style.display = config.showExportButtons ? "inline-flex" : "none"
+  document.getElementById("export-csv").style.display = config.showExportButtons ? "inline-flex" : "none"
+  document.getElementById("refresh-btn").style.display = config.showRefreshButton ? "inline-flex" : "none"
+
+  saveConfig()
+  document.getElementById("settings-modal").style.display = "none"
+  renderTable()
+}
+
+function saveConfig() {
+  tableau.extensions.settings.set("config", JSON.stringify(config))
+  tableau.extensions.settings.saveAsync()
+}
+
+function loadConfig() {
+  var saved = tableau.extensions.settings.get("config")
+  if (saved) {
+    try {
+      var parsed = JSON.parse(saved)
+      config = Object.assign(config, parsed)
+    } catch (e) {
+      console.error("[v0] Error cargando config:", e)
+    }
+  }
+}
+
+function refreshData() {
+  loadWorksheetData()
+}
+
+function exportToExcel() {
+  if (!fullData) return
+
+  var wb = XLSX.utils.book_new()
+  var exportData = []
+
+  // Headers (solo columnas marcadas para exportación)
+  var exportColumns = fullData.columns.filter((col) => config.columns[col.name]?.includeInExport)
+  exportData.push(exportColumns.map((col) => col.name))
+
+  // Datos
+  visibleData.forEach((row) => {
+    exportData.push(exportColumns.map((col) => row[col.index]))
+  })
+
+  var ws = XLSX.utils.aoa_to_sheet(exportData)
+  ws["!cols"] = exportColumns.map(() => ({ wch: 15 }))
+
+  XLSX.utils.book_append_sheet(wb, ws, "Datos")
+  XLSX.writeFile(wb, `${currentWorksheet.name}_${Date.now()}.xlsx`)
+}
+
+function exportToCSV() {
+  if (!fullData) return
+
+  var exportColumns = fullData.columns.filter((col) => config.columns[col.name]?.includeInExport)
+  var csv = []
+
+  csv.push(exportColumns.map((col) => escapeCSV(col.name)).join(","))
+
+  visibleData.forEach((row) => {
+    csv.push(exportColumns.map((col) => escapeCSV(row[col.index])).join(","))
+  })
+
+  var blob = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" })
+  var link = document.createElement("a")
+  link.href = URL.createObjectURL(blob)
+  link.download = `${currentWorksheet.name}_${Date.now()}.csv`
+  link.click()
+}
+
+function escapeCSV(val) {
+  if (val == null) return ""
+  var str = String(val)
+  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+    return '"' + str.replace(/"/g, '""') + '"'
+  }
+  return str
+}
+
+function showLoading() {
+  document.getElementById("loading").style.display = "flex"
+  document.getElementById("table-container").style.display = "none"
+}
+
+function showError(msg) {
+  document.getElementById("error").style.display = "flex"
+  document.getElementById("error-message").textContent = msg
+  document.getElementById("loading").style.display = "none"
+}
+
+function updateStatus(text, className) {
+  var el = document.getElementById("status")
+  el.textContent = text
+  el.className = "status " + (className || "")
+}
+
+function escapeHtml(str) {
+  var div = document.createElement("div")
+  div.textContent = str
+  return div.innerHTML
+}
+
+// Iniciar cuando el DOM esté listo
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeExtension)
+} else {
+  initializeExtension()
 }
 
 function setupDashboardContext() {
@@ -650,232 +851,4 @@ function saveColumnManager() {
   saveConfig()
   document.getElementById("columns-modal").style.display = "none"
   renderTable()
-}
-
-function openSettings() {
-  var modal = document.getElementById("settings-modal")
-
-  // Cargar valores actuales
-  document.getElementById("settings-title").value = config.tableTitle || "" // Load table title
-  document.getElementById("settings-online").checked = config.showOnlineStatus
-  document.getElementById("settings-search").checked = config.showSearch
-  document.getElementById("settings-export").checked = config.showExportButtons
-  document.getElementById("settings-refresh").checked = config.showRefreshButton
-
-  var columnSelector = document.getElementById("row-rule-column")
-  columnSelector.innerHTML = '<option value="">Selecciona una columna...</option>'
-  if (fullData && fullData.columns) {
-    fullData.columns.forEach((col) => {
-      var option = document.createElement("option")
-      option.value = col.name
-      option.textContent = col.name
-      columnSelector.appendChild(option)
-    })
-  }
-
-  // Cargar estado del formato de fila
-  document.getElementById("settings-row-format").checked = config.rowFormatting.enabled
-
-  // Reglas de formato de fila
-  renderRowRules()
-
-  modal.style.display = "flex"
-  switchTab("general")
-}
-
-function switchTab(tabName) {
-  document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
-  document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
-
-  document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
-  document.getElementById(tabName + "-tab").classList.add("active")
-}
-
-function renderRowRules() {
-  var container = document.getElementById("row-rules-list")
-  container.innerHTML = ""
-
-  var rules = config.rowFormatting.rules || []
-
-  if (rules.length === 0) {
-    container.innerHTML =
-      '<p class="help-text">No hay reglas de fila. Las reglas pintan toda la fila según condiciones.</p>'
-    return
-  }
-
-  rules.forEach((rule, idx) => {
-    var div = document.createElement("div")
-    div.className = "row-rule-item"
-
-    div.innerHTML = `
-      <div style="flex: 1;">
-        <strong>${rule.column}</strong> ${rule.operator} "${rule.value}"
-      </div>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <div style="width: 24px; height: 24px; background: ${rule.backgroundColor}; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
-        <button class="rule-delete-btn" data-index="${idx}">×</button>
-      </div>
-    `
-
-    container.appendChild(div)
-  })
-
-  // Delete listeners
-  container.querySelectorAll(".rule-delete-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      var idx = Number.parseInt(this.getAttribute("data-index"))
-      config.rowFormatting.rules.splice(idx, 1)
-      renderRowRules()
-    })
-  })
-}
-
-function addRowRule() {
-  var column = document.getElementById("row-rule-column").value
-  var operator = document.getElementById("row-rule-operator").value
-  var value = document.getElementById("row-rule-value").value
-  var bgColor = document.getElementById("row-rule-bgcolor").value
-  var textColor = document.getElementById("row-rule-textcolor").value
-
-  if (!column || !value) {
-    alert("Por favor completa todos los campos")
-    return
-  }
-
-  if (!config.rowFormatting.rules) {
-    config.rowFormatting.rules = []
-  }
-
-  config.rowFormatting.rules.push({
-    column: column,
-    operator: operator,
-    value: value,
-    backgroundColor: bgColor,
-    textColor: textColor,
-  })
-
-  // Limpiar
-  document.getElementById("row-rule-value").value = ""
-
-  renderRowRules()
-}
-
-function saveSettings() {
-  config.tableTitle = document.getElementById("settings-title").value.trim() // Save custom title
-  config.showOnlineStatus = document.getElementById("settings-online").checked
-  config.showSearch = document.getElementById("settings-search").checked
-  config.showExportButtons = document.getElementById("settings-export").checked
-  config.showRefreshButton = document.getElementById("settings-refresh").checked
-  config.rowFormatting.enabled = document.getElementById("settings-row-format").checked
-
-  document.getElementById("online-indicator").style.display = config.showOnlineStatus ? "flex" : "none"
-  document.querySelector(".search-box").style.display = config.showSearch ? "flex" : "none"
-  document.getElementById("export-excel").style.display = config.showExportButtons ? "inline-flex" : "none"
-  document.getElementById("export-csv").style.display = config.showExportButtons ? "inline-flex" : "none"
-  document.getElementById("refresh-btn").style.display = config.showRefreshButton ? "inline-flex" : "none"
-
-  saveConfig()
-  document.getElementById("settings-modal").style.display = "none"
-  renderTable()
-}
-
-function saveConfig() {
-  tableau.extensions.settings.set("config", JSON.stringify(config))
-  tableau.extensions.settings.saveAsync()
-}
-
-function loadConfig() {
-  var saved = tableau.extensions.settings.get("config")
-  if (saved) {
-    try {
-      var parsed = JSON.parse(saved)
-      config = Object.assign(config, parsed)
-    } catch (e) {
-      console.error("[v0] Error cargando config:", e)
-    }
-  }
-}
-
-function refreshData() {
-  loadWorksheetData()
-}
-
-function exportToExcel() {
-  if (!fullData) return
-
-  var wb = XLSX.utils.book_new()
-  var exportData = []
-
-  // Headers (solo columnas marcadas para exportación)
-  var exportColumns = fullData.columns.filter((col) => config.columns[col.name]?.includeInExport)
-  exportData.push(exportColumns.map((col) => col.name))
-
-  // Datos
-  visibleData.forEach((row) => {
-    exportData.push(exportColumns.map((col) => row[col.index]))
-  })
-
-  var ws = XLSX.utils.aoa_to_sheet(exportData)
-  ws["!cols"] = exportColumns.map(() => ({ wch: 15 }))
-
-  XLSX.utils.book_append_sheet(wb, ws, "Datos")
-  XLSX.writeFile(wb, `${currentWorksheet.name}_${Date.now()}.xlsx`)
-}
-
-function exportToCSV() {
-  if (!fullData) return
-
-  var exportColumns = fullData.columns.filter((col) => config.columns[col.name]?.includeInExport)
-  var csv = []
-
-  csv.push(exportColumns.map((col) => escapeCSV(col.name)).join(","))
-
-  visibleData.forEach((row) => {
-    csv.push(exportColumns.map((col) => escapeCSV(row[col.index])).join(","))
-  })
-
-  var blob = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" })
-  var link = document.createElement("a")
-  link.href = URL.createObjectURL(blob)
-  link.download = `${currentWorksheet.name}_${Date.now()}.csv`
-  link.click()
-}
-
-function escapeCSV(val) {
-  if (val == null) return ""
-  var str = String(val)
-  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-    return '"' + str.replace(/"/g, '""') + '"'
-  }
-  return str
-}
-
-function showLoading() {
-  document.getElementById("loading").style.display = "flex"
-  document.getElementById("table-container").style.display = "none"
-}
-
-function showError(msg) {
-  document.getElementById("error").style.display = "flex"
-  document.getElementById("error-message").textContent = msg
-  document.getElementById("loading").style.display = "none"
-}
-
-function updateStatus(text, className) {
-  var el = document.getElementById("status")
-  el.textContent = text
-  el.className = "status " + (className || "")
-}
-
-function escapeHtml(str) {
-  var div = document.createElement("div")
-  div.textContent = str
-  return div.innerHTML
-}
-
-// Iniciar cuando el DOM esté listo
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initializeExtension)
-} else {
-  initializeExtension()
 }
