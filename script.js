@@ -1,5 +1,4 @@
-// Super Table Extension v1.0.7
-// Patrón simple y directo que funciona en Tableau
+// Super Table Pro Extension v3.0
 
 // Importar variables necesarias
 var tableau = window.tableau
@@ -7,7 +6,11 @@ var XLSX = window.XLSX
 
 // Variables globales
 var dashboard = null
-var worksheetsData = new Map()
+var currentWorksheet = null
+var currentData = null
+var filteredData = null
+var sortColumn = null
+var sortAsc = true
 
 // Función de inicialización
 function initializeExtension() {
@@ -22,19 +25,29 @@ function initializeExtension() {
       console.log("Dashboard:", dashboard.name)
       console.log("Worksheets:", dashboard.worksheets.length)
 
-      // Actualizar UI
       updateStatus("Conectado", "connected")
-      document.getElementById("dashboard-name").textContent = dashboard.name
-      document.getElementById("worksheet-count").textContent =
-        dashboard.worksheets.length + " hojas de trabajo disponibles"
 
-      // Habilitar botones
-      document.getElementById("export-all-excel").disabled = false
+      // Poblar selector de worksheets
+      var selector = document.getElementById("worksheet-selector")
+      selector.innerHTML = ""
+
+      dashboard.worksheets.forEach((ws, index) => {
+        var option = document.createElement("option")
+        option.value = ws.name
+        option.textContent = ws.name
+        if (index === 0) option.selected = true
+        selector.appendChild(option)
+      })
+
+      selector.disabled = false
+      document.getElementById("search-input").disabled = false
+      document.getElementById("export-excel").disabled = false
       document.getElementById("export-csv").disabled = false
       document.getElementById("refresh-btn").disabled = false
 
-      // Cargar datos
-      loadAllWorksheets()
+      if (dashboard.worksheets.length > 0) {
+        loadWorksheet(dashboard.worksheets[0].name)
+      }
     },
     (err) => {
       console.error("Error inicializando:", err)
@@ -43,234 +56,273 @@ function initializeExtension() {
   )
 }
 
-// Cargar todos los worksheets
-function loadAllWorksheets() {
+function loadWorksheet(worksheetName) {
   showLoading()
-  worksheetsData.clear()
 
-  var worksheets = dashboard.worksheets
-  var loadPromises = []
+  var worksheet = dashboard.worksheets.find((ws) => ws.name === worksheetName)
 
-  worksheets.forEach((worksheet) => {
-    var promise = worksheet
-      .getSummaryDataAsync()
-      .then((dataTable) => {
-        worksheetsData.set(worksheet.name, {
-          worksheet: worksheet,
-          columns: dataTable.columns,
-          data: dataTable.data,
-          totalRows: dataTable.data.length,
-        })
-        console.log(worksheet.name + ": " + dataTable.data.length + " filas")
-      })
-      .catch((err) => {
-        console.warn("Error en " + worksheet.name + ":", err)
-        worksheetsData.set(worksheet.name, {
-          worksheet: worksheet,
-          error: err.toString(),
-        })
-      })
-    loadPromises.push(promise)
-  })
+  if (!worksheet) {
+    showError("No se encontró el worksheet: " + worksheetName)
+    return
+  }
 
-  Promise.all(loadPromises)
-    .then(() => {
-      renderDashboard()
+  currentWorksheet = worksheet
+
+  worksheet
+    .getSummaryDataAsync()
+    .then((dataTable) => {
+      console.log("Datos cargados:", dataTable.data.length, "filas")
+
+      currentData = {
+        columns: dataTable.columns,
+        rows: dataTable.data,
+      }
+
+      filteredData = null
+      sortColumn = null
+      sortAsc = true
+
+      renderTable()
     })
     .catch((err) => {
+      console.error("Error cargando datos:", err)
       showError("Error cargando datos: " + err.toString())
     })
 }
 
-// Renderizar dashboard
-function renderDashboard() {
+function renderTable() {
   document.getElementById("loading").style.display = "none"
   document.getElementById("error").style.display = "none"
-  document.getElementById("dashboard-info").style.display = "block"
+  document.getElementById("table-container").style.display = "block"
 
-  var listEl = document.getElementById("worksheets-list")
-  listEl.innerHTML = ""
+  var displayData = filteredData || currentData.rows
 
-  worksheetsData.forEach((wsData, name) => {
-    var card = createWorksheetCard(name, wsData)
-    listEl.appendChild(card)
-  })
-}
+  // Actualizar información
+  document.getElementById("table-title").textContent = currentWorksheet.name
+  document.getElementById("row-count").textContent = displayData.length.toLocaleString() + " filas"
 
-// Crear tarjeta de worksheet
-function createWorksheetCard(name, wsData) {
-  var card = document.createElement("div")
-  card.className = "worksheet-card"
-
-  if (wsData.error) {
-    card.innerHTML =
-      '<div class="worksheet-header">' +
-      "<h3>" +
-      escapeHtml(name) +
-      "</h3>" +
-      '<span class="row-count" style="background:#fee2e2;color:#991b1b;">Error</span>' +
-      "</div>" +
-      '<div style="padding:16px;color:#64748b;font-size:13px;">No se pudieron cargar los datos</div>'
-    return card
+  if (filteredData) {
+    document.getElementById("filter-info").style.display = "flex"
+    document.getElementById("filtered-count").textContent =
+      "Mostrando " + filteredData.length + " de " + currentData.rows.length + " filas"
+  } else {
+    document.getElementById("filter-info").style.display = "none"
   }
 
-  // Preview de datos
-  var previewRows = wsData.data.slice(0, 5)
-  var tableHtml = "<table><thead><tr>"
+  // Renderizar header
+  var thead = document.getElementById("table-header")
+  thead.innerHTML = ""
+  var headerRow = document.createElement("tr")
 
-  wsData.columns.forEach((col) => {
-    tableHtml += "<th>" + escapeHtml(col.fieldName) + "</th>"
+  currentData.columns.forEach((col, index) => {
+    var th = document.createElement("th")
+    th.innerHTML =
+      '<div class="th-content">' +
+      "<span>" +
+      escapeHtml(col.fieldName) +
+      "</span>" +
+      '<button class="sort-btn" data-index="' +
+      index +
+      '">' +
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+      '<polyline points="6 9 12 15 18 9"></polyline>' +
+      "</svg>" +
+      "</button>" +
+      "</div>"
+
+    if (sortColumn === index) {
+      th.className = sortAsc ? "sorted-asc" : "sorted-desc"
+    }
+
+    headerRow.appendChild(th)
   })
-  tableHtml += "</tr></thead><tbody>"
 
-  previewRows.forEach((row) => {
-    tableHtml += "<tr>"
-    row.forEach((cell) => {
+  thead.appendChild(headerRow)
+
+  // Renderizar body
+  var tbody = document.getElementById("table-body")
+  tbody.innerHTML = ""
+
+  if (displayData.length === 0) {
+    var emptyRow = document.createElement("tr")
+    var emptyCell = document.createElement("td")
+    emptyCell.colSpan = currentData.columns.length
+    emptyCell.className = "empty-state"
+    emptyCell.textContent = filteredData ? "No se encontraron resultados" : "No hay datos para mostrar"
+    emptyRow.appendChild(emptyCell)
+    tbody.appendChild(emptyRow)
+    return
+  }
+
+  displayData.forEach((row, rowIndex) => {
+    var tr = document.createElement("tr")
+    if (rowIndex % 2 === 1) tr.className = "row-alt"
+
+    row.forEach((cell, colIndex) => {
+      var td = document.createElement("td")
       var value = cell.value
-      var formattedValue = value
 
-      if (typeof value === "number") {
-        formattedValue = value.toLocaleString("es-ES", { maximumFractionDigits: 2 })
+      // Formatear según tipo
+      if (value == null) {
+        td.className = "cell-null"
+        td.textContent = "-"
+      } else if (typeof value === "number") {
+        td.className = "cell-number"
+
+        if (value > 0) {
+          td.classList.add("positive")
+        } else if (value < 0) {
+          td.classList.add("negative")
+        }
+
+        td.textContent = value.toLocaleString("es-ES", {
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 0,
+        })
+      } else if (value instanceof Date) {
+        td.className = "cell-date"
+        td.textContent = value.toLocaleDateString("es-ES")
       } else {
-        formattedValue = escapeHtml(String(value || ""))
+        td.textContent = String(value)
       }
 
-      var className = typeof value === "number" ? "number-cell" : ""
-      tableHtml += '<td class="' + className + '">' + formattedValue + "</td>"
+      tr.appendChild(td)
     })
-    tableHtml += "</tr>"
-  })
-  tableHtml += "</tbody></table>"
 
-  card.innerHTML =
-    '<div class="worksheet-header">' +
-    "<h3>" +
-    escapeHtml(name) +
-    "</h3>" +
-    '<span class="row-count">' +
-    wsData.totalRows.toLocaleString() +
-    " filas</span>" +
-    "</div>" +
-    '<div class="worksheet-preview">' +
-    tableHtml +
-    "</div>" +
-    '<div class="worksheet-actions">' +
-    '<button class="btn btn-secondary btn-sm" onclick="exportSingleToExcel(\'' +
-    escapeHtml(name) +
-    "')\">Excel</button>" +
-    '<button class="btn btn-secondary btn-sm" onclick="exportSingleToCSV(\'' +
-    escapeHtml(name) +
-    "')\">CSV</button>" +
-    "</div>"
-
-  return card
-}
-
-// Exportar todo a Excel
-function exportAllToExcel() {
-  var workbook = XLSX.utils.book_new()
-
-  worksheetsData.forEach((wsData, name) => {
-    if (wsData.error) return
-
-    var sheetData = prepareSheetData(wsData)
-    var worksheet = XLSX.utils.aoa_to_sheet(sheetData)
-
-    // Anchos de columna
-    worksheet["!cols"] = wsData.columns.map((col) => ({ wch: Math.max(col.fieldName.length, 12) }))
-
-    var safeName = name.substring(0, 31).replace(/[\\/*?:[\]]/g, "_")
-    XLSX.utils.book_append_sheet(workbook, worksheet, safeName)
+    tbody.appendChild(tr)
   })
 
-  var filename = dashboard.name + "_" + getTimestamp() + ".xlsx"
-  XLSX.writeFile(workbook, filename)
+  document.querySelectorAll(".sort-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      var colIndex = Number.parseInt(this.getAttribute("data-index"))
+      sortTable(colIndex)
+    })
+  })
 }
 
-// Exportar worksheet individual a Excel
-function exportSingleToExcel(worksheetName) {
-  var wsData = worksheetsData.get(worksheetName)
-  if (!wsData || wsData.error) return
+function sortTable(colIndex) {
+  if (sortColumn === colIndex) {
+    sortAsc = !sortAsc
+  } else {
+    sortColumn = colIndex
+    sortAsc = true
+  }
+
+  var dataToSort = filteredData || currentData.rows
+
+  dataToSort.sort((a, b) => {
+    var aVal = a[colIndex].value
+    var bVal = b[colIndex].value
+
+    if (aVal == null && bVal == null) return 0
+    if (aVal == null) return 1
+    if (bVal == null) return -1
+
+    var comparison = 0
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      comparison = aVal - bVal
+    } else {
+      comparison = String(aVal).localeCompare(String(bVal))
+    }
+
+    return sortAsc ? comparison : -comparison
+  })
+
+  renderTable()
+}
+
+function searchTable(query) {
+  if (!query || query.trim() === "") {
+    filteredData = null
+    renderTable()
+    return
+  }
+
+  var searchLower = query.toLowerCase().trim()
+
+  filteredData = currentData.rows.filter((row) =>
+    row.some((cell) => {
+      var value = cell.value
+      if (value == null) return false
+      return String(value).toLowerCase().indexOf(searchLower) !== -1
+    }),
+  )
+
+  renderTable()
+}
+
+function exportToExcel() {
+  if (!currentData) return
 
   var workbook = XLSX.utils.book_new()
-  var sheetData = prepareSheetData(wsData)
+  var displayData = filteredData || currentData.rows
+
+  var sheetData = []
+  sheetData.push(currentData.columns.map((col) => col.fieldName))
+
+  displayData.forEach((row) => {
+    sheetData.push(row.map((cell) => cell.value))
+  })
+
   var worksheet = XLSX.utils.aoa_to_sheet(sheetData)
 
-  worksheet["!cols"] = wsData.columns.map((col) => ({ wch: Math.max(col.fieldName.length, 12) }))
+  worksheet["!cols"] = currentData.columns.map((col) => ({ wch: Math.max(col.fieldName.length + 2, 15) }))
 
-  var safeName = worksheetName.substring(0, 31).replace(/[\\/*?:[\]]/g, "_")
-  XLSX.utils.book_append_sheet(workbook, worksheet, safeName)
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Datos")
 
-  var filename = worksheetName + "_" + getTimestamp() + ".xlsx"
+  var filename = currentWorksheet.name + "_" + getTimestamp() + ".xlsx"
   XLSX.writeFile(workbook, filename)
 }
 
-// Exportar todo a CSV
-function exportAllToCSV() {
-  worksheetsData.forEach((wsData, name) => {
-    if (!wsData.error) {
-      exportSingleToCSV(name)
-    }
+function exportToCSV() {
+  if (!currentData) return
+
+  var displayData = filteredData || currentData.rows
+  var csv = []
+
+  // Headers
+  csv.push(currentData.columns.map((col) => escapeCSV(col.fieldName)).join(","))
+
+  // Datos
+  displayData.forEach((row) => {
+    csv.push(row.map((cell) => escapeCSV(cell.value)).join(","))
   })
-}
 
-// Exportar worksheet individual a CSV
-function exportSingleToCSV(worksheetName) {
-  var wsData = worksheetsData.get(worksheetName)
-  if (!wsData || wsData.error) return
-
-  var sheetData = prepareSheetData(wsData)
-  var csv = sheetData
-    .map((row) =>
-      row
-        .map((cell) => {
-          var str = String(cell || "")
-          if (str.indexOf(",") >= 0 || str.indexOf('"') >= 0 || str.indexOf("\n") >= 0) {
-            return '"' + str.replace(/"/g, '""') + '"'
-          }
-          return str
-        })
-        .join(","),
-    )
-    .join("\n")
-
-  var blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" })
+  var blob = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" })
   var link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
-  link.download = worksheetName + "_" + getTimestamp() + ".csv"
+  link.download = currentWorksheet.name + "_" + getTimestamp() + ".csv"
   link.click()
   URL.revokeObjectURL(link.href)
 }
 
-// Preparar datos para exportación
-function prepareSheetData(wsData) {
-  var data = []
-  data.push(wsData.columns.map((col) => col.fieldName))
-  wsData.data.forEach((row) => {
-    data.push(row.map((cell) => cell.value))
-  })
-  return data
+function escapeCSV(value) {
+  if (value == null) return ""
+  var str = String(value)
+  if (str.indexOf(",") >= 0 || str.indexOf('"') >= 0 || str.indexOf("\n") >= 0) {
+    return '"' + str.replace(/"/g, '""') + '"'
+  }
+  return str
 }
 
-// Refrescar datos
-function refreshAllData() {
-  updateStatus("Actualizando...", "")
-  loadAllWorksheets()
-  updateStatus("Conectado", "connected")
+function refreshData() {
+  if (currentWorksheet) {
+    loadWorksheet(currentWorksheet.name)
+  }
 }
 
 // Mostrar loading
 function showLoading() {
   document.getElementById("loading").style.display = "flex"
   document.getElementById("error").style.display = "none"
-  document.getElementById("dashboard-info").style.display = "none"
+  document.getElementById("table-container").style.display = "none"
 }
 
 // Mostrar error
 function showError(message) {
   document.getElementById("loading").style.display = "none"
   document.getElementById("error").style.display = "flex"
-  document.getElementById("dashboard-info").style.display = "none"
+  document.getElementById("table-container").style.display = "none"
   document.getElementById("error-message").textContent = message
   updateStatus("Error", "error")
 }
@@ -303,14 +355,26 @@ function getTimestamp() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Configurar botones
   document.getElementById("retry-btn").addEventListener("click", () => {
     location.reload()
   })
 
-  document.getElementById("refresh-btn").addEventListener("click", refreshAllData)
-  document.getElementById("export-all-excel").addEventListener("click", exportAllToExcel)
-  document.getElementById("export-csv").addEventListener("click", exportAllToCSV)
+  document.getElementById("worksheet-selector").addEventListener("change", function () {
+    loadWorksheet(this.value)
+  })
+
+  document.getElementById("search-input").addEventListener("input", function () {
+    searchTable(this.value)
+  })
+
+  document.getElementById("clear-filter").addEventListener("click", () => {
+    document.getElementById("search-input").value = ""
+    searchTable("")
+  })
+
+  document.getElementById("refresh-btn").addEventListener("click", refreshData)
+  document.getElementById("export-excel").addEventListener("click", exportToExcel)
+  document.getElementById("export-csv").addEventListener("click", exportToCSV)
 
   // Inicializar extensión
   initializeExtension()

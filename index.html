@@ -3,37 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Table Extension</title>
+    <title>Super Table Pro</title>
     <link rel="stylesheet" href="styles.css">
     
     <!-- SheetJS para Excel con formato profesional -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     
-    <!-- Usar la URL de la API que funciona en tu empresa -->
+    <!-- Tableau Extensions API - URL que funciona -->
     <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header class="toolbar">
             <div class="toolbar-left">
-                <h1>Super Table <span class="version">v2.0.0</span></h1>
+                <h1>Super Table Pro <span class="version">v3.0</span></h1>
                 <span id="status" class="status">Conectando...</span>
             </div>
             <div class="controls">
-                <button id="export-all-excel" class="btn btn-primary" disabled>
+                <div class="search-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Buscar en la tabla..." disabled>
+                </div>
+                <select id="worksheet-selector" class="worksheet-select" disabled>
+                    <option value="">Cargando...</option>
+                </select>
+                <button id="export-excel" class="btn btn-primary" disabled title="Exportar a Excel">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="18" x2="12" y2="12"></line>
-                        <line x1="9" y1="15" x2="15" y2="15"></line>
                     </svg>
-                    Exportar Todo a Excel
+                    Excel
                 </button>
-                <button id="export-csv" class="btn btn-secondary" disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                    </svg>
+                <button id="export-csv" class="btn btn-secondary" disabled title="Exportar a CSV">
                     CSV
                 </button>
                 <button id="refresh-btn" class="btn btn-icon" disabled title="Actualizar datos">
@@ -62,13 +66,24 @@
                 <button id="retry-btn" class="btn btn-primary">Reintentar</button>
             </div>
             
-            <div id="dashboard-info" style="display: none;">
-                <div class="info-header">
-                    <h2 id="dashboard-name"></h2>
-                    <p id="worksheet-count"></p>
+            <div id="table-container" style="display: none;">
+                <div class="table-info">
+                    <div class="info-row">
+                        <span id="table-title" class="table-title"></span>
+                        <span id="row-count" class="row-count"></span>
+                    </div>
+                    <div id="filter-info" class="filter-info" style="display: none;">
+                        <span id="filtered-count"></span>
+                        <button id="clear-filter" class="btn-link">Limpiar filtro</button>
+                    </div>
                 </div>
                 
-                <div id="worksheets-list" class="worksheets-grid"></div>
+                <div class="table-wrapper">
+                    <table id="data-table" class="data-table">
+                        <thead id="table-header"></thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>

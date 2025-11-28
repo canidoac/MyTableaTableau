@@ -295,3 +295,218 @@ body {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* Search Box */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 12px;
+  min-width: 200px;
+}
+
+.search-box svg {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  font-size: 13px;
+  width: 100%;
+  color: #1e293b;
+}
+
+.search-box input::placeholder {
+  color: #94a3b8;
+}
+
+.search-box input:disabled {
+  background: transparent;
+  cursor: not-allowed;
+}
+
+/* Worksheet Selector */
+.worksheet-select {
+  padding: 7px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  color: #1e293b;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.worksheet-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Table Container */
+#table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.table-info {
+  padding: 16px 0;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.table-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.filter-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: #1d4ed8;
+}
+
+/* Table Wrapper */
+.table-wrapper {
+  flex: 1;
+  overflow: auto;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+/* Data Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.data-table th {
+  background: #f8fafc;
+  padding: 0;
+  border-bottom: 2px solid #e2e8f0;
+  font-weight: 600;
+  color: #475569;
+  text-align: left;
+  user-select: none;
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.sort-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  color: #94a3b8;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.sort-btn:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.data-table th.sorted-asc .sort-btn svg,
+.data-table th.sorted-desc .sort-btn svg {
+  color: #2563eb;
+}
+
+.data-table th.sorted-desc .sort-btn svg {
+  transform: rotate(180deg);
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+.data-table tr:hover td {
+  background: #f8fafc;
+}
+
+.data-table tr.row-alt {
+  background: #fafafa;
+}
+
+.data-table tr.row-alt:hover td {
+  background: #f1f5f9;
+}
+
+/* Cell Types */
+.cell-number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.cell-number.positive {
+  color: #16a34a;
+}
+
+.cell-number.negative {
+  color: #dc2626;
+}
+
+.cell-date {
+  color: #64748b;
+}
+
+.cell-null {
+  color: #cbd5e1;
+  font-style: italic;
+  text-align: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-style: italic;
+}
