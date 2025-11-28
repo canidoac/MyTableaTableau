@@ -104,12 +104,19 @@
             <div class="tabs">
                 <button class="tab-btn active" data-tab="general">General</button>
                 <button class="tab-btn" data-tab="row-format">Formato de Filas</button>
-                <button class="tab-btn" data-tab="performance">Rendimiento</button>
             </div>
             
             <div class="modal-body">
                 <div id="general-tab" class="tab-content active">
                     <h3>Opciones Generales</h3>
+                    
+                    <!-- Added table title customization -->
+                    <div class="form-group">
+                        <label>Título de la tabla:</label>
+                        <input type="text" id="settings-title" placeholder="Deja vacío para usar el nombre del worksheet" class="form-input">
+                        <p class="help-text">Si está vacío, se usará el nombre del worksheet</p>
+                    </div>
+                    
                     <label class="checkbox-label">
                         <input type="checkbox" id="settings-online" checked>
                         <span>Mostrar indicador "Online"</span>
@@ -131,6 +138,9 @@
                 <!-- Nueva pestaña para formato de filas -->
                 <div id="row-format-tab" class="tab-content">
                     <h3>Formato Condicional de Filas</h3>
+                    <p class="help-text" style="margin-bottom: 16px;">
+                        El formato de filas pinta toda la fila cuando se cumple una condición. Por ejemplo: si la columna "Estado" es igual a "Alerta", pintar la fila de rojo.
+                    </p>
                     <label class="checkbox-label">
                         <input type="checkbox" id="settings-row-format">
                         <span>Activar formato condicional de filas</span>
@@ -145,7 +155,7 @@
                         <label>Agregar nueva regla:</label>
                         <div style="display: grid; grid-template-columns: 1fr 100px 1fr; gap: 8px; margin-bottom: 8px;">
                             <select id="row-rule-column" class="form-input">
-                                <option value="">Columna...</option>
+                                <option value="">Selecciona una columna...</option>
                             </select>
                             <select id="row-rule-operator" class="form-input">
                                 <option value="=">=</option>
@@ -167,19 +177,6 @@
                             </div>
                             <button id="add-row-rule-btn" class="btn btn-primary" style="align-self: flex-end;">Agregar</button>
                         </div>
-                    </div>
-                </div>
-                
-                <div id="performance-tab" class="tab-content">
-                    <h3>Rendimiento</h3>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="settings-virtualization" checked>
-                        <span>Activar virtualización (solo renderiza filas visibles)</span>
-                    </label>
-                    <div class="form-group">
-                        <label>Filas por página:</label>
-                        <input type="number" id="settings-rows-per-page" value="100" min="10" max="1000" step="10" class="form-input">
-                        <p class="help-text">Menos filas = mejor rendimiento</p>
                     </div>
                 </div>
             </div>

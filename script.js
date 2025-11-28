@@ -12,6 +12,7 @@ var isWorksheetContext = false
 // Configuración completa
 var config = {
   // General
+  tableTitle: "", // Added customizable table title
   showOnlineStatus: true,
   showSearch: true,
   showExportButtons: true,
@@ -370,7 +371,8 @@ function formatCell(value, columnName, dataType) {
 }
 
 function updateTableInfo() {
-  document.getElementById("table-title").textContent = currentWorksheet.name
+  var title = config.tableTitle || currentWorksheet.name
+  document.getElementById("table-title").textContent = title
 
   var totalRows = visibleData.length
   var startRow = currentPage * config.rowsPerPage + 1
@@ -627,12 +629,25 @@ function openSettings() {
   var modal = document.getElementById("settings-modal")
 
   // Cargar valores actuales
+  document.getElementById("settings-title").value = config.tableTitle || "" // Load table title
   document.getElementById("settings-online").checked = config.showOnlineStatus
   document.getElementById("settings-search").checked = config.showSearch
   document.getElementById("settings-export").checked = config.showExportButtons
   document.getElementById("settings-refresh").checked = config.showRefreshButton
-  document.getElementById("settings-virtualization").checked = config.virtualization
-  document.getElementById("settings-rows-per-page").value = config.rowsPerPage
+
+  var columnSelector = document.getElementById("row-rule-column")
+  columnSelector.innerHTML = '<option value="">Selecciona una columna...</option>'
+  if (fullData && fullData.columns) {
+    fullData.columns.forEach((col) => {
+      var option = document.createElement("option")
+      option.value = col.name
+      option.textContent = col.name
+      columnSelector.appendChild(option)
+    })
+  }
+
+  // Cargar estado del formato de fila
+  document.getElementById("settings-row-format").checked = config.rowFormatting.enabled
 
   // Reglas de formato de fila
   renderRowRules()
@@ -719,15 +734,13 @@ function addRowRule() {
 }
 
 function saveSettings() {
+  config.tableTitle = document.getElementById("settings-title").value.trim() // Save custom title
   config.showOnlineStatus = document.getElementById("settings-online").checked
   config.showSearch = document.getElementById("settings-search").checked
   config.showExportButtons = document.getElementById("settings-export").checked
   config.showRefreshButton = document.getElementById("settings-refresh").checked
-  config.virtualization = document.getElementById("settings-virtualization").checked
-  config.rowsPerPage = Number.parseInt(document.getElementById("settings-rows-per-page").value) || 100
   config.rowFormatting.enabled = document.getElementById("settings-row-format").checked
 
-  // Aplicar cambios visuales
   document.getElementById("online-indicator").style.display = config.showOnlineStatus ? "flex" : "none"
   document.querySelector(".search-box").style.display = config.showSearch ? "flex" : "none"
   document.getElementById("export-excel").style.display = config.showExportButtons ? "inline-flex" : "none"
