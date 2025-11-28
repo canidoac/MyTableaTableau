@@ -1149,13 +1149,22 @@
     <script>
       var config = {}
       var currentTooltipIndex = -1
+      var tableau = window.tableau
 
       tableau.extensions.initializeDialogAsync().then(function () {
         var settings = tableau.extensions.settings.getAll()
         config = JSON.parse(settings.config || '{}')
+        
+        // Asegurar que config.columns exista como array
+        if (!config.columns || !Array.isArray(config.columns)) {
+          config.columns = []
+        }
 
         loadAllSettings()
         populateColumnLists()
+      }).catch(function(error) {
+        console.error('[v0] Error initializing dialog:', error)
+        alert('Error al inicializar la configuración: ' + error.message)
       })
 
       function loadAllSettings() {
@@ -1233,15 +1242,30 @@
       }
 
       function populateColumnLists() {
-        if (!config.columns || config.columns.length === 0) {
-          return
-        }
-
         var dimensionsList = document.getElementById('dimensions-list')
         var measuresList = document.getElementById('measures-list')
         var selectedColumn = document.getElementById('selected-column')
+        
+        // Limpiar listas existentes
+        dimensionsList.innerHTML = ''
+        measuresList.innerHTML = ''
+        selectedColumn.innerHTML = '<option value="">Seleccionar columna</option>'
+
+        // Verificar que config.columns existe y tiene datos
+        if (!config.columns || !Array.isArray(config.columns) || config.columns.length === 0) {
+          console.log('[v0] No hay columnas disponibles todavía. Arrastra campos a la extensión primero.')
+          dimensionsList.innerHTML = '<li style="padding: 10px; color: #999; font-style: italic;">No hay dimensiones. Arrastra campos desde el panel de Datos.</li>'
+          measuresList.innerHTML = '<li style="padding: 10px; color: #999; font-style: italic;">No hay medidas. Arrastra campos desde el panel de Datos.</li>'
+          return
+        }
 
         config.columns.forEach(function (col) {
+          // Validar que col existe y tiene las propiedades necesarias
+          if (!col || !col.name) {
+            console.warn('[v0] Columna inválida:', col)
+            return
+          }
+          
           var li = document.createElement('li')
           li.className = 'sidebar-item'
           li.innerHTML = `<span class="icon">${col.dataType === 'string' ? 'Aα' : '#'}</span>${col.name}`

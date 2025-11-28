@@ -101,13 +101,15 @@ function initializeExtension() {
 }
 
 function openSettings() {
-  if (fullData && fullData.columns) {
+  // Guardar las columnas actuales antes de abrir el diálogo
+  if (fullData && fullData.columns && fullData.columns.length > 0) {
     var currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
     currentConfig.columns = fullData.columns.map((col) => ({
-      name: col.fieldName,
-      dataType: col.dataType,
+      name: col.name,
+      dataType: col.type,
     }))
     tableau.extensions.settings.set("config", JSON.stringify(currentConfig))
+    tableau.extensions.settings.saveAsync()
   }
 
   var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
@@ -122,7 +124,7 @@ function openSettings() {
       }
     })
     .catch((error) => {
-      console.error("[v0] Error opening config dialog:", error)
+      console.log("[v0] Dialog closed or error:", error)
     })
 }
 
