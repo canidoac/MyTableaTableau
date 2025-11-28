@@ -101,27 +101,28 @@ function initializeExtension() {
 }
 
 function openSettings() {
-  const payloadString = JSON.stringify({ columns: fullData?.columns || [] })
-
-  // Guardar las columnas actuales en settings para que config.html pueda acceder
   if (fullData && fullData.columns) {
-    config.columns = fullData.columns.map((col) => ({ name: col.name }))
-    tableau.extensions.settings.set("config", JSON.stringify(config))
+    var currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
+    currentConfig.columns = fullData.columns.map((col) => ({
+      name: col.fieldName,
+      dataType: col.dataType,
+    }))
+    tableau.extensions.settings.set("config", JSON.stringify(currentConfig))
   }
 
+  var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
+
   tableau.extensions.ui
-    .displayDialogAsync("./config.html", payloadString, { height: 700, width: 900 })
+    .displayDialogAsync(popupUrl, "", { height: 700, width: 1200 })
     .then((closePayload) => {
-      console.log("[v0] Diálogo cerrado con:", closePayload)
       if (closePayload === "saved") {
-        // Recargar configuración y aplicar cambios
-        loadConfig()
+        console.log("[v0] Configuration saved, reloading data")
+        loadData()
         applyGeneralSettings()
-        renderTable()
       }
     })
     .catch((error) => {
-      console.log("[v0] Error o cancelación del diálogo:", error)
+      console.error("[v0] Error opening config dialog:", error)
     })
 }
 
@@ -677,4 +678,8 @@ function applyGeneralSettings() {
   if (mainTitle) {
     mainTitle.textContent = config.tableTitle || (currentWorksheet ? currentWorksheet.name : "Super Table Pro")
   }
+}
+
+function loadData() {
+  loadWorksheetData()
 }

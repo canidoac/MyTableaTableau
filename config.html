@@ -13,53 +13,65 @@
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         background: #f8f9fa;
+        overflow-x: hidden;
       }
 
-      .config-container {
-        max-width: 800px;
-        margin: 0 auto;
+      .config-header {
         background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid #e0e0e0;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
       }
 
-      h1 {
-        font-size: 24px;
-        margin-bottom: 10px;
+      .config-header h1 {
+        font-size: 18px;
         color: #1a1a1a;
+        font-weight: 600;
       }
 
-      .subtitle {
-        color: #666;
-        margin-bottom: 30px;
-        font-size: 14px;
+      .header-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .tabs-container {
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+        position: sticky;
+        top: 60px;
+        z-index: 99;
       }
 
       .tabs {
         display: flex;
-        gap: 10px;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #e0e0e0;
+        gap: 0;
+        padding: 0 30px;
+        overflow-x: auto;
       }
 
       .tab-btn {
-        padding: 12px 24px;
+        padding: 15px 20px;
         background: none;
         border: none;
         border-bottom: 3px solid transparent;
         cursor: pointer;
-        font-size: 15px;
+        font-size: 14px;
         color: #666;
         transition: all 0.2s;
-        margin-bottom: -2px;
+        white-space: nowrap;
+        font-weight: 500;
       }
 
       .tab-btn:hover {
         color: #1a1a1a;
+        background: #f8f9fa;
       }
 
       .tab-btn.active {
@@ -68,12 +80,96 @@
         font-weight: 600;
       }
 
+      .config-body {
+        display: flex;
+        min-height: calc(100vh - 120px);
+      }
+
+      .sidebar {
+        width: 280px;
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .sidebar h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+      }
+
+      .sidebar-list {
+        list-style: none;
+      }
+
+      .sidebar-item {
+        padding: 10px 12px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+      }
+
+      .sidebar-item:hover {
+        background: #f0f7ff;
+      }
+
+      .sidebar-item.active {
+        background: #e91e63;
+        color: white;
+        font-weight: 600;
+      }
+
+      .sidebar-item .icon {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .content-area {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+      }
+
       .tab-content {
         display: none;
       }
 
       .tab-content.active {
         display: block;
+      }
+
+      .content-section {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .content-section h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #1a1a1a;
+      }
+
+      .content-section .subtitle {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 25px;
       }
 
       .form-group {
@@ -88,30 +184,34 @@
         font-size: 14px;
       }
 
-      .form-group input[type="text"],
-      .form-group input[type="number"],
-      .form-group select {
+      .form-group input[type='text'],
+      .form-group input[type='number'],
+      .form-group select,
+      .form-group textarea {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid #ddd;
-        border-radius: 4px;
+        border-radius: 6px;
         font-size: 14px;
+        font-family: inherit;
       }
 
-      .form-group input[type="text"]:focus,
-      .form-group select:focus {
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
         outline: none;
         border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
       }
 
       .checkbox-group {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 12px 0;
+        padding: 10px 0;
       }
 
-      .checkbox-group input[type="checkbox"] {
+      .checkbox-group input[type='checkbox'] {
         width: 18px;
         height: 18px;
         cursor: pointer;
@@ -121,21 +221,24 @@
         margin: 0;
         font-weight: normal;
         cursor: pointer;
+        font-size: 14px;
       }
 
-      .actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px solid #e0e0e0;
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .form-row.three-cols {
+        grid-template-columns: 1fr 1fr 1fr;
       }
 
       button {
-        padding: 10px 24px;
+        padding: 10px 20px;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
@@ -160,24 +263,13 @@
         background: #d0d0d0;
       }
 
-      .help-text {
-        font-size: 12px;
-        color: #666;
-        margin-top: 5px;
+      .btn-success {
+        background: #28a745;
+        color: white;
       }
 
-      .rule-item {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .rule-info {
-        flex: 1;
+      .btn-success:hover {
+        background: #218838;
       }
 
       .btn-danger {
@@ -191,244 +283,1232 @@
         background: #c82333;
       }
 
-      .add-rule-form {
-        background: #f0f7ff;
-        padding: 20px;
+      .help-text {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+        line-height: 1.4;
+      }
+
+      .color-picker-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .color-preview {
+        width: 40px;
+        height: 40px;
         border-radius: 6px;
+        border: 2px solid #ddd;
+        cursor: pointer;
+      }
+
+      .color-picker-group input[type='color'] {
+        width: 60px;
+        height: 40px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .color-picker-group button {
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+
+      .section-divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 30px 0;
+      }
+
+      .info-box {
+        background: #f0f7ff;
+        border-left: 4px solid #0066cc;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 15px 0;
+      }
+
+      .info-box p {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.5;
+      }
+
+      .column-config-panel {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
         margin-top: 20px;
       }
 
-      .add-rule-form h3 {
+      .column-config-panel h3 {
         font-size: 16px;
         margin-bottom: 15px;
-        color: #0066cc;
+        color: #1a1a1a;
       }
 
-      .form-row {
+      .radio-group {
         display: flex;
-        gap: 10px;
+        gap: 20px;
+        margin: 10px 0;
+      }
+
+      .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: normal;
+      }
+
+      .radio-group input[type='radio'] {
+        cursor: pointer;
+      }
+
+      input[type='range'] {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: #ddd;
+        outline: none;
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #0066cc;
+        cursor: pointer;
+      }
+
+      input[type='range']::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #0066cc;
+        cursor: pointer;
+        border: none;
+      }
+
+      .search-box {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
         margin-bottom: 15px;
       }
 
-      .form-row > * {
-        flex: 1;
-      }
-
-      .btn-success {
-        background: #28a745;
-        color: white;
-      }
-
-      .btn-success:hover {
-        background: #218838;
+      .search-box:focus {
+        outline: none;
+        border-color: #0066cc;
       }
     </style>
   </head>
   <body>
-    <div class="config-container">
-      <h1>Configuración de Super Table Pro</h1>
-      <p class="subtitle">Personaliza el comportamiento y apariencia de tu tabla</p>
+    <div class="config-header">
+      <h1>SuperTables - Configuración</h1>
+      <div class="header-actions">
+        <button class="btn-secondary" onclick="closeDialog()">Cancelar</button>
+        <button class="btn-primary" onclick="saveAndClose()">Guardar y Cerrar</button>
+      </div>
+    </div>
 
+    <div class="tabs-container">
       <div class="tabs">
         <button class="tab-btn active" data-tab="general" onclick="switchTab('general')">General</button>
-        <button class="tab-btn" data-tab="row-format" onclick="switchTab('row-format')">Formato de Filas</button>
+        <button class="tab-btn" data-tab="data" onclick="switchTab('data')">Data</button>
+        <button class="tab-btn" data-tab="appearance" onclick="switchTab('appearance')">Apariencia</button>
+        <button class="tab-btn" data-tab="theme" onclick="switchTab('theme')">Theme</button>
+        <button class="tab-btn" data-tab="restrictions" onclick="switchTab('restrictions')">Restricciones</button>
+        <button class="tab-btn" data-tab="tooltip" onclick="switchTab('tooltip')">Tooltip</button>
+        <button class="tab-btn" data-tab="export" onclick="switchTab('export')">Export</button>
       </div>
+    </div>
 
-      <!-- General Tab -->
+    <div class="config-body">
+      <!-- TAB: GENERAL -->
       <div id="general-tab" class="tab-content active">
-        <div class="form-group">
-          <label>Título de la tabla</label>
-          <input type="text" id="config-title" placeholder="Título personalizado (opcional)" />
-          <p class="help-text">Si se deja vacío, se usará el nombre del worksheet</p>
-        </div>
+        <div class="content-area">
+          <div class="content-section">
+            <h2>Configuración General</h2>
 
-        <div class="form-group">
-          <label>Opciones de visualización</label>
-          <div class="checkbox-group">
-            <input type="checkbox" id="config-online" checked />
-            <label for="config-online">Mostrar indicador "Online"</label>
-          </div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="config-search" checked />
-            <label for="config-search">Mostrar buscador</label>
-          </div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="config-export" checked />
-            <label for="config-export">Mostrar botones de exportación</label>
-          </div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="config-refresh" />
-            <label for="config-refresh">Mostrar botón de actualizar</label>
+            <div class="form-group">
+              <label>Método de carga de datos</label>
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="data-method" value="all" />
+                  Cargar todos los datos de una vez (deprecado)
+                </label>
+                <label>
+                  <input type="radio" name="data-method" value="paginated" checked />
+                  Carga paginada (Recomendado para datasets grandes)
+                </label>
+              </div>
+              <p class="help-text">
+                Esta configuración afecta el método de carga de datos. La funcionalidad de SuperTables permanece igual
+                independientemente del método elegido.
+              </p>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="form-group">
+              <label>Rendimiento</label>
+              <div class="checkbox-group">
+                <input type="checkbox" id="performance-booster" checked />
+                <label for="performance-booster">Activar acelerador de rendimiento</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="column-virtualization" />
+                <label for="column-virtualization">Suprimir virtualización de columnas</label>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="form-group">
+              <label>Accesibilidad</label>
+              <div class="checkbox-group">
+                <input type="checkbox" id="accessibility-mode" />
+                <label for="accessibility-mode">Modo de accesibilidad mejorado</label>
+              </div>
+              <p class="help-text">
+                Importante: habilitar el modo de accesibilidad mejorado tendrá un impacto negativo en el rendimiento.
+              </p>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="form-group">
+              <label>Exportar Configuración de SuperTables</label>
+              <div class="form-row">
+                <div>
+                  <input type="text" id="export-name" placeholder="Nombre de configuración" />
+                </div>
+                <div>
+                  <button class="btn-primary" onclick="exportConfig()">Exportar</button>
+                </div>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="export-all" checked />
+                <label for="export-all">Incluir todas las opciones en la exportación</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Importar Configuración de SuperTables</label>
+              <button class="btn-success" onclick="document.getElementById('import-file').click()">
+                Seleccionar archivo
+              </button>
+              <input
+                type="file"
+                id="import-file"
+                accept=".json"
+                style="display: none"
+                onchange="importConfig(this)"
+              />
+              <p class="help-text" id="import-status">Ningún archivo seleccionado</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Row Format Tab -->
-      <div id="row-format-tab" class="tab-content">
-        <div class="form-group">
-          <div class="checkbox-group">
-            <input type="checkbox" id="config-row-format" />
-            <label for="config-row-format">Activar formato condicional de filas</label>
-          </div>
-          <p class="help-text">
-            Permite aplicar estilos a filas completas basado en valores de columnas específicas
-          </p>
+      <!-- TAB: DATA -->
+      <div id="data-tab" class="tab-content">
+        <div class="sidebar">
+          <input type="text" class="search-box" id="column-search" placeholder="Buscar dimensión..." />
+          <h3>Dimensiones</h3>
+          <ul class="sidebar-list" id="dimensions-list"></ul>
+          <h3>Medidas</h3>
+          <ul class="sidebar-list" id="measures-list"></ul>
+          <h3>Cálculos</h3>
+          <ul class="sidebar-list" id="calculations-list"></ul>
         </div>
+        <div class="content-area">
+          <div class="content-section">
+            <h2>Configurar</h2>
+            <div class="form-group">
+              <label>Seleccionar columna</label>
+              <select id="selected-column" onchange="loadColumnConfig()">
+                <option value="">Selecciona una columna...</option>
+              </select>
+            </div>
 
-        <div class="form-group">
-          <label>Reglas de formato</label>
-          <div id="row-rules-list"></div>
+            <div id="column-config-content" style="display: none">
+              <div class="form-group">
+                <label>Nombre de visualización de columna</label>
+                <input type="text" id="column-display-name" placeholder="Nombre personalizado" />
+              </div>
 
-          <div class="add-rule-form">
-            <h3>Agregar nueva regla</h3>
-            <div class="form-row">
-              <div>
-                <label>Columna</label>
-                <select id="new-rule-column">
-                  <option value="">Selecciona una columna...</option>
+              <div class="section-divider"></div>
+
+              <h3>Formato de Dimensión</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Estilo de dimensión</label>
+                  <select id="dimension-style">
+                    <option value="text">Texto</option>
+                    <option value="link">Enlace</option>
+                    <option value="image">Imagen</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Reemplazar valores nulos</label>
+                  <input type="text" id="replace-null" placeholder="Valor por defecto" />
+                </div>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <h3>Propiedades</h3>
+              <div class="checkbox-group">
+                <input type="checkbox" id="hide-in-sidebar" />
+                <label for="hide-in-sidebar">Ocultar columna en sidebar</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="hide-header" />
+                <label for="hide-header">Ocultar nombre del encabezado</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="hide-inline-filter" />
+                <label for="hide-inline-filter">Ocultar filtro inline</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="show-aggregated" />
+                <label for="show-aggregated">Mostrar valor agregado al agrupar</label>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <h3>Alineación</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Alineación de columna</label>
+                  <select id="column-alignment">
+                    <option value="left">Izquierda</option>
+                    <option value="center">Centro</option>
+                    <option value="right">Derecha</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Alineación del encabezado</label>
+                  <select id="header-alignment">
+                    <option value="left">Izquierda</option>
+                    <option value="center">Centro</option>
+                    <option value="right">Derecha</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <h3>Formato Condicional de Color</h3>
+              <div class="form-group">
+                <label>Estilo de coloreado</label>
+                <select id="color-style">
+                  <option value="none">Ninguno</option>
+                  <option value="background">Color de fondo de celda</option>
+                  <option value="text">Color de texto de celda</option>
+                  <option value="row">Colorear fila entera</option>
                 </select>
               </div>
-              <div>
-                <label>Valor</label>
-                <input type="text" id="new-rule-value" placeholder="Ej: Alerta" />
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Color inferior</label>
+                  <div class="color-picker-group">
+                    <input type="color" id="color-below" value="#ff4444" />
+                    <button class="btn-secondary" onclick="clearColor('color-below')">Limpiar</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Color superior</label>
+                  <div class="color-picker-group">
+                    <input type="color" id="color-above" value="#44ff44" />
+                    <button class="btn-secondary" onclick="clearColor('color-above')">Limpiar</button>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label>Color de fondo</label>
-                <select id="new-rule-color">
-                  <option value="#ffebee">Rojo claro</option>
-                  <option value="#fff3e0">Naranja claro</option>
-                  <option value="#fff9c4">Amarillo claro</option>
-                  <option value="#e8f5e9">Verde claro</option>
-                  <option value="#e3f2fd">Azul claro</option>
+
+              <div class="section-divider"></div>
+
+              <h3>Iconos y Formas</h3>
+              <div class="info-box">
+                <p>
+                  Puedes agregar iconos o formas basadas en condiciones de valores. Por ejemplo, mostrar ▲ para valores
+                  positivos y ▼ para negativos.
+                </p>
+              </div>
+              <div class="form-group">
+                <label>Conjunto de iconos</label>
+                <select id="icon-set">
+                  <option value="none">Ninguno</option>
+                  <option value="arrows">Flechas (▲▼)</option>
+                  <option value="circles">Círculos (●○)</option>
+                  <option value="flags">Banderas (🚩⚑)</option>
+                  <option value="traffic">Semáforo (🔴🟡🟢)</option>
+                  <option value="stars">Estrellas (⭐☆)</option>
                 </select>
               </div>
             </div>
-            <button class="btn-success" onclick="addRowRule()">Agregar regla</button>
+
+            <div id="no-column-selected" class="info-box">
+              <p>Selecciona una columna del menú desplegable para configurar sus propiedades.</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="actions">
-        <button class="btn-secondary" onclick="closeDialog()">Cancelar</button>
-        <button class="btn-primary" onclick="saveAndClose()">Guardar</button>
+      <!-- TAB: APPEARANCE -->
+      <div id="appearance-tab" class="tab-content">
+        <div class="content-area">
+          <div class="content-section">
+            <h2>Configurar Apariencia</h2>
+
+            <h3>Charting</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="enable-charting" />
+              <label for="enable-charting">Habilitar gráficos</label>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Opciones de Layout</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="auto-row-height" />
+              <label for="auto-row-height">
+                Habilitar altura de fila automática basada en el contenido de las celdas
+              </label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="word-wrap" />
+              <label for="word-wrap">Habilitar ajuste de texto</label>
+            </div>
+            <div class="form-group">
+              <label>Altura de fila en píxeles</label>
+              <input type="number" id="row-height" value="40" min="20" max="200" />
+            </div>
+            <div class="form-group">
+              <label>Alineación vertical</label>
+              <select id="vertical-align">
+                <option value="top">Superior</option>
+                <option value="center">Centro</option>
+                <option value="bottom">Inferior</option>
+              </select>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Sidebar</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="enable-sidebar" checked />
+              <label for="enable-sidebar">Habilitar sidebar</label>
+            </div>
+            <div style="margin-left: 28px">
+              <div class="checkbox-group">
+                <input type="checkbox" id="columns-panel" checked />
+                <label for="columns-panel">Habilitar panel de columnas</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="filters-panel" checked />
+                <label for="filters-panel">Habilitar panel de filtros</label>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Filtros y Búsqueda</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="inline-filters" />
+              <label for="inline-filters">Habilitar filtros inline para todas las columnas</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="advanced-filter" checked />
+              <label for="advanced-filter">Habilitar filtro avanzado inline</label>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Paginación</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="enable-pagination" checked />
+              <label for="enable-pagination">Habilitar paginación</label>
+            </div>
+            <div class="form-group">
+              <label>Tamaño de página (dejar vacío para auto paginación)</label>
+              <input type="number" id="page-size" placeholder="auto" min="10" max="1000" />
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Opciones Adicionales</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="select-row-checkbox" />
+              <label for="select-row-checkbox">Habilitar checkbox para seleccionar fila completa</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="multiple-selection" />
+              <label for="multiple-selection">Permitir selección múltiple con clics</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="context-menu" />
+              <label for="context-menu">Habilitar menú contextual en encabezado de columna</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="show-sorting-icon" checked />
+              <label for="show-sorting-icon">Mostrar siempre icono de ordenamiento en encabezados</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: THEME -->
+      <div id="theme-tab" class="tab-content">
+        <div class="content-area">
+          <div class="content-section">
+            <h2>Configurar Theme</h2>
+            <p class="subtitle">Personaliza tu SuperTable con esta sección avanzada de temas.</p>
+
+            <div class="form-row three-cols">
+              <div class="form-group">
+                <label>Tema</label>
+                <select id="theme-select">
+                  <option value="default">Por defecto</option>
+                  <option value="dark">Oscuro</option>
+                  <option value="light">Claro</option>
+                  <option value="blue">Azul</option>
+                  <option value="green">Verde</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Tamaño de fuente</label>
+                <select id="font-size">
+                  <option value="small">Pequeño</option>
+                  <option value="medium">Mediano</option>
+                  <option value="large">Grande</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Tamaño de fuente del encabezado</label>
+                <select id="header-font-size">
+                  <option value="small">Pequeño</option>
+                  <option value="medium">Mediano</option>
+                  <option value="large">Grande</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Radio de borde</label>
+                <select id="border-radius">
+                  <option value="0">Sin redondeo</option>
+                  <option value="4">Pequeño (4px)</option>
+                  <option value="8">Mediano (8px)</option>
+                  <option value="12">Grande (12px)</option>
+                </select>
+              </div>
+              <div class="checkbox-group" style="align-self: end; margin-bottom: 10px">
+                <input type="checkbox" id="inherit-tableau-fonts" checked />
+                <label for="inherit-tableau-fonts">Heredar fuentes del formato de Tableau Workbook</label>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Colores de Fondo</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Color de fondo</label>
+                <div class="color-picker-group">
+                  <input type="color" id="bg-color" value="#ffffff" />
+                  <button class="btn-secondary" onclick="clearColor('bg-color')">Limpiar</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Color de fondo del encabezado</label>
+                <div class="color-picker-group">
+                  <input type="color" id="header-bg-color" value="#f8f9fa" />
+                  <button class="btn-secondary" onclick="clearColor('header-bg-color')">Limpiar</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Color de fondo de paneles</label>
+                <div class="color-picker-group">
+                  <input type="color" id="panels-bg-color" value="#f8f9fa" />
+                  <button class="btn-secondary" onclick="clearColor('panels-bg-color')">Limpiar</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Color de fondo de fila impar</label>
+                <div class="color-picker-group">
+                  <input type="color" id="odd-row-bg-color" value="#ffffff" />
+                  <button class="btn-secondary" onclick="clearColor('odd-row-bg-color')">Limpiar</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Color de fondo de fila seleccionada</label>
+                <div class="color-picker-group">
+                  <input type="color" id="selected-row-bg-color" value="#e3f2fd" />
+                  <button class="btn-secondary" onclick="clearColor('selected-row-bg-color')">Limpiar</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Color de fondo de Gran Total</label>
+                <div class="color-picker-group">
+                  <input type="color" id="grand-total-bg-color" value="#f0f0f0" />
+                  <button class="btn-secondary" onclick="clearColor('grand-total-bg-color')">Limpiar</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Colores de Texto</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Color primario</label>
+                <div class="color-picker-group">
+                  <input type="color" id="primary-color" value="#1a1a1a" />
+                  <button class="btn-secondary" onclick="clearColor('primary-color')">Limpiar</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Color secundario</label>
+                <div class="color-picker-group">
+                  <input type="color" id="secondary-color" value="#666666" />
+                  <button class="btn-secondary" onclick="clearColor('secondary-color')">Limpiar</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Color de texto del encabezado</label>
+                <div class="color-picker-group">
+                  <input type="color" id="header-text-color" value="#333333" />
+                  <button class="btn-secondary" onclick="clearColor('header-text-color')">Limpiar</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Color de iconos del encabezado</label>
+                <div class="color-picker-group">
+                  <input type="color" id="header-icons-color" value="#666666" />
+                  <button class="btn-secondary" onclick="clearColor('header-icons-color')">Limpiar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: RESTRICTIONS -->
+      <div id="restrictions-tab" class="tab-content">
+        <div class="content-area">
+          <div class="content-section">
+            <h2>Configurar Restricciones</h2>
+            <p class="subtitle">
+              Estas restricciones aplican a usuarios finales en Tableau Server u Online. No se habilitarán para
+              desarrolladores de Tableau Desktop (Autores).
+            </p>
+
+            <h3>Anonimizar datos</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="allow-anonymize" checked />
+              <label for="allow-anonymize">El usuario puede anonimizar datos</label>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Restricciones de columna</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="allow-adjust-width" checked />
+              <label for="allow-adjust-width">El usuario puede ajustar el ancho de columna</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="allow-reorder" />
+              <label for="allow-reorder">El usuario puede cambiar el orden de las columnas</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="allow-sort" />
+              <label for="allow-sort">El usuario puede ordenar columnas</label>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Restricciones de exportación</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="allow-copy" />
+              <label for="allow-copy">El usuario puede copiar datos</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="allow-export" />
+              <label for="allow-export">El usuario puede exportar datos (CSV, Excel y PDF)</label>
+            </div>
+            <div style="margin-left: 28px">
+              <div class="checkbox-group">
+                <input type="checkbox" id="allow-export-csv" />
+                <label for="allow-export-csv">El usuario puede exportar datos a CSV</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="allow-export-excel" />
+                <label for="allow-export-excel">El usuario puede exportar datos a Excel</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="allow-export-pdf" />
+                <label for="allow-export-pdf">El usuario puede exportar datos a PDF</label>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Restricciones de tabla</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="allow-pivot" />
+              <label for="allow-pivot">El usuario puede cambiar a modo pivote</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="allow-expand-groups" />
+              <label for="allow-expand-groups">El usuario puede hacer doble clic para expandir grupos</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: TOOLTIP -->
+      <div id="tooltip-tab" class="tab-content">
+        <div class="sidebar">
+          <h3>Tooltips Personalizados</h3>
+          <button class="btn-success" style="width: 100%; margin-bottom: 15px" onclick="createNewTooltip()">
+            Crear Nuevo Tooltip
+          </button>
+          <ul class="sidebar-list" id="tooltips-list"></ul>
+        </div>
+        <div class="content-area">
+          <div class="content-section">
+            <h2>Tooltips</h2>
+            <p class="subtitle">Los tooltips personalizados están deshabilitados.</p>
+
+            <div id="tooltip-editor" style="display: none">
+              <div class="form-group">
+                <label>Nombre del tooltip</label>
+                <input type="text" id="tooltip-name" placeholder="Ej: Tooltip de ventas" />
+              </div>
+
+              <div class="form-group">
+                <label>Ubicación del tooltip</label>
+                <div class="radio-group">
+                  <label>
+                    <input type="radio" name="tooltip-location" value="all" checked />
+                    Visible en todas las columnas (row tooltip)
+                  </label>
+                  <label>
+                    <input type="radio" name="tooltip-location" value="specific" />
+                    Visible en columna(s) específica(s)
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group" id="tooltip-columns-group" style="display: none">
+                <label>Seleccionar columnas</label>
+                <select id="tooltip-columns" multiple style="height: 100px">
+                  <option value="col1">Columna 1</option>
+                  <option value="col2">Columna 2</option>
+                </select>
+              </div>
+
+              <div class="info-box">
+                <p>
+                  <strong>Guía de Tooltip:</strong><br />
+                  Usa <code>@</code> para valores de columna específica. Ej: <code>@COMO</code><br />
+                  Usa <code>$</code> para la columna actual. Ej: <code>$Column Name</code>, <code>$Column Value</code>
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label>Contenido del tooltip</label>
+                <textarea id="tooltip-content" rows="8" placeholder="Escribe el contenido del tooltip..."></textarea>
+              </div>
+
+              <button class="btn-danger" onclick="deleteCurrentTooltip()">Eliminar Tooltip</button>
+            </div>
+
+            <div id="no-tooltip-selected" class="info-box">
+              <p>Crea un nuevo tooltip o selecciona uno existente para editarlo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: EXPORT -->
+      <div id="export-tab" class="tab-content">
+        <div class="content-area">
+          <div class="content-section">
+            <h2>Configurar Exports</h2>
+
+            <h3>Opciones de Layout</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="show-export-button" checked />
+              <label for="show-export-button">Mostrar botón para exportar los datos</label>
+            </div>
+            <div style="margin-left: 28px">
+              <div class="checkbox-group">
+                <input type="checkbox" id="export-excel-enabled" checked />
+                <label for="export-excel-enabled">Exportar Excel</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="export-csv-enabled" checked />
+                <label for="export-csv-enabled">Exportar CSV</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="export-pdf-enabled" />
+                <label for="export-pdf-enabled">Exportar PDF</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Tipo de visualización del botón de exportación</label>
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="export-display" value="icon" />
+                  Mostrar botón como icono
+                </label>
+                <label>
+                  <input type="radio" name="export-display" value="dropdown" checked />
+                  Mostrar botón en menú desplegable
+                </label>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Opciones de Estilo</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="differentiate-rows" checked />
+              <label for="differentiate-rows">Diferenciar filas pares e impares</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="first-line-headers" checked />
+              <label for="first-line-headers">La primera línea son nombres de encabezado de columna</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="include-header-groupings" checked />
+              <label for="include-header-groupings">Incluir agrupaciones de encabezado de columna</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="export-visible-only" checked />
+              <label for="export-visible-only">Exportar solo columnas visibles</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="include-formatting" checked />
+              <label for="include-formatting">Incluir formato en valores (solo CSV)</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="include-url-actions" checked />
+              <label for="include-url-actions">Incluir acciones URL</label>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Nombres de Exportación</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>CSV</label>
+                <input type="text" id="export-csv-name" value="export.csv" />
+              </div>
+              <div class="form-group">
+                <label>Excel</label>
+                <input type="text" id="export-excel-name" value="export.xlsx" />
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Limitar Exportación</h3>
+            <div class="form-group">
+              <label>Exportar las primeras N filas (0 = todas)</label>
+              <input type="number" id="limit-export-rows" value="0" min="0" />
+              <p class="help-text">Exportar las primeras N filas (0 = todas)</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <script>
       var config = {}
+      var currentTooltipIndex = -1
 
-      // Inicializar
       tableau.extensions.initializeDialogAsync().then(function () {
         var settings = tableau.extensions.settings.getAll()
-        config = JSON.parse(settings.config || "{}")
+        config = JSON.parse(settings.config || '{}')
 
-        // Cargar valores
-        document.getElementById("config-title").value = config.tableTitle || ""
-        document.getElementById("config-online").checked = config.showOnlineStatus !== false
-        document.getElementById("config-search").checked = config.showSearch !== false
-        document.getElementById("config-export").checked = config.showExportButtons !== false
-        document.getElementById("config-refresh").checked = config.showRefreshButton === true
-        document.getElementById("config-row-format").checked = config.rowFormatting?.enabled === true
-
-        // Cargar columnas (si están disponibles en los settings)
-        if (config.columns) {
-          var columnSelect = document.getElementById("new-rule-column")
-          config.columns.forEach(function (col) {
-            var option = document.createElement("option")
-            option.value = col.name
-            option.textContent = col.name
-            columnSelect.appendChild(option)
-          })
-        }
-
-        renderRowRules()
+        loadAllSettings()
+        populateColumnLists()
       })
 
+      function loadAllSettings() {
+        // General
+        var dataMethod = config.dataMethod || 'paginated'
+        document.querySelector(`input[name="data-method"][value="${dataMethod}"]`).checked = true
+        document.getElementById('performance-booster').checked = config.performanceBooster !== false
+        document.getElementById('column-virtualization').checked = config.columnVirtualization === true
+        document.getElementById('accessibility-mode').checked = config.accessibilityMode === true
+
+        // Appearance
+        document.getElementById('enable-charting').checked = config.enableCharting === true
+        document.getElementById('auto-row-height').checked = config.autoRowHeight === true
+        document.getElementById('word-wrap').checked = config.wordWrap === true
+        document.getElementById('row-height').value = config.rowHeight || 40
+        document.getElementById('vertical-align').value = config.verticalAlign || 'center'
+        document.getElementById('enable-sidebar').checked = config.enableSidebar !== false
+        document.getElementById('columns-panel').checked = config.columnsPanel !== false
+        document.getElementById('filters-panel').checked = config.filtersPanel !== false
+        document.getElementById('inline-filters').checked = config.inlineFilters === true
+        document.getElementById('advanced-filter').checked = config.advancedFilter !== false
+        document.getElementById('enable-pagination').checked = config.enablePagination !== false
+        document.getElementById('page-size').value = config.pageSize || ''
+        document.getElementById('select-row-checkbox').checked = config.selectRowCheckbox === true
+        document.getElementById('multiple-selection').checked = config.multipleSelection === true
+        document.getElementById('context-menu').checked = config.contextMenu === true
+        document.getElementById('show-sorting-icon').checked = config.showSortingIcon !== false
+
+        // Theme
+        document.getElementById('theme-select').value = config.theme || 'default'
+        document.getElementById('font-size').value = config.fontSize || 'medium'
+        document.getElementById('header-font-size').value = config.headerFontSize || 'medium'
+        document.getElementById('border-radius').value = config.borderRadius || '4'
+        document.getElementById('inherit-tableau-fonts').checked = config.inheritTableauFonts !== false
+        document.getElementById('bg-color').value = config.bgColor || '#ffffff'
+        document.getElementById('header-bg-color').value = config.headerBgColor || '#f8f9fa'
+        document.getElementById('panels-bg-color').value = config.panelsBgColor || '#f8f9fa'
+        document.getElementById('odd-row-bg-color').value = config.oddRowBgColor || '#ffffff'
+        document.getElementById('selected-row-bg-color').value = config.selectedRowBgColor || '#e3f2fd'
+        document.getElementById('grand-total-bg-color').value = config.grandTotalBgColor || '#f0f0f0'
+        document.getElementById('primary-color').value = config.primaryColor || '#1a1a1a'
+        document.getElementById('secondary-color').value = config.secondaryColor || '#666666'
+        document.getElementById('header-text-color').value = config.headerTextColor || '#333333'
+        document.getElementById('header-icons-color').value = config.headerIconsColor || '#666666'
+
+        // Restrictions
+        document.getElementById('allow-anonymize').checked = config.allowAnonymize !== false
+        document.getElementById('allow-adjust-width').checked = config.allowAdjustWidth !== false
+        document.getElementById('allow-reorder').checked = config.allowReorder === true
+        document.getElementById('allow-sort').checked = config.allowSort === true
+        document.getElementById('allow-copy').checked = config.allowCopy === true
+        document.getElementById('allow-export').checked = config.allowExport === true
+        document.getElementById('allow-export-csv').checked = config.allowExportCsv === true
+        document.getElementById('allow-export-excel').checked = config.allowExportExcel === true
+        document.getElementById('allow-export-pdf').checked = config.allowExportPdf === true
+        document.getElementById('allow-pivot').checked = config.allowPivot === true
+        document.getElementById('allow-expand-groups').checked = config.allowExpandGroups === true
+
+        // Export
+        document.getElementById('show-export-button').checked = config.showExportButton !== false
+        document.getElementById('export-excel-enabled').checked = config.exportExcelEnabled !== false
+        document.getElementById('export-csv-enabled').checked = config.exportCsvEnabled !== false
+        document.getElementById('export-pdf-enabled').checked = config.exportPdfEnabled === true
+        var exportDisplay = config.exportDisplay || 'dropdown'
+        document.querySelector(`input[name="export-display"][value="${exportDisplay}"]`).checked = true
+        document.getElementById('differentiate-rows').checked = config.differentiateRows !== false
+        document.getElementById('first-line-headers').checked = config.firstLineHeaders !== false
+        document.getElementById('include-header-groupings').checked = config.includeHeaderGroupings !== false
+        document.getElementById('export-visible-only').checked = config.exportVisibleOnly !== false
+        document.getElementById('include-formatting').checked = config.includeFormatting !== false
+        document.getElementById('include-url-actions').checked = config.includeUrlActions !== false
+        document.getElementById('export-csv-name').value = config.exportCsvName || 'export.csv'
+        document.getElementById('export-excel-name').value = config.exportExcelName || 'export.xlsx'
+        document.getElementById('limit-export-rows').value = config.limitExportRows || 0
+      }
+
+      function populateColumnLists() {
+        if (!config.columns || config.columns.length === 0) {
+          return
+        }
+
+        var dimensionsList = document.getElementById('dimensions-list')
+        var measuresList = document.getElementById('measures-list')
+        var selectedColumn = document.getElementById('selected-column')
+
+        config.columns.forEach(function (col) {
+          var li = document.createElement('li')
+          li.className = 'sidebar-item'
+          li.innerHTML = `<span class="icon">${col.dataType === 'string' ? 'Aα' : '#'}</span>${col.name}`
+          li.onclick = function () {
+            selectColumnFromSidebar(col.name)
+          }
+
+          if (col.dataType === 'string') {
+            dimensionsList.appendChild(li)
+          } else {
+            measuresList.appendChild(li)
+          }
+
+          var option = document.createElement('option')
+          option.value = col.name
+          option.textContent = col.name
+          selectedColumn.appendChild(option)
+        })
+      }
+
+      function selectColumnFromSidebar(columnName) {
+        document.getElementById('selected-column').value = columnName
+        loadColumnConfig()
+
+        document.querySelectorAll('.sidebar-item').forEach((item) => item.classList.remove('active'))
+        event.target.closest('.sidebar-item').classList.add('active')
+      }
+
+      function loadColumnConfig() {
+        var columnName = document.getElementById('selected-column').value
+        if (!columnName) {
+          document.getElementById('column-config-content').style.display = 'none'
+          document.getElementById('no-column-selected').style.display = 'block'
+          return
+        }
+
+        document.getElementById('column-config-content').style.display = 'block'
+        document.getElementById('no-column-selected').style.display = 'none'
+
+        var columnConfig = config.columnConfigs ? config.columnConfigs[columnName] : {}
+        if (!columnConfig) columnConfig = {}
+
+        document.getElementById('column-display-name').value = columnConfig.displayName || columnName
+        document.getElementById('dimension-style').value = columnConfig.dimensionStyle || 'text'
+        document.getElementById('replace-null').value = columnConfig.replaceNull || ''
+        document.getElementById('hide-in-sidebar').checked = columnConfig.hideInSidebar === true
+        document.getElementById('hide-header').checked = columnConfig.hideHeader === true
+        document.getElementById('hide-inline-filter').checked = columnConfig.hideInlineFilter === true
+        document.getElementById('show-aggregated').checked = columnConfig.showAggregated === true
+        document.getElementById('column-alignment').value = columnConfig.columnAlignment || 'left'
+        document.getElementById('header-alignment').value = columnConfig.headerAlignment || 'left'
+        document.getElementById('color-style').value = columnConfig.colorStyle || 'none'
+        document.getElementById('color-below').value = columnConfig.colorBelow || '#ff4444'
+        document.getElementById('color-above').value = columnConfig.colorAbove || '#44ff44'
+        document.getElementById('icon-set').value = columnConfig.iconSet || 'none'
+      }
+
+      function saveColumnConfig() {
+        var columnName = document.getElementById('selected-column').value
+        if (!columnName) return
+
+        if (!config.columnConfigs) config.columnConfigs = {}
+
+        config.columnConfigs[columnName] = {
+          displayName: document.getElementById('column-display-name').value,
+          dimensionStyle: document.getElementById('dimension-style').value,
+          replaceNull: document.getElementById('replace-null').value,
+          hideInSidebar: document.getElementById('hide-in-sidebar').checked,
+          hideHeader: document.getElementById('hide-header').checked,
+          hideInlineFilter: document.getElementById('hide-inline-filter').checked,
+          showAggregated: document.getElementById('show-aggregated').checked,
+          columnAlignment: document.getElementById('column-alignment').value,
+          headerAlignment: document.getElementById('header-alignment').value,
+          colorStyle: document.getElementById('color-style').value,
+          colorBelow: document.getElementById('color-below').value,
+          colorAbove: document.getElementById('color-above').value,
+          iconSet: document.getElementById('icon-set').value,
+        }
+      }
+
       function switchTab(tabName) {
-        document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
-        document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
-
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
-        document.getElementById(tabName + "-tab").classList.add("active")
-      }
-
-      function renderRowRules() {
-        var list = document.getElementById("row-rules-list")
-        list.innerHTML = ""
-
-        if (!config.rowFormatting) {
-          config.rowFormatting = { enabled: false, rules: [] }
+        // Save column config if on data tab
+        if (document.querySelector('.tab-btn.active').dataset.tab === 'data') {
+          saveColumnConfig()
         }
 
-        if (config.rowFormatting.rules.length === 0) {
-          list.innerHTML = '<p class="help-text">No hay reglas configuradas</p>'
+        document.querySelectorAll('.tab-btn').forEach((btn) => btn.classList.remove('active'))
+        document.querySelectorAll('.tab-content').forEach((content) => content.classList.remove('active'))
+
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active')
+        document.getElementById(tabName + '-tab').classList.add('active')
+      }
+
+      function clearColor(inputId) {
+        document.getElementById(inputId).value = '#ffffff'
+      }
+
+      function createNewTooltip() {
+        if (!config.tooltips) config.tooltips = []
+        config.tooltips.push({
+          name: 'Nuevo Tooltip',
+          location: 'all',
+          columns: [],
+          content: '',
+        })
+        currentTooltipIndex = config.tooltips.length - 1
+        renderTooltipsList()
+        loadTooltipEditor()
+      }
+
+      function renderTooltipsList() {
+        var list = document.getElementById('tooltips-list')
+        list.innerHTML = ''
+
+        if (!config.tooltips || config.tooltips.length === 0) {
           return
         }
 
-        config.rowFormatting.rules.forEach(function (rule, index) {
-          var div = document.createElement("div")
-          div.className = "rule-item"
-          div.innerHTML = `
-            <div class="rule-info">
-              <strong>${rule.column}</strong> = "${rule.value}" → 
-              <span style="background: ${rule.backgroundColor}; padding: 3px 8px; border-radius: 3px;">${rule.backgroundColor}</span>
-            </div>
-            <button class="btn-danger" onclick="removeRowRule(${index})">Eliminar</button>
-          `
-          list.appendChild(div)
+        config.tooltips.forEach(function (tooltip, index) {
+          var li = document.createElement('li')
+          li.className = 'sidebar-item' + (index === currentTooltipIndex ? ' active' : '')
+          li.textContent = tooltip.name
+          li.onclick = function () {
+            currentTooltipIndex = index
+            renderTooltipsList()
+            loadTooltipEditor()
+          }
+          list.appendChild(li)
         })
       }
 
-      function addRowRule() {
-        var column = document.getElementById("new-rule-column").value
-        var value = document.getElementById("new-rule-value").value
-        var color = document.getElementById("new-rule-color").value
-
-        if (!column || !value) {
-          alert("Por favor completa todos los campos")
+      function loadTooltipEditor() {
+        if (currentTooltipIndex === -1) {
+          document.getElementById('tooltip-editor').style.display = 'none'
+          document.getElementById('no-tooltip-selected').style.display = 'block'
           return
         }
 
-        if (!config.rowFormatting) {
-          config.rowFormatting = { enabled: true, rules: [] }
-        }
+        document.getElementById('tooltip-editor').style.display = 'block'
+        document.getElementById('no-tooltip-selected').style.display = 'none'
 
-        config.rowFormatting.rules.push({
-          column: column,
-          value: value,
-          backgroundColor: color,
-        })
-
-        document.getElementById("new-rule-value").value = ""
-        renderRowRules()
+        var tooltip = config.tooltips[currentTooltipIndex]
+        document.getElementById('tooltip-name').value = tooltip.name
+        document.querySelector(`input[name="tooltip-location"][value="${tooltip.location}"]`).checked = true
+        document.getElementById('tooltip-content').value = tooltip.content
       }
 
-      function removeRowRule(index) {
-        config.rowFormatting.rules.splice(index, 1)
-        renderRowRules()
+      function deleteCurrentTooltip() {
+        if (currentTooltipIndex === -1) return
+        if (confirm('¿Estás seguro de eliminar este tooltip?')) {
+          config.tooltips.splice(currentTooltipIndex, 1)
+          currentTooltipIndex = -1
+          renderTooltipsList()
+          loadTooltipEditor()
+        }
+      }
+
+      function exportConfig() {
+        var name = document.getElementById('export-name').value || 'supertable-config'
+        var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(config, null, 2))
+        var downloadAnchor = document.createElement('a')
+        downloadAnchor.setAttribute('href', dataStr)
+        downloadAnchor.setAttribute('download', name + '.json')
+        downloadAnchor.click()
+      }
+
+      function importConfig(input) {
+        var file = input.files[0]
+        if (!file) return
+
+        var reader = new FileReader()
+        reader.onload = function (e) {
+          try {
+            config = JSON.parse(e.target.result)
+            loadAllSettings()
+            alert('Configuración importada correctamente')
+          } catch (err) {
+            alert('Error al importar configuración: ' + err.message)
+          }
+        }
+        reader.readAsText(file)
       }
 
       function saveAndClose() {
-        // Guardar configuración
-        config.tableTitle = document.getElementById("config-title").value
-        config.showOnlineStatus = document.getElementById("config-online").checked
-        config.showSearch = document.getElementById("config-search").checked
-        config.showExportButtons = document.getElementById("config-export").checked
-        config.showRefreshButton = document.getElementById("config-refresh").checked
-
-        if (!config.rowFormatting) {
-          config.rowFormatting = { enabled: false, rules: [] }
+        // Save current column config if on data tab
+        if (document.querySelector('.tab-btn.active').dataset.tab === 'data') {
+          saveColumnConfig()
         }
-        config.rowFormatting.enabled = document.getElementById("config-row-format").checked
 
-        tableau.extensions.settings.set("config", JSON.stringify(config))
+        // General
+        config.dataMethod = document.querySelector('input[name="data-method"]:checked').value
+        config.performanceBooster = document.getElementById('performance-booster').checked
+        config.columnVirtualization = document.getElementById('column-virtualization').checked
+        config.accessibilityMode = document.getElementById('accessibility-mode').checked
+
+        // Appearance
+        config.enableCharting = document.getElementById('enable-charting').checked
+        config.autoRowHeight = document.getElementById('auto-row-height').checked
+        config.wordWrap = document.getElementById('word-wrap').checked
+        config.rowHeight = parseInt(document.getElementById('row-height').value)
+        config.verticalAlign = document.getElementById('vertical-align').value
+        config.enableSidebar = document.getElementById('enable-sidebar').checked
+        config.columnsPanel = document.getElementById('columns-panel').checked
+        config.filtersPanel = document.getElementById('filters-panel').checked
+        config.inlineFilters = document.getElementById('inline-filters').checked
+        config.advancedFilter = document.getElementById('advanced-filter').checked
+        config.enablePagination = document.getElementById('enable-pagination').checked
+        config.pageSize = parseInt(document.getElementById('page-size').value) || null
+        config.selectRowCheckbox = document.getElementById('select-row-checkbox').checked
+        config.multipleSelection = document.getElementById('multiple-selection').checked
+        config.contextMenu = document.getElementById('context-menu').checked
+        config.showSortingIcon = document.getElementById('show-sorting-icon').checked
+
+        // Theme
+        config.theme = document.getElementById('theme-select').value
+        config.fontSize = document.getElementById('font-size').value
+        config.headerFontSize = document.getElementById('header-font-size').value
+        config.borderRadius = document.getElementById('border-radius').value
+        config.inheritTableauFonts = document.getElementById('inherit-tableau-fonts').checked
+        config.bgColor = document.getElementById('bg-color').value
+        config.headerBgColor = document.getElementById('header-bg-color').value
+        config.panelsBgColor = document.getElementById('panels-bg-color').value
+        config.oddRowBgColor = document.getElementById('odd-row-bg-color').value
+        config.selectedRowBgColor = document.getElementById('selected-row-bg-color').value
+        config.grandTotalBgColor = document.getElementById('grand-total-bg-color').value
+        config.primaryColor = document.getElementById('primary-color').value
+        config.secondaryColor = document.getElementById('secondary-color').value
+        config.headerTextColor = document.getElementById('header-text-color').value
+        config.headerIconsColor = document.getElementById('header-icons-color').value
+
+        // Restrictions
+        config.allowAnonymize = document.getElementById('allow-anonymize').checked
+        config.allowAdjustWidth = document.getElementById('allow-adjust-width').checked
+        config.allowReorder = document.getElementById('allow-reorder').checked
+        config.allowSort = document.getElementById('allow-sort').checked
+        config.allowCopy = document.getElementById('allow-copy').checked
+        config.allowExport = document.getElementById('allow-export').checked
+        config.allowExportCsv = document.getElementById('allow-export-csv').checked
+        config.allowExportExcel = document.getElementById('allow-export-excel').checked
+        config.allowExportPdf = document.getElementById('allow-export-pdf').checked
+        config.allowPivot = document.getElementById('allow-pivot').checked
+        config.allowExpandGroups = document.getElementById('allow-expand-groups').checked
+
+        // Export
+        config.showExportButton = document.getElementById('show-export-button').checked
+        config.exportExcelEnabled = document.getElementById('export-excel-enabled').checked
+        config.exportCsvEnabled = document.getElementById('export-csv-enabled').checked
+        config.exportPdfEnabled = document.getElementById('export-pdf-enabled').checked
+        config.exportDisplay = document.querySelector('input[name="export-display"]:checked').value
+        config.differentiateRows = document.getElementById('differentiate-rows').checked
+        config.firstLineHeaders = document.getElementById('first-line-headers').checked
+        config.includeHeaderGroupings = document.getElementById('include-header-groupings').checked
+        config.exportVisibleOnly = document.getElementById('export-visible-only').checked
+        config.includeFormatting = document.getElementById('include-formatting').checked
+        config.includeUrlActions = document.getElementById('include-url-actions').checked
+        config.exportCsvName = document.getElementById('export-csv-name').value
+        config.exportExcelName = document.getElementById('export-excel-name').value
+        config.limitExportRows = parseInt(document.getElementById('limit-export-rows').value)
+
+        tableau.extensions.settings.set('config', JSON.stringify(config))
         tableau.extensions.settings.saveAsync().then(function () {
-          tableau.extensions.ui.closeDialog("saved")
+          tableau.extensions.ui.closeDialog('saved')
         })
       }
 
       function closeDialog() {
-        tableau.extensions.ui.closeDialog("cancelled")
+        tableau.extensions.ui.closeDialog('cancelled')
       }
     </script>
   </body>
