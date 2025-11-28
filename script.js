@@ -370,10 +370,15 @@ function setupDashboardContext() {
 }
 
 function setupWorksheetContext() {
+  console.log("[v0] setupWorksheetContext iniciado")
   currentWorksheet = tableau.extensions.worksheetContent.worksheet
+  console.log("[v0] Worksheet:", currentWorksheet ? currentWorksheet.name : "null")
   document.getElementById("worksheet-selector").parentElement.style.display = "none"
   updateStatus("Conectado", "connected")
-  loadWorksheetData()
+
+  setTimeout(() => {
+    loadWorksheetData()
+  }, 500)
 }
 
 function setupEventListeners() {
@@ -405,6 +410,14 @@ function loadWorksheet(name) {
 
 function loadWorksheetData() {
   console.log("[v0] loadWorksheetData iniciado")
+
+  if (!currentWorksheet) {
+    console.error("[v0] currentWorksheet is null")
+    showError("No hay worksheet seleccionado")
+    return
+  }
+
+  console.log("[v0] Obteniendo datos de:", currentWorksheet.name)
   showLoading()
 
   currentWorksheet
@@ -415,6 +428,7 @@ function loadWorksheetData() {
         "[v0] Columnas:",
         dataTable.columns.map((c) => c.fieldName),
       )
+      console.log("[v0] Primera fila de ejemplo:", dataTable.data[0])
 
       fullData = {
         columns: dataTable.columns.map((col) => ({
@@ -426,6 +440,7 @@ function loadWorksheetData() {
       }
 
       console.log("[v0] fullData creado con", fullData.rows.length, "filas y", fullData.columns.length, "columnas")
+      console.log("[v0] Ejemplo de fullData.rows[0]:", fullData.rows[0])
 
       fullData.columns.forEach((col) => {
         if (!config.columns[col.name]) {
@@ -441,7 +456,8 @@ function loadWorksheetData() {
       })
 
       applyFiltersAndSort()
-      console.log("[v0] visibleData después de filtrar:", visibleData.length, "filas")
+      console.log("[v0] visibleData después de filtrar:", visibleData ? visibleData.length : "null", "filas")
+      console.log("[v0] Ejemplo de visibleData[0]:", visibleData ? visibleData[0] : "null")
       renderTable()
     })
     .catch((err) => {
@@ -489,15 +505,20 @@ function applyFiltersAndSort() {
 
 function renderTable() {
   console.log("[v0] renderTable iniciado")
-  console.log("[v0] fullData:", fullData ? fullData.rows.length : "null")
+  console.log(
+    "[v0] fullData:",
+    fullData ? `${fullData.rows.length} filas, ${fullData.columns.length} columnas` : "null",
+  )
   console.log("[v0] visibleData:", visibleData ? visibleData.length : "null")
+  console.log("[v0] config.columns:", Object.keys(config.columns))
 
   if (!fullData || !fullData.columns || !visibleData) {
     console.error("[v0] No hay datos para renderizar")
+    hideLoading()
     return
   }
 
-  document.getElementById("loading").style.display = "none"
+  hideLoading()
   document.getElementById("table-container").style.display = "block"
 
   var visibleColumns = fullData.columns.filter((col) => config.columns[col.name]?.visible)
@@ -718,4 +739,8 @@ function applyGeneralSettings() {
 
 function loadData() {
   loadWorksheetData()
+}
+
+function hideLoading() {
+  document.getElementById("loading").style.display = "none"
 }
