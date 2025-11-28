@@ -69,7 +69,7 @@ function openSettings() {
   var modal = document.getElementById("settings-modal")
 
   // Cargar valores actuales
-  document.getElementById("settings-title").value = config.tableTitle || "" // Load table title
+  document.getElementById("settings-title").value = config.tableTitle || ""
   document.getElementById("settings-online").checked = config.showOnlineStatus
   document.getElementById("settings-search").checked = config.showSearch
   document.getElementById("settings-export").checked = config.showExportButtons
@@ -77,13 +77,21 @@ function openSettings() {
 
   var columnSelector = document.getElementById("row-rule-column")
   columnSelector.innerHTML = '<option value="">Selecciona una columna...</option>'
-  if (fullData && fullData.columns) {
+
+  if (fullData && fullData.columns && fullData.columns.length > 0) {
     fullData.columns.forEach((col) => {
       var option = document.createElement("option")
       option.value = col.name
       option.textContent = col.name
       columnSelector.appendChild(option)
     })
+  } else {
+    // Si no hay datos, mostrar mensaje informativo
+    var option = document.createElement("option")
+    option.value = ""
+    option.textContent = "Carga datos primero arrastrando campos"
+    option.disabled = true
+    columnSelector.appendChild(option)
   }
 
   // Cargar estado del formato de fila
@@ -151,7 +159,12 @@ function addRowRule() {
   var textColor = document.getElementById("row-rule-textcolor").value
 
   if (!column || !value) {
-    alert("Por favor completa todos los campos")
+    alert("Por favor completa todos los campos (columna y valor)")
+    return
+  }
+
+  if (!fullData || !fullData.columns || !fullData.columns.find((c) => c.name === column)) {
+    alert("La columna seleccionada no existe en los datos actuales")
     return
   }
 
