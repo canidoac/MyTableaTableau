@@ -15,6 +15,10 @@
     <permissions>
       <permission>full data</permission>
     </permissions>
+    <!-- Agregado context-menu para mostrar botón en el panel de Marcas -->
+    <context-menu>
+      <configure-context-menu-item />
+    </context-menu>
   </worksheet-extension>
   <resources>
     <resource id="name">

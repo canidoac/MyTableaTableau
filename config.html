@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuración - Super Table Pro</title>
+    <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        padding: 20px;
+        background: #f8f9fa;
+      }
+
+      .config-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #1a1a1a;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e0e0e0;
+      }
+
+      .tab-btn {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 15px;
+        color: #666;
+        transition: all 0.2s;
+        margin-bottom: -2px;
+      }
+
+      .tab-btn:hover {
+        color: #1a1a1a;
+      }
+
+      .tab-btn.active {
+        color: #0066cc;
+        border-bottom-color: #0066cc;
+        font-weight: 600;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+      }
+
+      .form-group input[type="text"],
+      .form-group input[type="number"],
+      .form-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      .form-group input[type="text"]:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #0066cc;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 0;
+      }
+
+      .checkbox-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .checkbox-group label {
+        margin: 0;
+        font-weight: normal;
+        cursor: pointer;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      button {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #0066cc;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #0052a3;
+      }
+
+      .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #d0d0d0;
+      }
+
+      .help-text {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+
+      .rule-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .rule-info {
+        flex: 1;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      .btn-danger:hover {
+        background: #c82333;
+      }
+
+      .add-rule-form {
+        background: #f0f7ff;
+        padding: 20px;
+        border-radius: 6px;
+        margin-top: 20px;
+      }
+
+      .add-rule-form h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+        color: #0066cc;
+      }
+
+      .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .form-row > * {
+        flex: 1;
+      }
+
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #218838;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="config-container">
+      <h1>Configuración de Super Table Pro</h1>
+      <p class="subtitle">Personaliza el comportamiento y apariencia de tu tabla</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="general" onclick="switchTab('general')">General</button>
+        <button class="tab-btn" data-tab="row-format" onclick="switchTab('row-format')">Formato de Filas</button>
+      </div>
+
+      <!-- General Tab -->
+      <div id="general-tab" class="tab-content active">
+        <div class="form-group">
+          <label>Título de la tabla</label>
+          <input type="text" id="config-title" placeholder="Título personalizado (opcional)" />
+          <p class="help-text">Si se deja vacío, se usará el nombre del worksheet</p>
+        </div>
+
+        <div class="form-group">
+          <label>Opciones de visualización</label>
+          <div class="checkbox-group">
+            <input type="checkbox" id="config-online" checked />
+            <label for="config-online">Mostrar indicador "Online"</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="config-search" checked />
+            <label for="config-search">Mostrar buscador</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="config-export" checked />
+            <label for="config-export">Mostrar botones de exportación</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="config-refresh" />
+            <label for="config-refresh">Mostrar botón de actualizar</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row Format Tab -->
+      <div id="row-format-tab" class="tab-content">
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="config-row-format" />
+            <label for="config-row-format">Activar formato condicional de filas</label>
+          </div>
+          <p class="help-text">
+            Permite aplicar estilos a filas completas basado en valores de columnas específicas
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label>Reglas de formato</label>
+          <div id="row-rules-list"></div>
+
+          <div class="add-rule-form">
+            <h3>Agregar nueva regla</h3>
+            <div class="form-row">
+              <div>
+                <label>Columna</label>
+                <select id="new-rule-column">
+                  <option value="">Selecciona una columna...</option>
+                </select>
+              </div>
+              <div>
+                <label>Valor</label>
+                <input type="text" id="new-rule-value" placeholder="Ej: Alerta" />
+              </div>
+              <div>
+                <label>Color de fondo</label>
+                <select id="new-rule-color">
+                  <option value="#ffebee">Rojo claro</option>
+                  <option value="#fff3e0">Naranja claro</option>
+                  <option value="#fff9c4">Amarillo claro</option>
+                  <option value="#e8f5e9">Verde claro</option>
+                  <option value="#e3f2fd">Azul claro</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-success" onclick="addRowRule()">Agregar regla</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-secondary" onclick="closeDialog()">Cancelar</button>
+        <button class="btn-primary" onclick="saveAndClose()">Guardar</button>
+      </div>
+    </div>
+
+    <script>
+      var config = {}
+
+      // Inicializar
+      tableau.extensions.initializeDialogAsync().then(function () {
+        var settings = tableau.extensions.settings.getAll()
+        config = JSON.parse(settings.config || "{}")
+
+        // Cargar valores
+        document.getElementById("config-title").value = config.tableTitle || ""
+        document.getElementById("config-online").checked = config.showOnlineStatus !== false
+        document.getElementById("config-search").checked = config.showSearch !== false
+        document.getElementById("config-export").checked = config.showExportButtons !== false
+        document.getElementById("config-refresh").checked = config.showRefreshButton === true
+        document.getElementById("config-row-format").checked = config.rowFormatting?.enabled === true
+
+        // Cargar columnas (si están disponibles en los settings)
+        if (config.columns) {
+          var columnSelect = document.getElementById("new-rule-column")
+          config.columns.forEach(function (col) {
+            var option = document.createElement("option")
+            option.value = col.name
+            option.textContent = col.name
+            columnSelect.appendChild(option)
+          })
+        }
+
+        renderRowRules()
+      })
+
+      function switchTab(tabName) {
+        document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
+        document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
+
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
+        document.getElementById(tabName + "-tab").classList.add("active")
+      }
+
+      function renderRowRules() {
+        var list = document.getElementById("row-rules-list")
+        list.innerHTML = ""
+
+        if (!config.rowFormatting) {
+          config.rowFormatting = { enabled: false, rules: [] }
+        }
+
+        if (config.rowFormatting.rules.length === 0) {
+          list.innerHTML = '<p class="help-text">No hay reglas configuradas</p>'
+          return
+        }
+
+        config.rowFormatting.rules.forEach(function (rule, index) {
+          var div = document.createElement("div")
+          div.className = "rule-item"
+          div.innerHTML = `
+            <div class="rule-info">
+              <strong>${rule.column}</strong> = "${rule.value}" → 
+              <span style="background: ${rule.backgroundColor}; padding: 3px 8px; border-radius: 3px;">${rule.backgroundColor}</span>
+            </div>
+            <button class="btn-danger" onclick="removeRowRule(${index})">Eliminar</button>
+          `
+          list.appendChild(div)
+        })
+      }
+
+      function addRowRule() {
+        var column = document.getElementById("new-rule-column").value
+        var value = document.getElementById("new-rule-value").value
+        var color = document.getElementById("new-rule-color").value
+
+        if (!column || !value) {
+          alert("Por favor completa todos los campos")
+          return
+        }
+
+        if (!config.rowFormatting) {
+          config.rowFormatting = { enabled: true, rules: [] }
+        }
+
+        config.rowFormatting.rules.push({
+          column: column,
+          value: value,
+          backgroundColor: color,
+        })
+
+        document.getElementById("new-rule-value").value = ""
+        renderRowRules()
+      }
+
+      function removeRowRule(index) {
+        config.rowFormatting.rules.splice(index, 1)
+        renderRowRules()
+      }
+
+      function saveAndClose() {
+        // Guardar configuración
+        config.tableTitle = document.getElementById("config-title").value
+        config.showOnlineStatus = document.getElementById("config-online").checked
+        config.showSearch = document.getElementById("config-search").checked
+        config.showExportButtons = document.getElementById("config-export").checked
+        config.showRefreshButton = document.getElementById("config-refresh").checked
+
+        if (!config.rowFormatting) {
+          config.rowFormatting = { enabled: false, rules: [] }
+        }
+        config.rowFormatting.enabled = document.getElementById("config-row-format").checked
+
+        tableau.extensions.settings.set("config", JSON.stringify(config))
+        tableau.extensions.settings.saveAsync().then(function () {
+          tableau.extensions.ui.closeDialog("saved")
+        })
+      }
+
+      function closeDialog() {
+        tableau.extensions.ui.closeDialog("cancelled")
+      }
+    </script>
+  </body>
+</html>

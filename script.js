@@ -44,7 +44,7 @@ function initializeExtension() {
   console.log("[v0] Iniciando Super Table Pro v4.0")
 
   tableau.extensions
-    .initializeAsync()
+    .initializeAsync({ configure: openConfigDialog })
     .then(() => {
       console.log("[v0] Extensión inicializada")
       loadConfig()
@@ -63,6 +63,10 @@ function initializeExtension() {
       console.error("[v0] Error:", err)
       showError("Error al inicializar: " + err.toString())
     })
+}
+
+function openConfigDialog() {
+  // Implementación del diálogo de configuración
 }
 
 function setupDashboardContext() {
