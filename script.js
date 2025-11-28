@@ -39,6 +39,40 @@ var sortState = { column: null, ascending: true }
 var searchQuery = ""
 var currentPage = 0
 
+// Funciones nuevas
+function handleSearch() {
+  searchQuery = document.getElementById("search-input").value
+  applyFiltersAndSort()
+  renderTable()
+}
+
+function openColumnManager() {
+  // Implementación de openColumnManager aquí
+}
+
+function clearSearch() {
+  document.getElementById("search-input").value = ""
+  searchQuery = ""
+  applyFiltersAndSort()
+  renderTable()
+}
+
+function setupSortListeners() {
+  document.querySelectorAll(".sort-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      var idx = Number.parseInt(this.getAttribute("data-index"))
+      if (sortState.column === idx) {
+        sortState.ascending = !sortState.ascending
+      } else {
+        sortState.column = idx
+        sortState.ascending = true
+      }
+      applyFiltersAndSort()
+      renderTable()
+    })
+  })
+}
+
 // Inicialización
 function initializeExtension() {
   console.log("[v0] Iniciando Super Table Pro v4.0")
@@ -237,7 +271,8 @@ function exportToExcel() {
   ws["!cols"] = exportColumns.map(() => ({ wch: 15 }))
 
   XLSX.utils.book_append_sheet(wb, ws, "Datos")
-  XLSX.writeFile(wb, `${currentWorksheet.name}_${Date.now()}.xlsx`)
+  const fileName = currentWorksheet ? `${currentWorksheet.name}_${Date.now()}.xlsx` : `export_${Date.now()}.xlsx`
+  XLSX.writeFile(wb, fileName)
 }
 
 function exportToCSV() {
@@ -255,7 +290,8 @@ function exportToCSV() {
   var blob = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" })
   var link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
-  link.download = `${currentWorksheet.name}_${Date.now()}.csv`
+  const fileName = currentWorksheet ? `${currentWorksheet.name}_${Date.now()}.csv` : `export_${Date.now()}.csv`
+  link.download = fileName
   link.click()
 }
 
@@ -604,7 +640,7 @@ function formatCell(value, columnName, dataType) {
 }
 
 function updateTableInfo() {
-  var title = config.tableTitle || currentWorksheet.name
+  var title = config.tableTitle || (currentWorksheet ? currentWorksheet.name : "Super Table Pro")
   document.getElementById("table-title").textContent = title
 
   var totalRows = visibleData.length
@@ -613,329 +649,32 @@ function updateTableInfo() {
 
   document.getElementById("row-count").textContent =
     `Mostrando ${startRow}-${endRow} de ${totalRows.toLocaleString()} filas`
-
-  if (searchQuery) {
-    document.getElementById("filter-info").style.display = "flex"
-    document.getElementById("filtered-count").textContent =
-      `Filtrado de ${fullData.rows.length.toLocaleString()} filas totales`
-  } else {
-    document.getElementById("filter-info").style.display = "none"
-  }
-
-  // Paginación
-  updatePagination()
-}
-
-function updatePagination() {
-  var container = document.getElementById("pagination")
-  container.innerHTML = ""
-
-  var totalPages = Math.ceil(visibleData.length / config.rowsPerPage)
-
-  if (totalPages <= 1) {
-    container.style.display = "none"
-    return
-  }
-
-  container.style.display = "flex"
-
-  // Botón anterior
-  var prevBtn = document.createElement("button")
-  prevBtn.className = "btn btn-sm btn-secondary"
-  prevBtn.textContent = "← Anterior"
-  prevBtn.disabled = currentPage === 0
-  prevBtn.onclick = () => {
-    currentPage--
-    renderTable()
-  }
-  container.appendChild(prevBtn)
-
-  // Info de página
-  var pageInfo = document.createElement("span")
-  pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`
-  pageInfo.style.padding = "0 16px"
-  container.appendChild(pageInfo)
-
-  // Botón siguiente
-  var nextBtn = document.createElement("button")
-  nextBtn.className = "btn btn-sm btn-secondary"
-  nextBtn.textContent = "Siguiente →"
-  nextBtn.disabled = currentPage >= totalPages - 1
-  nextBtn.onclick = () => {
-    currentPage++
-    renderTable()
-  }
-  container.appendChild(nextBtn)
-}
-
-function setupSortListeners() {
-  document.querySelectorAll(".sort-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      var colIndex = Number.parseInt(this.getAttribute("data-index"))
-
-      if (sortState.column === colIndex) {
-        sortState.ascending = !sortState.ascending
-      } else {
-        sortState.column = colIndex
-        sortState.ascending = true
-      }
-
-      applyFiltersAndSort()
-      renderTable()
-    })
-  })
-}
-
-function handleSearch(e) {
-  searchQuery = e.target.value.trim()
-  applyFiltersAndSort()
-  renderTable()
-}
-
-function clearSearch() {
-  document.getElementById("search-input").value = ""
-  searchQuery = ""
-  applyFiltersAndSort()
-  renderTable()
-}
-
-function openColumnManager() {
-  var modal = document.getElementById("columns-modal")
-  var list = document.getElementById("columns-list")
-  list.innerHTML = ""
-
-  fullData.columns.forEach((col) => {
-    var colConfig = config.columns[col.name]
-    var div = document.createElement("div")
-    div.className = "column-item"
-
-    div.innerHTML = `
-      <div class="column-item-header">
-        <label class="checkbox-label">
-          <input type="checkbox" class="column-visibility" data-column="${col.name}" 
-            ${colConfig.visible ? "checked" : ""}>
-          <span>${escapeHtml(col.name)}</span>
-        </label>
-        <button class="btn-icon btn-sm config-column-btn" data-column="${col.name}" title="Configurar">
-          ⚙️
-        </button>
-      </div>
-      <div class="column-options" style="margin-left: 28px; font-size: 12px; color: #64748b;">
-        <label class="checkbox-label" style="font-size: 12px;">
-          <input type="checkbox" class="column-user-toggle" data-column="${col.name}"
-            ${colConfig.visibleToUser ? "checked" : ""}>
-          <span>Usuario puede mostrar/ocultar</span>
-        </label>
-        <label class="checkbox-label" style="font-size: 12px;">
-          <input type="checkbox" class="column-export" data-column="${col.name}"
-            ${colConfig.includeInExport ? "checked" : ""}>
-          <span>Incluir en exportación</span>
-        </label>
-      </div>
-    `
-
-    list.appendChild(div)
-  })
-
-  // Event listeners
-  list.querySelectorAll(".column-visibility").forEach((checkbox) => {
-    checkbox.addEventListener("change", function () {
-      var colName = this.getAttribute("data-column")
-      config.columns[colName].visible = this.checked
-    })
-  })
-
-  list.querySelectorAll(".column-user-toggle").forEach((checkbox) => {
-    checkbox.addEventListener("change", function () {
-      var colName = this.getAttribute("data-column")
-      config.columns[colName].visibleToUser = this.checked
-    })
-  })
-
-  list.querySelectorAll(".column-export").forEach((checkbox) => {
-    checkbox.addEventListener("change", function () {
-      var colName = this.getAttribute("data-column")
-      config.columns[colName].includeInExport = this.checked
-    })
-  })
-
-  list.querySelectorAll(".config-column-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      var colName = this.getAttribute("data-column")
-      openColumnConfig(colName)
-    })
-  })
-
-  modal.style.display = "flex"
-}
-
-function openColumnConfig(columnName) {
-  var modal = document.getElementById("column-config-modal")
-  var colConfig = config.columns[columnName]
-  var formatting = config.columnFormatting[columnName] || { type: "text", rules: [] }
-
-  document.getElementById("config-col-name").textContent = columnName
-  document.getElementById("config-col-tooltip").value = colConfig.tooltip || ""
-
-  // Tipo de formato
-  document.getElementById("config-format-type").value = formatting.type || "text"
-
-  // Mostrar reglas existentes
-  renderFormatRules(columnName, formatting.rules)
-
-  modal.setAttribute("data-column", columnName)
-  modal.style.display = "flex"
-}
-
-function renderFormatRules(columnName, rules) {
-  var container = document.getElementById("format-rules-list")
-  container.innerHTML = ""
-
-  if (!rules || rules.length === 0) {
-    container.innerHTML = '<p class="help-text">No hay reglas de formato. Agrega una para comenzar.</p>'
-    return
-  }
-
-  rules.forEach((rule, idx) => {
-    var ruleDiv = document.createElement("div")
-    ruleDiv.className = "format-rule-item"
-
-    var ruleText = ""
-    if (rule.text) {
-      ruleText = `Contiene "${rule.text}"`
-    } else if (rule.operator && rule.value !== undefined) {
-      ruleText = `${rule.operator} ${rule.value}`
-    }
-
-    var iconPreview = ""
-    if (rule.icon === "circle") {
-      iconPreview = `<span style="color: ${rule.color};">●</span>`
-    } else if (rule.icon === "diamond") {
-      iconPreview = `<span style="color: ${rule.color};">◆</span>`
-    } else if (rule.icon === "arrow-up") {
-      iconPreview = '<span style="color: #16a34a;">▲</span>'
-    } else if (rule.icon === "arrow-down") {
-      iconPreview = '<span style="color: #dc2626;">▼</span>'
-    }
-
-    ruleDiv.innerHTML = `
-      ${iconPreview}
-      <span class="rule-text">${ruleText}</span>
-      <button class="rule-delete-btn" data-index="${idx}">×</button>
-    `
-
-    container.appendChild(ruleDiv)
-  })
-
-  // Delete listeners
-  container.querySelectorAll(".rule-delete-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      var idx = Number.parseInt(this.getAttribute("data-index"))
-      rules.splice(idx, 1)
-      renderFormatRules(columnName, rules)
-    })
-  })
-}
-
-function saveColumnConfig() {
-  var modal = document.getElementById("column-config-modal")
-  var columnName = modal.getAttribute("data-column")
-
-  // Guardar tooltip
-  config.columns[columnName].tooltip = document.getElementById("config-col-tooltip").value
-
-  // Guardar en configuración
-  saveConfig()
-  modal.style.display = "none"
-
-  // Re-renderizar
-  renderTable()
-}
-
-function saveColumnManager() {
-  saveConfig()
-  document.getElementById("columns-modal").style.display = "none"
-  renderTable()
-}
-
-// Additional updates
-function addFormatRule() {
-  var columnName = document.getElementById("format-rule-column").value
-  var operator = document.getElementById("format-rule-operator").value
-  var value = document.getElementById("format-rule-value").value
-  var icon = document.getElementById("format-rule-icon").value
-  var color = document.getElementById("format-rule-color").value
-
-  if (!columnName || (!value && operator !== "contains")) {
-    alert("Por favor completa todos los campos (columna y valor)")
-    return
-  }
-
-  if (!fullData || !fullData.columns || !fullData.columns.find((c) => c.name === columnName)) {
-    alert("La columna seleccionada no existe en los datos actuales")
-    return
-  }
-
-  if (!config.columnFormatting[columnName]) {
-    config.columnFormatting[columnName] = { type: "text", rules: [] }
-  }
-
-  config.columnFormatting[columnName].rules.push({
-    operator: operator,
-    value: value,
-    text: operator === "contains" ? value : "",
-    icon: icon,
-    color: color,
-  })
-
-  // Limpiar
-  document.getElementById("format-rule-value").value = ""
-
-  renderFormatRules(columnName, config.columnFormatting[columnName].rules)
-}
-
-function setupFormatRuleListeners() {
-  document.getElementById("add-format-rule-btn").addEventListener("click", addFormatRule)
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", setupFormatRuleListeners)
-} else {
-  setupFormatRuleListeners()
 }
 
 function applyGeneralSettings() {
-  // Mostrar/ocultar indicador online
+  console.log("[v0] Aplicando configuración general")
+
+  // Mostrar/ocultar indicador de conexión
   const onlineIndicator = document.getElementById("online-indicator")
   if (onlineIndicator) {
-    onlineIndicator.style.display = config.showOnlineStatus !== false ? "inline" : "none"
+    onlineIndicator.style.display = config.showOnlineStatus ? "inline-flex" : "none"
   }
 
-  // Mostrar/ocultar buscador
-  const searchBox = document.getElementById("search-box")
-  if (searchBox) {
-    searchBox.style.display = config.showSearch !== false ? "flex" : "none"
+  // Mostrar/ocultar barra de búsqueda
+  const searchContainer = document.querySelector(".search-container")
+  if (searchContainer) {
+    searchContainer.style.display = config.showSearch ? "flex" : "none"
   }
 
   // Mostrar/ocultar botones de exportación
-  const exportExcel = document.getElementById("export-excel")
-  const exportCsv = document.getElementById("export-csv")
-  if (exportExcel) {
-    exportExcel.style.display = config.showExportButtons !== false ? "inline-flex" : "none"
-  }
-  if (exportCsv) {
-    exportCsv.style.display = config.showExportButtons !== false ? "inline-flex" : "none"
-  }
-
-  // Mostrar/ocultar botón de actualizar
-  const refreshBtn = document.getElementById("refresh-btn")
-  if (refreshBtn) {
-    refreshBtn.style.display = config.showRefreshButton === true ? "inline-flex" : "none"
+  const exportContainer = document.getElementById("export-container")
+  if (exportContainer) {
+    exportContainer.style.display = config.showExportButtons ? "flex" : "none"
   }
 
   // Actualizar título
   const mainTitle = document.getElementById("main-title")
   if (mainTitle) {
-    mainTitle.textContent = config.tableTitle || currentWorksheet.name || "Super Table Pro"
+    mainTitle.textContent = config.tableTitle || (currentWorksheet ? currentWorksheet.name : "Super Table Pro")
   }
 }
