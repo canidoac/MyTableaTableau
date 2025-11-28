@@ -353,36 +353,53 @@ if (document.readyState === "loading") {
 }
 
 function setupDashboardContext() {
-  var dashboard = tableau.extensions.dashboardContent.dashboard
-  var selector = document.getElementById("worksheet-selector")
-  selector.innerHTML = ""
+  console.log("[v0] Setup DASHBOARD context")
+  const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets
+  console.log("[v0] Worksheets disponibles en dashboard:", worksheets.length)
 
-  dashboard.worksheets.forEach((ws, i) => {
-    var opt = document.createElement("option")
-    opt.value = ws.name
-    opt.textContent = ws.name
-    if (i === 0) opt.selected = true
-    selector.appendChild(opt)
+  if (worksheets.length === 0) {
+    console.error("[v0] ERROR: No hay worksheets en el dashboard")
+    showError("No hay worksheets en el dashboard")
+    return
+  }
+
+  var worksheetSelector = document.getElementById("worksheet-selector")
+  worksheetSelector.innerHTML = ""
+
+  worksheets.forEach((ws) => {
+    var option = document.createElement("option")
+    option.value = ws.name
+    option.textContent = ws.name
+    worksheetSelector.appendChild(option)
   })
 
-  selector.parentElement.style.display = "block"
-  updateStatus("Conectado", "connected")
+  currentWorksheet = worksheets[0]
+  console.log("[v0] Worksheet inicial seleccionado:", currentWorksheet ? currentWorksheet.name : "NULL")
 
-  if (dashboard.worksheets.length > 0) {
-    loadWorksheet(dashboard.worksheets[0].name)
-  }
+  registerTableauEventListeners()
+
+  loadWorksheetData()
 }
 
 function setupWorksheetContext() {
-  console.log("[v0] setupWorksheetContext iniciado")
-  currentWorksheet = tableau.extensions.worksheetContent.worksheet
-  console.log("[v0] Worksheet:", currentWorksheet ? currentWorksheet.name : "null")
-  document.getElementById("worksheet-selector").parentElement.style.display = "none"
-  updateStatus("Conectado", "connected")
+  console.log("[v0] Setup WORKSHEET context")
+  const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets
+  console.log("[v0] Worksheets disponibles:", worksheets.length)
 
-  setTimeout(() => {
-    loadWorksheetData()
-  }, 500)
+  if (worksheets.length > 0) {
+    currentWorksheet = worksheets[0]
+    console.log("[v0] Worksheet seleccionado:", currentWorksheet ? currentWorksheet.name : "NULL")
+
+    registerTableauEventListeners()
+
+    setTimeout(() => {
+      console.log("[v0] Llamando loadWorksheetData después de 100ms")
+      loadWorksheetData()
+    }, 100)
+  } else {
+    console.error("[v0] No hay worksheets disponibles")
+    showError("No hay worksheets disponibles")
+  }
 }
 
 function setupEventListeners() {
@@ -755,4 +772,28 @@ function loadData() {
 
 function hideLoading() {
   document.getElementById("loading").style.display = "none"
+}
+
+function registerTableauEventListeners() {
+  console.log("[v0] Registrando event listeners de Tableau")
+
+  if (currentWorksheet) {
+    // Detectar cambios en los datos del worksheet
+    currentWorksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, () => {
+      console.log("[v0] MarkSelectionChanged event - recargando datos")
+      loadWorksheetData()
+    })
+
+    currentWorksheet.addEventListener(tableau.TableauEventType.FilterChanged, () => {
+      console.log("[v0] FilterChanged event - recargando datos")
+      loadWorksheetData()
+    })
+
+    currentWorksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, () => {
+      console.log("[v0] SummaryDataChanged event - recargando datos")
+      loadWorksheetData()
+    })
+
+    console.log("[v0] Event listeners de Tableau registrados exitosamente")
+  }
 }
