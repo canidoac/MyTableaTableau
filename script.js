@@ -58,6 +58,7 @@ function initializeExtension() {
       }
 
       setupEventListeners()
+      applyGeneralSettings() // Apply general settings on load
     })
     .catch((err) => {
       console.error("[v0] Error:", err)
@@ -66,42 +67,28 @@ function initializeExtension() {
 }
 
 function openSettings() {
-  var modal = document.getElementById("settings-modal")
+  const payloadString = JSON.stringify({ columns: fullData?.columns || [] })
 
-  // Cargar valores actuales
-  document.getElementById("settings-title").value = config.tableTitle || ""
-  document.getElementById("settings-online").checked = config.showOnlineStatus
-  document.getElementById("settings-search").checked = config.showSearch
-  document.getElementById("settings-export").checked = config.showExportButtons
-  document.getElementById("settings-refresh").checked = config.showRefreshButton
-
-  var columnSelector = document.getElementById("row-rule-column")
-  columnSelector.innerHTML = '<option value="">Selecciona una columna...</option>'
-
-  if (fullData && fullData.columns && fullData.columns.length > 0) {
-    fullData.columns.forEach((col) => {
-      var option = document.createElement("option")
-      option.value = col.name
-      option.textContent = col.name
-      columnSelector.appendChild(option)
-    })
-  } else {
-    // Si no hay datos, mostrar mensaje informativo
-    var option = document.createElement("option")
-    option.value = ""
-    option.textContent = "Carga datos primero arrastrando campos"
-    option.disabled = true
-    columnSelector.appendChild(option)
+  // Guardar las columnas actuales en settings para que config.html pueda acceder
+  if (fullData && fullData.columns) {
+    config.columns = fullData.columns.map((col) => ({ name: col.name }))
+    tableau.extensions.settings.set("config", JSON.stringify(config))
   }
 
-  // Cargar estado del formato de fila
-  document.getElementById("settings-row-format").checked = config.rowFormatting.enabled
-
-  // Reglas de formato de fila
-  renderRowRules()
-
-  modal.style.display = "flex"
-  switchTab("general")
+  tableau.extensions.ui
+    .displayDialogAsync("./config.html", payloadString, { height: 700, width: 900 })
+    .then((closePayload) => {
+      console.log("[v0] Diálogo cerrado con:", closePayload)
+      if (closePayload === "saved") {
+        // Recargar configuración y aplicar cambios
+        loadConfig()
+        applyGeneralSettings()
+        renderTable()
+      }
+    })
+    .catch((error) => {
+      console.log("[v0] Error o cancelación del diálogo:", error)
+    })
 }
 
 function switchTab(tabName) {
@@ -211,15 +198,20 @@ function saveConfig() {
 }
 
 function loadConfig() {
-  var saved = tableau.extensions.settings.get("config")
-  if (saved) {
-    try {
-      var parsed = JSON.parse(saved)
-      config = Object.assign(config, parsed)
-    } catch (e) {
-      console.error("[v0] Error cargando config:", e)
-    }
-  }
+  const settings = tableau.extensions.settings.getAll()
+  config = JSON.parse(settings.config || "{}")
+
+  // Valores por defecto
+  if (config.showOnlineStatus === undefined) config.showOnlineStatus = true
+  if (config.showSearch === undefined) config.showSearch = true
+  if (config.showExportButtons === undefined) config.showExportButtons = true
+  if (config.showRefreshButton === undefined) config.showRefreshButton = false
+  if (!config.rowFormatting) config.rowFormatting = { enabled: false, rules: [] }
+  if (!config.columnSettings) config.columnSettings = {}
+
+  console.log("[v0] Configuración cargada:", config)
+
+  applyGeneralSettings()
 }
 
 function refreshData() {
@@ -910,4 +902,40 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", setupFormatRuleListeners)
 } else {
   setupFormatRuleListeners()
+}
+
+function applyGeneralSettings() {
+  // Mostrar/ocultar indicador online
+  const onlineIndicator = document.getElementById("online-indicator")
+  if (onlineIndicator) {
+    onlineIndicator.style.display = config.showOnlineStatus !== false ? "inline" : "none"
+  }
+
+  // Mostrar/ocultar buscador
+  const searchBox = document.getElementById("search-box")
+  if (searchBox) {
+    searchBox.style.display = config.showSearch !== false ? "flex" : "none"
+  }
+
+  // Mostrar/ocultar botones de exportación
+  const exportExcel = document.getElementById("export-excel")
+  const exportCsv = document.getElementById("export-csv")
+  if (exportExcel) {
+    exportExcel.style.display = config.showExportButtons !== false ? "inline-flex" : "none"
+  }
+  if (exportCsv) {
+    exportCsv.style.display = config.showExportButtons !== false ? "inline-flex" : "none"
+  }
+
+  // Mostrar/ocultar botón de actualizar
+  const refreshBtn = document.getElementById("refresh-btn")
+  if (refreshBtn) {
+    refreshBtn.style.display = config.showRefreshButton === true ? "inline-flex" : "none"
+  }
+
+  // Actualizar título
+  const mainTitle = document.getElementById("main-title")
+  if (mainTitle) {
+    mainTitle.textContent = config.tableTitle || currentWorksheet.name || "Super Table Pro"
+  }
 }
