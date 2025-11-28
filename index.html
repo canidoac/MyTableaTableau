@@ -16,7 +16,7 @@
     <div class="container">
         <header class="toolbar">
             <div class="toolbar-left">
-                <h1>Super Table Pro <span class="version">v3.1</span></h1>
+                <h1>Super Table Pro <span class="version">v3.2</span></h1>
                 <span id="status" class="status">Conectando...</span>
             </div>
             <div class="controls">
@@ -27,7 +27,8 @@
                     </svg>
                     <input type="text" id="search-input" placeholder="Buscar en la tabla..." disabled>
                 </div>
-                <select id="worksheet-selector" class="worksheet-select" disabled>
+                <!-- Agregado style="display: none;" por defecto para worksheets -->
+                <select id="worksheet-selector" class="worksheet-select" disabled style="display: none;">
                     <option value="">Cargando...</option>
                 </select>
                 <button id="export-excel" class="btn btn-primary" disabled title="Exportar a Excel">
@@ -141,13 +142,15 @@
                 <div class="form-group">
                     <label>Umbral positivo (verde):</label>
                     <input type="number" id="config-green" step="0.01" value="0" class="form-input">
+                    <p class="help-text">Valores mayores a este número mostrarán <span style="color: #16a34a; font-size: 16px;">●</span></p>
                 </div>
                 <div class="form-group">
                     <label>Umbral negativo (rojo):</label>
                     <input type="number" id="config-red" step="0.01" value="0" class="form-input">
+                    <p class="help-text">Valores menores a este número mostrarán <span style="color: #dc2626; font-size: 16px;">●</span></p>
                 </div>
-                <p class="help-text">
-                    Valores mayores al umbral verde mostrarán ●, menores al rojo mostrarán ●, y el resto ●
+                <p class="help-text" style="margin-top: 16px; padding: 12px; background: #f8fafc; border-radius: 4px;">
+                    Los valores entre ambos umbrales mostrarán <span style="color: #f59e0b; font-size: 16px;">●</span>
                 </p>
             </div>
             <div class="modal-footer">

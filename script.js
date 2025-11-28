@@ -122,7 +122,9 @@ function loadWorksheet(worksheetName) {
 
 function loadWorksheetData() {
   console.log("[v0] loadWorksheetData - inicio")
-  showLoading()
+  if (!currentData) {
+    showLoading()
+  }
 
   currentWorksheet
     .getSummaryDataAsync()
