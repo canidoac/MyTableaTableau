@@ -73,6 +73,10 @@ function setupSortListeners() {
   })
 }
 
+function applyFiltersAndSort() {
+  // Implementación de applyFiltersAndSort aquí
+}
+
 // Inicialización
 function initializeExtension() {
   console.log("[v0] Iniciando Super Table Pro v4.0")
@@ -409,38 +413,43 @@ function loadWorksheet(name) {
 }
 
 function loadWorksheetData() {
-  console.log("[v0] loadWorksheetData iniciado")
+  console.log("[v0] ===== LOAD WORKSHEET DATA INICIADO =====")
+  console.log("[v0] currentWorksheet:", currentWorksheet ? currentWorksheet.name : "NULL")
 
   if (!currentWorksheet) {
-    console.error("[v0] currentWorksheet is null")
+    console.error("[v0] ERROR: currentWorksheet is null - no se puede cargar datos")
     showError("No hay worksheet seleccionado")
     return
   }
 
-  console.log("[v0] Obteniendo datos de:", currentWorksheet.name)
   showLoading()
+  console.log("[v0] Llamando a getSummaryDataAsync()...")
 
   currentWorksheet
     .getSummaryDataAsync({ maxRows: 10000 })
     .then((dataTable) => {
-      console.log("[v0] Datos cargados:", dataTable.data.length, "filas")
-      console.log(
-        "[v0] Columnas:",
-        dataTable.columns.map((c) => c.fieldName),
-      )
-      console.log("[v0] Primera fila de ejemplo:", dataTable.data[0])
+      console.log("[v0] ===== DATOS RECIBIDOS DE TABLEAU =====")
+      console.log("[v0] dataTable:", dataTable)
+      console.log("[v0] Columnas:", dataTable.columns.length)
+      console.log("[v0] Filas:", dataTable.data.length)
+
+      dataTable.columns.forEach((col, idx) => {
+        console.log(`[v0] Columna ${idx}: ${col.fieldName} (index: ${col.index})`)
+      })
 
       fullData = {
         columns: dataTable.columns.map((col) => ({
           name: col.fieldName,
-          type: col.dataType,
           index: col.index,
+          dataType: col.dataType,
         })),
-        rows: dataTable.data.map((row) => row.map((cell) => cell.value)),
+        rows: dataTable.data.map((row) => row.map((cell) => (cell.value !== undefined ? cell.value : null))),
       }
 
-      console.log("[v0] fullData creado con", fullData.rows.length, "filas y", fullData.columns.length, "columnas")
-      console.log("[v0] Ejemplo de fullData.rows[0]:", fullData.rows[0])
+      console.log("[v0] ===== FULLDATA CREADO =====")
+      console.log("[v0] fullData.columns:", fullData.columns.length)
+      console.log("[v0] fullData.rows:", fullData.rows.length)
+      console.log("[v0] Primera fila de datos:", fullData.rows[0])
 
       fullData.columns.forEach((col) => {
         if (!config.columns[col.name]) {
@@ -451,69 +460,53 @@ function loadWorksheetData() {
             tooltip: "",
             width: "auto",
           }
-          console.log("[v0] Columna configurada:", col.name)
+          console.log(`[v0] ✓ Columna "${col.name}" configurada como VISIBLE`)
+        } else {
+          console.log(`[v0] ✓ Columna "${col.name}" ya existe en config (visible: ${config.columns[col.name].visible})`)
         }
       })
 
+      console.log("[v0] ===== APLICANDO FILTROS =====")
       applyFiltersAndSort()
-      console.log("[v0] visibleData después de filtrar:", visibleData ? visibleData.length : "null", "filas")
-      console.log("[v0] Ejemplo de visibleData[0]:", visibleData ? visibleData[0] : "null")
+
+      console.log("[v0] ===== DESPUÉS DE FILTROS =====")
+      console.log("[v0] visibleData:", visibleData ? visibleData.length : "NULL", "filas")
+      if (visibleData && visibleData.length > 0) {
+        console.log("[v0] Primera fila visible:", visibleData[0])
+      }
+
+      console.log("[v0] ===== LLAMANDO RENDER TABLE =====")
       renderTable()
     })
     .catch((err) => {
-      console.error("[v0] Error cargando datos:", err)
-      showError("Error: " + err.toString())
+      console.error("[v0] ===== ERROR EN getSummaryDataAsync =====")
+      console.error("[v0] Error completo:", err)
+      console.error("[v0] Error message:", err.message)
+      console.error("[v0] Error stack:", err.stack)
+      hideLoading()
+      showError("Error cargando datos: " + err.toString())
     })
-}
-
-function applyFiltersAndSort() {
-  var filtered = fullData.rows
-
-  // Búsqueda
-  if (searchQuery) {
-    filtered = filtered.filter((row) => {
-      return row.some((cell) => {
-        if (cell == null) return false
-        return String(cell).toLowerCase().includes(searchQuery.toLowerCase())
-      })
-    })
-  }
-
-  // Ordenamiento
-  if (sortState.column !== null) {
-    filtered = filtered.slice().sort((a, b) => {
-      var valA = a[sortState.column]
-      var valB = b[sortState.column]
-
-      if (valA == null) return 1
-      if (valB == null) return -1
-
-      var comparison = 0
-      if (typeof valA === "number" && typeof valB === "number") {
-        comparison = valA - valB
-      } else {
-        comparison = String(valA).localeCompare(String(valB))
-      }
-
-      return sortState.ascending ? comparison : -comparison
-    })
-  }
-
-  visibleData = filtered
-  currentPage = 0
 }
 
 function renderTable() {
-  console.log("[v0] renderTable iniciado")
-  console.log(
-    "[v0] fullData:",
-    fullData ? `${fullData.rows.length} filas, ${fullData.columns.length} columnas` : "null",
-  )
-  console.log("[v0] visibleData:", visibleData ? visibleData.length : "null")
-  console.log("[v0] config.columns:", Object.keys(config.columns))
+  console.log("[v0] ===== RENDER TABLE INICIADO =====")
+  console.log("[v0] fullData existe:", !!fullData)
+  console.log("[v0] visibleData existe:", !!visibleData)
+
+  if (fullData) {
+    console.log("[v0] fullData.columns:", fullData.columns.length)
+    console.log("[v0] fullData.rows:", fullData.rows.length)
+  }
+
+  if (visibleData) {
+    console.log("[v0] visibleData.length:", visibleData.length)
+  }
 
   if (!fullData || !fullData.columns || !visibleData) {
-    console.error("[v0] No hay datos para renderizar")
+    console.error("[v0] ERROR: No hay datos para renderizar")
+    console.error("[v0] - fullData:", !!fullData)
+    console.error("[v0] - fullData.columns:", fullData ? fullData.columns?.length : "N/A")
+    console.error("[v0] - visibleData:", !!visibleData)
     hideLoading()
     return
   }
@@ -521,15 +514,29 @@ function renderTable() {
   hideLoading()
   document.getElementById("table-container").style.display = "block"
 
-  var visibleColumns = fullData.columns.filter((col) => config.columns[col.name]?.visible)
-  console.log(
-    "[v0] Columnas visibles:",
-    visibleColumns.map((c) => c.name),
-  )
+  var visibleColumns = fullData.columns.filter((col) => {
+    const isVisible = config.columns[col.name]?.visible === true
+    console.log(`[v0] Columna "${col.name}": visible = ${isVisible}`)
+    return isVisible
+  })
+
+  console.log("[v0] ===== COLUMNAS A RENDERIZAR =====")
+  console.log("[v0] Total columnas visibles:", visibleColumns.length)
+  visibleColumns.forEach((col, idx) => {
+    console.log(`[v0] ${idx}: ${col.name}`)
+  })
+
+  if (visibleColumns.length === 0) {
+    console.error("[v0] ERROR: No hay columnas visibles para mostrar")
+    console.error("[v0] config.columns:", config.columns)
+    showError("No hay columnas visibles. Configura al menos una columna como visible.")
+    return
+  }
 
   // Header
   var thead = document.getElementById("table-header")
   thead.innerHTML = ""
+
   var headerRow = document.createElement("tr")
 
   visibleColumns.forEach((col) => {
@@ -554,49 +561,54 @@ function renderTable() {
   var tbody = document.getElementById("table-body")
   tbody.innerHTML = ""
 
-  var startRow = currentPage * config.rowsPerPage
-  var endRow = Math.min(startRow + config.rowsPerPage, visibleData.length)
-  var pageData = visibleData.slice(startRow, endRow)
+  var start = currentPage * config.rowsPerPage
+  var end = Math.min(start + config.rowsPerPage, visibleData.length)
+
+  console.log("[v0] ===== PAGINACIÓN =====")
+  console.log("[v0] currentPage:", currentPage)
+  console.log("[v0] rowsPerPage:", config.rowsPerPage)
+  console.log("[v0] start:", start)
+  console.log("[v0] end:", end)
+  console.log("[v0] Total filas a renderizar:", end - start)
+
+  var pageData = visibleData.slice(start, end)
+  console.log("[v0] pageData.length:", pageData.length)
 
   pageData.forEach((row, rowIdx) => {
+    console.log(`[v0] Renderizando fila ${rowIdx}:`, row)
     var tr = document.createElement("tr")
-
-    var rowStyle = getRowFormatting(row)
-    if (rowStyle.backgroundColor) {
-      tr.style.backgroundColor = rowStyle.backgroundColor
-    }
-    if (rowStyle.textColor) {
-      tr.style.color = rowStyle.textColor
-    }
 
     visibleColumns.forEach((col) => {
       var td = document.createElement("td")
-      var value = row[col.index]
-      var colConfig = config.columns[col.name]
+      var cellValue = row[col.index]
+      console.log(`[v0]   - Celda [${col.name}]: ${cellValue}`)
+      td.textContent = cellValue != null ? cellValue : ""
 
       // Tooltip
-      if (colConfig.tooltip) {
-        td.title = colConfig.tooltip
+      if (col.tooltip) {
+        td.title = col.tooltip
       }
 
-      if (value == null) {
-        td.className = "cell-null"
-        td.textContent = "-"
-      } else {
-        var formatted = formatCell(value, col.name, col.type)
-        td.innerHTML = formatted.html
-        td.className = formatted.className
-      }
+      // Formato condicional por celda
+      var formatting = formatCell(cellValue, col.name, col.dataType)
+      td.innerHTML = formatting.html
+      td.className = formatting.className
 
-      tr.appendChild(td)
+      // Formato condicional de fila
+      var rowStyle = getRowFormatting(row)
+      if (rowStyle.backgroundColor) {
+        tr.style.backgroundColor = rowStyle.backgroundColor
+      }
+      if (rowStyle.textColor) {
+        tr.style.color = rowStyle.textColor
+      }
     })
 
     tbody.appendChild(tr)
   })
 
-  // Info y paginación
+  console.log("[v0] ===== RENDER TABLE COMPLETADO =====")
   updateTableInfo()
-  setupSortListeners()
 }
 
 function getRowFormatting(row) {
