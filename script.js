@@ -66,7 +66,30 @@ function initializeExtension() {
 }
 
 function openConfigDialog() {
-  // Implementación del diálogo de configuración
+  console.log("[v0] Abriendo diálogo de configuración")
+
+  // Guardar las columnas actuales en config para que el diálogo las pueda usar
+  if (fullData && fullData.columns) {
+    config.columns = fullData.columns.map((col) => ({ name: col.fieldName }))
+    tableau.extensions.settings.set("config", JSON.stringify(config))
+  }
+
+  var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
+
+  tableau.extensions.ui
+    .displayDialogAsync(popupUrl, "", { height: 600, width: 800 })
+    .then((closePayload) => {
+      console.log("[v0] Diálogo cerrado:", closePayload)
+      if (closePayload === "saved") {
+        loadConfig()
+        if (currentWorksheet) {
+          loadWorksheetData()
+        }
+      }
+    })
+    .catch((error) => {
+      console.error("[v0] Error al abrir diálogo:", error)
+    })
 }
 
 function setupDashboardContext() {
