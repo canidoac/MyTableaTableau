@@ -541,7 +541,7 @@ function renderTable() {
 
   visibleColumns.forEach((col) => {
     var th = document.createElement("th")
-    var colConfig = config.columns[col.name]
+    var colConfig = config.columns[col.name] || {}
 
     var sortIcon = sortState.column === col.index ? (sortState.ascending ? "↑" : "↓") : "↕"
 
