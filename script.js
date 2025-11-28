@@ -865,3 +865,49 @@ function saveColumnManager() {
   document.getElementById("columns-modal").style.display = "none"
   renderTable()
 }
+
+// Additional updates
+function addFormatRule() {
+  var columnName = document.getElementById("format-rule-column").value
+  var operator = document.getElementById("format-rule-operator").value
+  var value = document.getElementById("format-rule-value").value
+  var icon = document.getElementById("format-rule-icon").value
+  var color = document.getElementById("format-rule-color").value
+
+  if (!columnName || (!value && operator !== "contains")) {
+    alert("Por favor completa todos los campos (columna y valor)")
+    return
+  }
+
+  if (!fullData || !fullData.columns || !fullData.columns.find((c) => c.name === columnName)) {
+    alert("La columna seleccionada no existe en los datos actuales")
+    return
+  }
+
+  if (!config.columnFormatting[columnName]) {
+    config.columnFormatting[columnName] = { type: "text", rules: [] }
+  }
+
+  config.columnFormatting[columnName].rules.push({
+    operator: operator,
+    value: value,
+    text: operator === "contains" ? value : "",
+    icon: icon,
+    color: color,
+  })
+
+  // Limpiar
+  document.getElementById("format-rule-value").value = ""
+
+  renderFormatRules(columnName, config.columnFormatting[columnName].rules)
+}
+
+function setupFormatRuleListeners() {
+  document.getElementById("add-format-rule-btn").addEventListener("click", addFormatRule)
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", setupFormatRuleListeners)
+} else {
+  setupFormatRuleListeners()
+}

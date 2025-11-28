@@ -4,7 +4,7 @@
     <default-locale>es_ES</default-locale>
     <name resource-id="name"/>
     <description>Super Table Pro - Tabla interactiva con formato, búsqueda, ordenamiento y exportación mejorada (versión para hojas)</description>
-    <author name="Andrés Canido" email="Andres.canido@mercadolibre.com" organization="Mercadolibre"/>
+    <author name="Andres Canido" email="Andres.canido@mercadolibre.com" organization="Mercadolibre" website="https://github.com/canidoac/MyTableaTableau"/>
     <min-api-version>1.4</min-api-version>
     <source-location>
       <url>https://canidoac.github.io/MyTableaTableau/index.html</url>

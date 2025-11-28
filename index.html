@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Table Pro</title>
+    <title>SuperTables Pro</title>
     <link rel="stylesheet" href="styles.css">
     
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -13,13 +13,13 @@
     <div class="container">
         <header class="toolbar">
             <div class="toolbar-left">
-                <h1>Super Table Pro <span class="version">v4.0</span></h1>
-                <!-- Indicador online configurable -->
+                <!-- Removed "Super Table Pro" branding, only show custom title -->
+                <h1 id="main-title" class="main-title"></h1>
                 <span id="online-indicator" class="online-indicator">● Online</span>
                 <span id="status" class="status">Conectando...</span>
             </div>
             <div class="controls">
-                <div class="search-box">
+                <div class="search-box" id="search-box">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
@@ -29,7 +29,6 @@
                 <select id="worksheet-selector" class="worksheet-select" style="display: none;">
                     <option>Cargando...</option>
                 </select>
-                <!-- Nuevo botón para gestionar columnas -->
                 <button id="columns-btn" class="btn btn-secondary" title="Gestionar columnas">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="7"></rect>
@@ -87,7 +86,6 @@
                     </table>
                 </div>
                 
-                <!-- Paginación -->
                 <div id="pagination" class="pagination"></div>
             </div>
         </main>
@@ -103,39 +101,82 @@
             
             <div class="tabs">
                 <button class="tab-btn active" data-tab="general">General</button>
+                <button class="tab-btn" data-tab="data">Data</button>
+                <button class="tab-btn" data-tab="appearance">Apariencia</button>
                 <button class="tab-btn" data-tab="row-format">Formato de Filas</button>
             </div>
             
             <div class="modal-body">
+                <!-- Tab General con título personalizable -->
                 <div id="general-tab" class="tab-content active">
-                    <h3>Opciones Generales</h3>
+                    <h3>Configuración General</h3>
                     
-                    <!-- Added table title customization -->
                     <div class="form-group">
                         <label>Título de la tabla:</label>
                         <input type="text" id="settings-title" placeholder="Deja vacío para usar el nombre del worksheet" class="form-input">
                         <p class="help-text">Si está vacío, se usará el nombre del worksheet</p>
                     </div>
                     
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="settings-online" checked>
-                        <span>Mostrar indicador "Online"</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="settings-search" checked>
-                        <span>Mostrar buscador</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="settings-export" checked>
-                        <span>Mostrar botones de exportación</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="settings-refresh" checked>
-                        <span>Mostrar botón de actualizar</span>
-                    </label>
+                    <div class="form-group">
+                        <label>Opciones de visualización:</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="settings-online" checked>
+                            <span>Mostrar indicador "Online"</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="settings-search" checked>
+                            <span>Mostrar buscador</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="settings-export" checked>
+                            <span>Mostrar botones de exportación</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="settings-refresh" checked>
+                            <span>Mostrar botón de actualizar</span>
+                        </label>
+                    </div>
                 </div>
                 
-                <!-- Nueva pestaña para formato de filas -->
+                <!-- Nueva pestaña Data para configuración de columnas -->
+                <div id="data-tab" class="tab-content">
+                    <h3>Configuración de Columnas</h3>
+                    <p class="help-text">Haz clic en una columna para configurar su formato, tooltip y reglas condicionales.</p>
+                    <div id="columns-data-list" class="columns-data-list"></div>
+                </div>
+                
+                <!-- Nueva pestaña Appearance -->
+                <div id="appearance-tab" class="tab-content">
+                    <h3>Opciones de Apariencia</h3>
+                    
+                    <div class="form-group">
+                        <label>Paginación:</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="settings-pagination" checked>
+                            <span>Habilitar paginación</span>
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
+                            <div>
+                                <label style="font-size: 12px; color: #64748b;">Filas por página:</label>
+                                <input type="number" id="settings-page-size" value="50" min="10" max="1000" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Opciones de tabla:</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="settings-striped" checked>
+                            <span>Alternar color de filas (zebra)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="settings-hover" checked>
+                            <span>Resaltar fila al pasar el mouse</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Pestaña de formato de filas mejorada -->
                 <div id="row-format-tab" class="tab-content">
                     <h3>Formato Condicional de Filas</h3>
                     <p class="help-text" style="margin-bottom: 16px;">
@@ -163,6 +204,8 @@
                                 <option value="contains">Contiene</option>
                                 <option value=">">></option>
                                 <option value="<"><</option>
+                                <option value=">=">≥</option>
+                                <option value="<=">≤</option>
                             </select>
                             <input type="text" id="row-rule-value" placeholder="Valor..." class="form-input">
                         </div>
@@ -182,12 +225,113 @@
             </div>
             
             <div class="modal-footer">
-                <button id="save-settings-btn" class="btn btn-primary">Guardar</button>
+                <button id="save-settings-btn" class="btn btn-primary">Guardar y Aplicar</button>
             </div>
         </div>
     </div>
     
-    <!-- Modal de gestión de columnas -->
+    <!-- Modal de configuración de columna individual con formato condicional -->
+    <div id="column-config-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Configurar columna: <span id="config-col-name"></span></h2>
+                <button class="close-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nombre para mostrar:</label>
+                    <input type="text" id="config-col-display-name" placeholder="Nombre de la columna..." class="form-input">
+                    <p class="help-text">Deja vacío para usar el nombre original</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tooltip (ayuda al pasar el mouse):</label>
+                    <input type="text" id="config-col-tooltip" placeholder="Descripción de la columna..." class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label>Alineación:</label>
+                    <select id="config-col-align" class="form-input">
+                        <option value="left">Izquierda</option>
+                        <option value="center">Centro</option>
+                        <option value="right">Derecha</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Formato condicional de celda:</label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="config-enable-conditional">
+                        <span>Activar formato condicional para esta columna</span>
+                    </label>
+                </div>
+                
+                <div id="conditional-section" class="form-group" style="display: none;">
+                    <label>Reglas de formato (solo esta columna):</label>
+                    <div id="column-rules-list" class="rules-container"></div>
+                    
+                    <div style="margin-top: 16px;">
+                        <label style="font-size: 13px; margin-bottom: 8px; display: block;">Agregar nueva regla:</label>
+                        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; margin-bottom: 8px;">
+                            <select id="column-rule-operator" class="form-input">
+                                <option value="=">=</option>
+                                <option value="!=">≠</option>
+                                <option value="contains">Contiene</option>
+                                <option value=">">></option>
+                                <option value="<"><</option>
+                                <option value=">=">≥</option>
+                                <option value="<=">≤</option>
+                            </select>
+                            <input type="text" id="column-rule-value" placeholder="Valor..." class="form-input">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 8px;">
+                            <div>
+                                <label style="font-size: 12px; color: #64748b;">Color fondo:</label>
+                                <input type="color" id="column-rule-bgcolor" value="#dbeafe" class="form-input">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #64748b;">Color texto:</label>
+                                <input type="color" id="column-rule-textcolor" value="#1e40af" class="form-input">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #64748b;">Icono:</label>
+                                <select id="column-rule-icon" class="form-input">
+                                    <option value="">Sin icono</option>
+                                    <option value="●">● Círculo</option>
+                                    <option value="■">■ Cuadrado</option>
+                                    <option value="▲">▲ Triángulo</option>
+                                    <option value="★">★ Estrella</option>
+                                    <option value="✓">✓ Check</option>
+                                    <option value="✗">✗ X</option>
+                                    <option value="⬆">⬆ Flecha arriba</option>
+                                    <option value="⬇">⬇ Flecha abajo</option>
+                                    <option value="➡">➡ Flecha derecha</option>
+                                </select>
+                            </div>
+                            <button id="add-column-rule-btn" class="btn btn-primary" style="align-self: flex-end;">Agregar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Opciones de visibilidad:</label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="config-col-visible" checked>
+                        <span>Mostrar en tabla</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="config-col-export" checked>
+                        <span>Incluir en exportación</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveColumnConfig()" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de gestión de columnas simplificado -->
     <div id="columns-modal" class="modal">
         <div class="modal-content modal-large">
             <div class="modal-header">
@@ -196,44 +340,12 @@
             </div>
             <div class="modal-body">
                 <p class="help-text" style="margin-bottom: 16px;">
-                    Controla qué columnas se muestran en la tabla, cuáles puede ver el usuario final, y cuáles se incluyen en la exportación.
+                    Controla qué columnas se muestran en la tabla y cuáles se incluyen en la exportación.
                 </p>
                 <div id="columns-list" class="columns-list"></div>
             </div>
             <div class="modal-footer">
                 <button onclick="saveColumnManager()" class="btn btn-primary">Guardar</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de configuración de columna individual -->
-    <div id="column-config-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Configurar: <span id="config-col-name"></span></h2>
-                <button class="close-modal">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Tooltip (ayuda al pasar el mouse):</label>
-                    <input type="text" id="config-col-tooltip" placeholder="Descripción de la columna..." class="form-input">
-                </div>
-                
-                <div class="form-group">
-                    <label>Tipo de formato:</label>
-                    <select id="config-format-type" class="form-input">
-                        <option value="text">Texto</option>
-                        <option value="number">Numérico</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Reglas de formato:</label>
-                    <div id="format-rules-list" class="rules-container"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button onclick="saveColumnConfig()" class="btn btn-primary">Guardar</button>
             </div>
         </div>
     </div>
