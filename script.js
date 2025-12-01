@@ -251,9 +251,12 @@ function renderTable() {
     var th = document.createElement("th")
     var sortIcon = sortState.column === col.index ? (sortState.ascending ? "↑" : "↓") : "↕"
 
+    const colName = col.fieldName || col.name
+    const displayName = config.columns[colName]?.displayName || colName
+
     th.innerHTML = `
       <div class="th-content">
-        <span>${escapeHtml(col.fieldName || col.name)}</span>
+        <span>${escapeHtml(displayName)}</span>
         <button class="sort-btn" data-index="${col.index}">${sortIcon}</button>
       </div>
     `
@@ -487,7 +490,12 @@ function exportToExcel() {
     return config.columns[colName]?.includeInExport !== false
   })
 
-  exportData.push(exportColumns.map((col) => col.fieldName || col.name))
+  exportData.push(
+    exportColumns.map((col) => {
+      const colName = col.fieldName || col.name
+      return config.columns[colName]?.displayName || colName
+    }),
+  )
 
   visibleData.forEach((row) => {
     exportData.push(exportColumns.map((col) => row[col.index]))
@@ -509,7 +517,14 @@ function exportToCSV() {
   })
 
   var csv = []
-  csv.push(exportColumns.map((col) => escapeCSV(col.fieldName || col.name)).join(","))
+  csv.push(
+    exportColumns
+      .map((col) => {
+        const colName = col.fieldName || col.name
+        return escapeCSV(config.columns[colName]?.displayName || colName)
+      })
+      .join(","),
+  )
 
   visibleData.forEach((row) => {
     csv.push(exportColumns.map((col) => escapeCSV(row[col.index])).join(","))
