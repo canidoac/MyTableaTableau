@@ -133,12 +133,19 @@ function loadWorksheet(name) {
 }
 
 async function loadWorksheetData(worksheet) {
-  console.log("[v0] Cargando datos del worksheet:", worksheet.name)
+  console.log("[v0] === CARGANDO DATOS DEL WORKSHEET ===")
+  console.log("[v0] Worksheet:", worksheet.name)
   showLoading()
 
   try {
     const dataTable = await worksheet.getSummaryDataAsync()
-    console.log("[v0] Datos recibidos:", dataTable.totalRowCount, "filas,", dataTable.columns.length, "columnas")
+    console.log("[v0] ✓ Datos recibidos:")
+    console.log("[v0]   - Filas:", dataTable.totalRowCount)
+    console.log("[v0]   - Columnas:", dataTable.columns.length)
+    console.log(
+      "[v0]   - Nombres columnas:",
+      dataTable.columns.map((c) => c.fieldName),
+    )
 
     fullData = {
       columns: dataTable.columns,
@@ -154,15 +161,18 @@ async function loadWorksheetData(worksheet) {
           visible: true,
           includeInExport: true,
         }
+        console.log("[v0]   ✓ Columna agregada:", colName, "visible:", true)
       }
     })
+
+    console.log("[v0] Total columnas en config:", Object.keys(config.columns).length)
 
     saveConfig()
     applyFiltersAndSort()
     renderTable()
     updateTableInfo()
   } catch (error) {
-    console.error("[v0] Error al cargar datos:", error)
+    console.error("[v0] ✗ Error al cargar datos:", error)
     hideLoading()
     showError("Error al cargar datos: " + error.message)
   }
@@ -343,13 +353,16 @@ function clearSearch() {
 }
 
 async function openSettings() {
-  console.log("[v0] Abriendo configuración...")
-  console.log("[v0] fullData:", fullData)
+  console.log("[v0] === ABRIENDO CONFIGURACIÓN ===")
+  console.log("[v0] fullData existe:", !!fullData)
+  console.log("[v0] fullData.columns:", fullData?.columns?.length)
 
   if (fullData && fullData.columns) {
-    const columnsArray = fullData.columns.map((col) => {
+    const columnsForDialog = {}
+
+    fullData.columns.forEach((col) => {
       const colName = col.fieldName || col.name
-      return {
+      columnsForDialog[colName] = {
         name: colName,
         dataType: col.dataType,
         visible: config.columns[colName]?.visible !== false,
@@ -357,11 +370,12 @@ async function openSettings() {
       }
     })
 
-    console.log("[v0] Guardando columnas en settings:", columnsArray)
-    tableau.extensions.settings.set("columns", JSON.stringify(columnsArray))
+    console.log("[v0] Columnas para diálogo:", Object.keys(columnsForDialog))
+    tableau.extensions.settings.set("dialogColumns", JSON.stringify(columnsForDialog))
     await tableau.extensions.settings.saveAsync()
+    console.log("[v0] ✓ Columnas guardadas en dialogColumns")
   } else {
-    console.log("[v0] ERROR: No hay fullData o columnas disponibles")
+    console.log("[v0] ✗ ERROR: No hay fullData o columnas disponibles")
   }
 
   var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
@@ -425,14 +439,14 @@ function loadConfig() {
     showOnlineStatus: savedConfig.showOnlineStatus !== false,
     showSearch: savedConfig.showSearch !== false,
     showExportButtons: savedConfig.showExportButtons !== false,
-    showRefreshButton: savedConfig.showRefreshButton || false,
+    showRefreshButton: savedConfig.showRefreshButton !== false,
     showStatusText: savedConfig.showStatusText !== false,
     showSettingsButton: savedConfig.showSettingsButton !== false,
-    columns: JSON.parse(settings.columns || "{}"),
+    columns: savedConfig.columns || {},
     rowsPerPage: savedConfig.rowsPerPage || 100,
   }
 
-  console.log("[v0] Configuración cargada:", config)
+  console.log("[v0] Configuración cargada, columnas:", Object.keys(config.columns).length)
 }
 
 function exportToExcel() {

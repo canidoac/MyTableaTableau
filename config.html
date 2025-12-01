@@ -504,11 +504,11 @@
       let config = {
         title: '',
         rowsPerPage: 10,
-        columns: []
+        columns: {}
       };
 
       tableau.extensions.initializeDialogAsync().then(() => {
-        console.log('[v0] Config dialog initialized');
+        console.log('[v0] === CONFIG DIALOG INITIALIZED ===');
         loadConfig();
         populateColumnLists();
       });
@@ -516,27 +516,31 @@
       function loadConfig() {
         const settings = tableau.extensions.settings.getAll();
         
-        console.log('[v0] Settings object:', settings);
-        console.log('[v0] settings.columns:', settings.columns);
+        console.log('[v0] All settings keys:', Object.keys(settings));
+        console.log('[v0] dialogColumns raw:', settings.dialogColumns);
+        
+        const savedConfig = settings.config ? JSON.parse(settings.config) : {};
+        const dialogColumns = settings.dialogColumns ? JSON.parse(settings.dialogColumns) : {};
         
         config = {
-          title: settings.title || '',
-          rowsPerPage: parseInt(settings.rowsPerPage) || 10,
-          columns: settings.columns ? JSON.parse(settings.columns) : []
+          title: savedConfig.tableTitle || '',
+          rowsPerPage: savedConfig.rowsPerPage || 10,
+          columns: dialogColumns // Este es un objeto, no un array
         };
 
-        console.log('[v0] Config loaded:', config);
-        console.log('[v0] Columns count:', config.columns.length);
+        console.log('[v0] Config loaded:');
+        console.log('[v0]   - title:', config.title);
+        console.log('[v0]   - rowsPerPage:', config.rowsPerPage);
+        console.log('[v0]   - columns keys:', Object.keys(config.columns));
 
         document.getElementById('table-title').value = config.title;
         document.getElementById('rows-per-page').value = config.rowsPerPage;
       }
 
       function populateColumnLists() {
-        const columns = config.columns;
-
-        console.log('[v0] Populating columns:', columns);
-        console.log('[v0] Is array?', Array.isArray(columns));
+        console.log('[v0] === POPULATING COLUMN LISTS ===');
+        console.log('[v0] config.columns type:', typeof config.columns);
+        console.log('[v0] config.columns:', config.columns);
 
         const dimensionsList = document.getElementById('dimensions-list');
         const measuresList = document.getElementById('measures-list');
@@ -548,25 +552,34 @@
         calculationsList.innerHTML = '';
         columnSelect.innerHTML = '<option value="">Seleccionar columna...</option>';
 
-        if (!Array.isArray(columns) || columns.length === 0) {
-          console.log('[v0] ERROR: No hay columnas o no es un array');
+        const columnsArray = Object.values(config.columns);
+        
+        console.log('[v0] Columns array length:', columnsArray.length);
+
+        if (columnsArray.length === 0) {
+          console.log('[v0] ✗ No hay columnas disponibles');
           dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones.</li>';
           measuresList.innerHTML = '<li class="empty-state">No hay medidas.</li>';
           calculationsList.innerHTML = '<li class="empty-state">No hay cálculos.</li>';
           return;
         }
 
-        console.log('[v0] Clasificando columnas...');
-        const dimensions = columns.filter(col => col.dataType === 'string');
-        const measures = columns.filter(col => col.dataType === 'float' || col.dataType === 'int');
-        const calculations = columns.filter(
-          col => col.dataType !== 'string' && col.dataType !== 'float' && col.dataType !== 'int'
+        const dimensions = columnsArray.filter(col => 
+          col.dataType === 'string' || col.dataType === 'date' || col.dataType === 'date-time'
+        );
+        const measures = columnsArray.filter(col => 
+          col.dataType === 'float' || col.dataType === 'int'
+        );
+        const calculations = columnsArray.filter(col => 
+          !['string', 'date', 'date-time', 'float', 'int'].includes(col.dataType)
         );
 
-        console.log('[v0] Dimensiones:', dimensions.length);
-        console.log('[v0] Medidas:', measures.length);
-        console.log('[v0] Cálculos:', calculations.length);
+        console.log('[v0] ✓ Clasificación:');
+        console.log('[v0]   - Dimensiones:', dimensions.length);
+        console.log('[v0]   - Medidas:', measures.length);
+        console.log('[v0]   - Cálculos:', calculations.length);
 
+        // Poblar dimensiones
         if (dimensions.length === 0) {
           dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones.</li>';
         } else {
@@ -584,6 +597,7 @@
           });
         }
 
+        // Poblar medidas
         if (measures.length === 0) {
           measuresList.innerHTML = '<li class="empty-state">No hay medidas.</li>';
         } else {
@@ -601,6 +615,7 @@
           });
         }
 
+        // Poblar cálculos
         if (calculations.length === 0) {
           calculationsList.innerHTML = '<li class="empty-state">No hay cálculos.</li>';
         } else {
@@ -617,6 +632,8 @@
             columnSelect.appendChild(option);
           });
         }
+
+        console.log('[v0] ✓ Column lists populated');
       }
 
       function selectColumn(columnName) {
@@ -643,7 +660,7 @@
         document.getElementById('column-config-content').style.display = 'block';
         document.getElementById('no-column-selected').style.display = 'none';
 
-        const column = config.columns.find(col => col.name === columnName) || { name: columnName, visible: true };
+        const column = config.columns[columnName] || { name: columnName, visible: true };
 
         document.getElementById('column-display-name').value = column.displayName || '';
         document.getElementById('column-visible').checked = column.visible !== false;
@@ -653,20 +670,13 @@
         const columnName = document.getElementById('selected-column').value;
         if (!columnName) return;
 
-        const columnIndex = config.columns.findIndex(col => col.name === columnName);
-        const columnConfig = {
-          name: columnName,
+        config.columns[columnName] = {
+          ...config.columns[columnName],
           displayName: document.getElementById('column-display-name').value,
           visible: document.getElementById('column-visible').checked
         };
 
-        if (columnIndex >= 0) {
-          config.columns[columnIndex] = { ...config.columns[columnIndex], ...columnConfig };
-        } else {
-          config.columns.push(columnConfig);
-        }
-
-        console.log('[v0] Saved column config:', columnConfig);
+        console.log('[v0] ✓ Saved column config for:', columnName);
       }
 
       function switchTab(tabName) {
@@ -678,17 +688,22 @@
       }
 
       function saveAndClose() {
+        console.log('[v0] === SAVING AND CLOSING ===');
         saveColumnConfig();
 
         config.title = document.getElementById('table-title').value;
         config.rowsPerPage = parseInt(document.getElementById('rows-per-page').value) || 10;
 
-        tableau.extensions.settings.set('title', config.title);
-        tableau.extensions.settings.set('rowsPerPage', config.rowsPerPage.toString());
-        tableau.extensions.settings.set('columns', JSON.stringify(config.columns));
+        const savedConfig = {
+          tableTitle: config.title,
+          rowsPerPage: config.rowsPerPage,
+          columns: config.columns // Guardar como objeto
+        };
+
+        tableau.extensions.settings.set('config', JSON.stringify(savedConfig));
 
         tableau.extensions.settings.saveAsync().then(() => {
-          console.log('[v0] Settings saved successfully');
+          console.log('[v0] ✓ Settings saved successfully');
           tableau.extensions.ui.closeDialog('saved');
         });
       }
