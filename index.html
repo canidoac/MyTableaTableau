@@ -100,10 +100,9 @@
             </div>
             
             <div class="tabs">
+                <!-- Solo mostrar tabs General y Data -->
                 <button class="tab-btn active" data-tab="general">General</button>
                 <button class="tab-btn" data-tab="data">Data</button>
-                <button class="tab-btn" data-tab="appearance">Apariencia</button>
-                <button class="tab-btn" data-tab="row-format">Formato de Filas</button>
             </div>
             
             <div class="modal-body">
@@ -146,113 +145,19 @@
                     </div>
                 </div>
                 
-                <!-- Nueva pestaña Data para configuración de columnas -->
+                <!-- Tab Data simplificada -->
                 <div id="data-tab" class="tab-content">
                     <h3>Configuración de Columnas</h3>
-                    <p class="help-text">Haz clic en una columna para configurar su formato, tooltip y reglas condicionales.</p>
-                    <div id="columns-data-list" class="columns-data-list"></div>
-                </div>
-                
-                <!-- Nueva pestaña Appearance -->
-                <div id="appearance-tab" class="tab-content">
-                    <h3>Opciones de Apariencia</h3>
-                    
-                    <div class="form-group">
-                        <label>Paginación:</label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="settings-pagination" checked>
-                            <span>Habilitar paginación</span>
-                        </label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
-                            <div>
-                                <label style="font-size: 12px; color: #64748b;">Filas por página:</label>
-                                <input type="number" id="settings-page-size" value="50" min="10" max="1000" class="form-input">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Opciones de tabla:</label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="settings-striped" checked>
-                            <span>Alternar color de filas (zebra)</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="settings-hover" checked>
-                            <span>Resaltar fila al pasar el mouse</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Pestaña de formato de filas mejorada -->
-                <div id="row-format-tab" class="tab-content">
-                    <h3>Formato Condicional de Filas</h3>
-                    <p class="help-text" style="margin-bottom: 16px;">
-                        El formato de filas pinta toda la fila cuando se cumple una condición. Por ejemplo: si la columna "Estado" es igual a "Alerta", pintar la fila de rojo.
-                    </p>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="settings-row-format">
-                        <span>Activar formato condicional de filas</span>
-                    </label>
-                    
-                    <div class="form-group" style="margin-top: 24px;">
-                        <label>Reglas de formato (pintan toda la fila):</label>
-                        <div id="row-rules-list" class="rules-container"></div>
-                    </div>
-                    
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label>Agregar nueva regla:</label>
-                        <div style="display: grid; grid-template-columns: 1fr 100px 1fr; gap: 8px; margin-bottom: 8px;">
-                            <select id="row-rule-column" class="form-input">
-                                <option value="">Selecciona una columna...</option>
-                            </select>
-                            <select id="row-rule-operator" class="form-input">
-                                <option value="=">=</option>
-                                <option value="!=">≠</option>
-                                <option value="contains">Contiene</option>
-                                <option value=">">></option>
-                                <option value="<"><</option>
-                                <option value=">=">≥</option>
-                                <option value="<=">≤</option>
-                            </select>
-                            <input type="text" id="row-rule-value" placeholder="Valor..." class="form-input">
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px;">
-                            <div>
-                                <label style="font-size: 12px; color: #64748b;">Color de fondo:</label>
-                                <input type="color" id="row-rule-bgcolor" value="#fee2e2" class="form-input">
-                            </div>
-                            <div>
-                                <label style="font-size: 12px; color: #64748b;">Color de texto:</label>
-                                <input type="color" id="row-rule-textcolor" value="#991b1b" class="form-input">
-                            </div>
-                            <button id="add-row-rule-btn" class="btn btn-primary" style="align-self: flex-end;">Agregar</button>
-                        </div>
+                    <p class="help-text">Selecciona qué columnas deseas mostrar en la tabla y exportar.</p>
+                    <div id="columns-data-list" class="columns-data-list">
+                        <p style="color: #64748b;">Cargando columnas...</p>
                     </div>
                 </div>
             </div>
             
             <div class="modal-footer">
                 <button id="save-settings-btn" class="btn btn-primary">Guardar y Aplicar</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de gestión de columnas simplificado -->
-    <div id="columns-modal" class="modal">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h2>Gestión de Columnas</h2>
-                <button class="close-modal">×</button>
-            </div>
-            <div class="modal-body">
-                <p class="help-text" style="margin-bottom: 16px;">
-                    Controla qué columnas se muestran en la tabla y cuáles se incluyen en la exportación.
-                </p>
-                <div id="columns-list" class="columns-list"></div>
-            </div>
-            <div class="modal-footer">
-                <button onclick="saveColumnManager()" class="btn btn-primary">Guardar</button>
+                <button class="close-modal btn btn-secondary">Cancelar</button>
             </div>
         </div>
     </div>
