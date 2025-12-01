@@ -104,42 +104,48 @@ function initializeExtension() {
     })
 }
 
-function openSettings() {
-  // Guardar las columnas actuales antes de abrir el diálogo
-  var savePromise = Promise.resolve()
+async function openSettings() {
+  console.log("[v0] Abriendo configuración...")
 
-  if (fullData && fullData.columns && fullData.columns.length > 0) {
-    var currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
-    currentConfig.columns = fullData.columns.map((col) => ({
-      name: col.fieldName || col.name,
-      dataType: col.dataType || col.type,
-    }))
+  if (fullData && fullData.columns) {
+    const currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
+
+    // Preserve existing column configurations, only add new ones
+    fullData.columns.forEach((col) => {
+      const colName = col.fieldName || col.name
+      if (!currentConfig.columns) {
+        currentConfig.columns = {}
+      }
+      if (!currentConfig.columns[colName]) {
+        // Only add if it doesn't exist yet
+        currentConfig.columns[colName] = {
+          visible: true,
+          visibleToUser: true,
+          includeInExport: true,
+          tooltip: "",
+          width: "auto",
+        }
+      }
+    })
+
     tableau.extensions.settings.set("config", JSON.stringify(currentConfig))
-    savePromise = tableau.extensions.settings.saveAsync()
-  } else {
-    console.log("[v0] No hay datos todavía. Abre la configuración después de cargar datos.")
+    await tableau.extensions.settings.saveAsync()
+    console.log("[v0] Configuración de columnas guardada antes de abrir diálogo")
   }
 
-  savePromise
-    .then(() => {
-      var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
+  var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
 
-      tableau.extensions.ui
-        .displayDialogAsync(popupUrl, "", { height: 700, width: 1200 })
-        .then((closePayload) => {
-          if (closePayload === "saved") {
-            console.log("[v0] Configuration saved, reloading data")
-            loadData()
-            applyGeneralSettings()
-          }
-        })
-        .catch((error) => {
-          console.log("[v0] Dialog closed or error:", error)
-        })
+  tableau.extensions.ui
+    .displayDialogAsync(popupUrl, "", { height: 700, width: 1200 })
+    .then((closePayload) => {
+      if (closePayload === "saved") {
+        console.log("[v0] Configuration saved, reloading data")
+        loadData()
+        applyGeneralSettings()
+      }
     })
     .catch((error) => {
-      console.error("[v0] Error saving settings before opening dialog:", error)
-      showError("Error al guardar configuración: " + error.toString())
+      console.log("[v0] Dialog closed or error:", error)
     })
 }
 
@@ -485,25 +491,20 @@ function loadWorksheetData() {
         }
       })
 
+      const currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
+      currentConfig.columns = config.columns
+      tableau.extensions.settings.set("config", JSON.stringify(currentConfig))
+      tableau.extensions.settings.saveAsync().then(() => {
+        console.log("[v0] ✓ Configuración de columnas guardada en settings")
+      })
+
       console.log("[v0] ===== APLICANDO FILTROS =====")
       applyFiltersAndSort()
-
-      console.log("[v0] ===== DESPUÉS DE FILTROS =====")
-      console.log("[v0] visibleData:", visibleData ? visibleData.length : "NULL", "filas")
-      if (visibleData && visibleData.length > 0) {
-        console.log("[v0] Primera fila visible:", visibleData[0])
-      }
-
-      console.log("[v0] ===== LLAMANDO RENDER TABLE =====")
-      renderTable()
     })
-    .catch((err) => {
-      console.error("[v0] ===== ERROR EN getSummaryDataAsync =====")
-      console.error("[v0] Error completo:", err)
-      console.error("[v0] Error message:", err.message)
-      console.error("[v0] Error stack:", err.stack)
+    .catch((error) => {
+      console.error("[v0] ERROR al cargar datos del worksheet:", error)
       hideLoading()
-      showError("Error cargando datos: " + err.toString())
+      showError("Error al cargar datos: " + error.message)
     })
 }
 
