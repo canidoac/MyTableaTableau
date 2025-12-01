@@ -17,6 +17,8 @@ var config = {
   showSearch: true,
   showExportButtons: true,
   showRefreshButton: true,
+  showStatusText: true, // Added config for status text visibility
+  showSettingsButton: true, // Added config for settings button visibility
 
   // Columnas
   columns: {}, // { columnName: { visible: true, visibleToUser: true, includeInExport: true, tooltip: '', width: 'auto' } }
@@ -242,16 +244,20 @@ function addRowRule() {
 function saveSettings() {
   config.tableTitle = document.getElementById("settings-title").value.trim() // Save custom title
   config.showOnlineStatus = document.getElementById("settings-online").checked
+  config.showStatusText = document.getElementById("settings-status").checked // Added config for status text visibility
   config.showSearch = document.getElementById("settings-search").checked
   config.showExportButtons = document.getElementById("settings-export").checked
   config.showRefreshButton = document.getElementById("settings-refresh").checked
+  config.showSettingsButton = document.getElementById("settings-show-config").checked // Added config for settings button visibility
   config.rowFormatting.enabled = document.getElementById("settings-row-format").checked
 
   document.getElementById("online-indicator").style.display = config.showOnlineStatus ? "flex" : "none"
+  document.getElementById("status").style.display = config.showStatusText ? "inline" : "none" // Control status text visibility
   document.querySelector(".search-box").style.display = config.showSearch ? "flex" : "none"
   document.getElementById("export-excel").style.display = config.showExportButtons ? "inline-flex" : "none"
   document.getElementById("export-csv").style.display = config.showExportButtons ? "inline-flex" : "none"
   document.getElementById("refresh-btn").style.display = config.showRefreshButton ? "inline-flex" : "none"
+  document.getElementById("settings-btn").style.display = config.showSettingsButton ? "inline-flex" : "none" // Control settings button visibility
 
   saveConfig()
   document.getElementById("settings-modal").style.display = "none"
@@ -274,6 +280,8 @@ function loadConfig() {
   if (config.showRefreshButton === undefined) config.showRefreshButton = false
   if (!config.rowFormatting) config.rowFormatting = { enabled: false, rules: [] }
   if (!config.columnSettings) config.columnSettings = {}
+  if (config.showStatusText === undefined) config.showStatusText = true // Default value for status text visibility
+  if (config.showSettingsButton === undefined) config.showSettingsButton = true // Default value for settings button visibility
 
   console.log("[v0] Configuración cargada:", config)
 
@@ -738,6 +746,11 @@ function applyGeneralSettings() {
     onlineIndicator.style.display = config.showOnlineStatus ? "inline-flex" : "none"
   }
 
+  const statusText = document.getElementById("status")
+  if (statusText) {
+    statusText.style.display = config.showStatusText !== false ? "inline" : "none"
+  }
+
   // Mostrar/ocultar barra de búsqueda
   const searchContainer = document.querySelector(".search-container")
   if (searchContainer) {
@@ -750,10 +763,9 @@ function applyGeneralSettings() {
     exportContainer.style.display = config.showExportButtons ? "flex" : "none"
   }
 
-  // Actualizar título
-  const mainTitle = document.getElementById("main-title")
-  if (mainTitle) {
-    mainTitle.textContent = config.tableTitle || (currentWorksheet ? currentWorksheet.name : "Super Table Pro")
+  const settingsBtn = document.getElementById("settings-btn")
+  if (settingsBtn) {
+    settingsBtn.style.display = config.showSettingsButton !== false ? "inline-flex" : "none"
   }
 }
 
