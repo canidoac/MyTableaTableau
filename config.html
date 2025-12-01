@@ -111,7 +111,7 @@
         list-style: none;
       }
 
-      .sidebar-item {
+      .column-item {
         padding: 10px 12px;
         margin-bottom: 4px;
         border-radius: 6px;
@@ -124,11 +124,11 @@
         transition: all 0.2s;
       }
 
-      .sidebar-item:hover {
+      .column-item:hover {
         background: #f0f7ff;
       }
 
-      .sidebar-item.active {
+      .column-item.selected {
         background: #e91e63;
         color: white;
         font-weight: 600;
@@ -460,38 +460,30 @@
           </ul>
         </div>
         <div class="content-area">
-          <div class="content-section">
-            <h2>Configurar</h2>
+          <div id="no-column-selected" class="content-section">
+            <h2>Configurar Columna</h2>
+            <p class="help-text">Selecciona una columna del panel izquierdo para configurar sus propiedades</p>
+          </div>
+
+          <div id="column-config-content" style="display: none">
+            <h2 id="config-column-title">Configurar Columna</h2>
+            
+            <div class="section-divider"></div>
+
             <div class="form-group">
-              <label>Seleccionar columna</label>
-              <select id="selected-column" onchange="loadColumnConfig()">
-                <option value="">Seleccionar columna...</option>
-              </select>
-              <p class="help-text">Selecciona una columna del menú desplegable para configurar sus propiedades</p>
+              <label>Nombre de visualización</label>
+              <input type="text" id="column-display-name" placeholder="Nombre personalizado para la columna" />
+              <p class="help-text">Deja vacío para usar el nombre original</p>
             </div>
 
-            <div id="column-config-content" style="display: none">
-              <div class="section-divider"></div>
+            <div class="section-divider"></div>
 
-              <div class="form-group">
-                <label>Nombre de visualización</label>
-                <input type="text" id="column-display-name" placeholder="Nombre personalizado para la columna" />
-                <p class="help-text">Deja vacío para usar el nombre original</p>
+            <div class="form-group">
+              <label>Visibilidad</label>
+              <div class="checkbox-group">
+                <input type="checkbox" id="column-visible" checked />
+                <label for="column-visible">Mostrar esta columna en la tabla</label>
               </div>
-
-              <div class="section-divider"></div>
-
-              <div class="form-group">
-                <label>Visibilidad</label>
-                <div class="checkbox-group">
-                  <input type="checkbox" id="column-visible" checked />
-                  <label for="column-visible">Mostrar esta columna en la tabla</label>
-                </div>
-              </div>
-            </div>
-
-            <div id="no-column-selected" class="info-box">
-              <p>Selecciona una columna del menú desplegable para configurar sus propiedades.</p>
             </div>
           </div>
         </div>
@@ -506,6 +498,8 @@
         rowsPerPage: 10,
         columns: {}
       };
+
+      let currentSelectedColumn = null;
 
       tableau.extensions.initializeDialogAsync().then(() => {
         console.log('[v0] === CONFIG DIALOG INITIALIZED ===');
@@ -538,31 +532,29 @@
       }
 
       function populateColumnLists() {
-        console.log('[v0] === POPULATING COLUMN LISTS ===');
-        console.log('[v0] config.columns type:', typeof config.columns);
-        console.log('[v0] config.columns:', config.columns);
+        console.log('[v0] Populating column lists...');
+        console.log('[v0] Config columns:', config.columns);
 
         const dimensionsList = document.getElementById('dimensions-list');
         const measuresList = document.getElementById('measures-list');
         const calculationsList = document.getElementById('calculations-list');
-        const columnSelect = document.getElementById('selected-column');
 
         dimensionsList.innerHTML = '';
         measuresList.innerHTML = '';
         calculationsList.innerHTML = '';
-        columnSelect.innerHTML = '<option value="">Seleccionar columna...</option>';
 
-        const columnsArray = Object.values(config.columns);
-        
-        console.log('[v0] Columns array length:', columnsArray.length);
-
-        if (columnsArray.length === 0) {
-          console.log('[v0] ✗ No hay columnas disponibles');
+        if (!config.columns || typeof config.columns !== 'object') {
+          console.log('[v0] No columns to populate');
           dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones.</li>';
           measuresList.innerHTML = '<li class="empty-state">No hay medidas.</li>';
           calculationsList.innerHTML = '<li class="empty-state">No hay cálculos.</li>';
           return;
         }
+
+        const columnsArray = Object.entries(config.columns).map(([name, col]) => ({
+          name,
+          ...col
+        }));
 
         const dimensions = columnsArray.filter(col => 
           col.dataType === 'string' || col.dataType === 'date' || col.dataType === 'date-time'
@@ -571,86 +563,78 @@
           col.dataType === 'float' || col.dataType === 'int'
         );
         const calculations = columnsArray.filter(col => 
-          !['string', 'date', 'date-time', 'float', 'int'].includes(col.dataType)
+          !dimensions.includes(col) && !measures.includes(col)
         );
 
-        console.log('[v0] ✓ Clasificación:');
-        console.log('[v0]   - Dimensiones:', dimensions.length);
-        console.log('[v0]   - Medidas:', measures.length);
-        console.log('[v0]   - Cálculos:', calculations.length);
-
-        // Poblar dimensiones
         if (dimensions.length === 0) {
           dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones.</li>';
         } else {
           dimensions.forEach(col => {
             const li = document.createElement('li');
-            li.className = 'sidebar-item';
-            li.textContent = col.name;
+            li.className = 'column-item';
+            li.textContent = col.displayName || col.name;
+            li.dataset.columnName = col.name;
             li.onclick = () => selectColumn(col.name);
             dimensionsList.appendChild(li);
-
-            const option = document.createElement('option');
-            option.value = col.name;
-            option.textContent = col.name;
-            columnSelect.appendChild(option);
           });
         }
 
-        // Poblar medidas
         if (measures.length === 0) {
           measuresList.innerHTML = '<li class="empty-state">No hay medidas.</li>';
         } else {
           measures.forEach(col => {
             const li = document.createElement('li');
-            li.className = 'sidebar-item';
-            li.textContent = col.name;
+            li.className = 'column-item';
+            li.textContent = col.displayName || col.name;
+            li.dataset.columnName = col.name;
             li.onclick = () => selectColumn(col.name);
             measuresList.appendChild(li);
-
-            const option = document.createElement('option');
-            option.value = col.name;
-            option.textContent = col.name;
-            columnSelect.appendChild(option);
           });
         }
 
-        // Poblar cálculos
         if (calculations.length === 0) {
           calculationsList.innerHTML = '<li class="empty-state">No hay cálculos.</li>';
         } else {
           calculations.forEach(col => {
             const li = document.createElement('li');
-            li.className = 'sidebar-item';
-            li.textContent = col.name;
+            li.className = 'column-item';
+            li.textContent = col.displayName || col.name;
+            li.dataset.columnName = col.name;
             li.onclick = () => selectColumn(col.name);
             calculationsList.appendChild(li);
-
-            const option = document.createElement('option');
-            option.value = col.name;
-            option.textContent = col.name;
-            columnSelect.appendChild(option);
           });
         }
 
-        console.log('[v0] ✓ Column lists populated');
+        console.log('[v0] Populated lists - Dims:', dimensions.length, 'Measures:', measures.length, 'Calcs:', calculations.length);
       }
 
       function selectColumn(columnName) {
-        document.getElementById('selected-column').value = columnName;
-        loadColumnConfig();
-
-        document.querySelectorAll('.sidebar-item').forEach(item => {
-          item.classList.remove('active');
-          if (item.textContent === columnName) {
-            item.classList.add('active');
-          }
+        console.log('[v0] Selecting column:', columnName);
+        
+        // Save previous column config if any
+        if (currentSelectedColumn) {
+          saveColumnConfig();
+        }
+        
+        currentSelectedColumn = columnName;
+        
+        // Remove highlight from all items
+        document.querySelectorAll('.column-item').forEach(item => {
+          item.classList.remove('selected');
         });
+        
+        // Highlight selected item
+        document.querySelectorAll(`[data-column-name="${columnName}"]`).forEach(item => {
+          item.classList.add('selected');
+        });
+        
+        // Load column configuration
+        loadColumnConfig();
       }
 
       function loadColumnConfig() {
-        const columnName = document.getElementById('selected-column').value;
-
+        const columnName = currentSelectedColumn;
+        
         if (!columnName) {
           document.getElementById('column-config-content').style.display = 'none';
           document.getElementById('no-column-selected').style.display = 'block';
@@ -658,26 +642,39 @@
         }
 
         document.getElementById('column-config-content').style.display = 'block';
-        document.getElementById('no-column-selected').style.display = 'none';
+        document.getElementById('no-column-selected').style.display = 'block';
 
         const column = config.columns[columnName] || { name: columnName, visible: true };
 
+        document.getElementById('config-column-title').textContent = `Configurar: ${columnName}`;
         document.getElementById('column-display-name').value = column.displayName || '';
         document.getElementById('column-visible').checked = column.visible !== false;
+        
+        console.log('[v0] Loaded config for column:', columnName, column);
       }
 
       function saveColumnConfig() {
-        const columnName = document.getElementById('selected-column').value;
+        const columnName = currentSelectedColumn;
         if (!columnName) return;
+
+        const displayName = document.getElementById('column-display-name').value;
+        const visible = document.getElementById('column-visible').checked;
 
         config.columns[columnName] = {
           ...config.columns[columnName],
-          displayName: document.getElementById('column-display-name').value,
-          visible: document.getElementById('column-visible').checked
+          displayName: displayName,
+          visible: visible
         };
 
-        console.log('[v0] ✓ Saved column config for:', columnName);
+        console.log('[v0] Saved column config for:', columnName, config.columns[columnName]);
+        
+        document.querySelectorAll(`[data-column-name="${columnName}"]`).forEach(item => {
+          item.textContent = displayName || columnName;
+        });
       }
+
+      document.getElementById('column-display-name').addEventListener('input', saveColumnConfig);
+      document.getElementById('column-visible').addEventListener('change', saveColumnConfig);
 
       function switchTab(tabName) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));

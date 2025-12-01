@@ -1,0 +1,32 @@
+/* Add styles for clickable and selectable column items */
+.column-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  margin-bottom: 4px;
+}
+
+.column-item:hover {
+  background-color: #f0f0f0;
+}
+
+.column-item.selected {
+  background-color: #0066cc;
+  color: white;
+  font-weight: 500;
+}
+
+.empty-state {
+  padding: 8px 12px;
+  color: #888;
+  font-style: italic;
+  list-style: none;
+}
+
+/* Style the config panel title */
+#config-column-title {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.2em;
+}
