@@ -1,4 +1,4 @@
-// Super Table Pro Extension v4.0 - Simplificado
+// Super Table Pro Extension v6.5 - Export dropdown, worksheet in General, Export config
 
 var tableau = window.tableau
 var XLSX = window.XLSX
@@ -8,6 +8,9 @@ var currentWorksheet = null
 var fullData = null
 var visibleData = []
 var isWorksheetContext = false
+var searchQuery = ""
+var sortState = { column: null, ascending: true }
+var currentPage = 0
 
 // Configuración simplificada
 var config = {
@@ -17,13 +20,13 @@ var config = {
   showExportButtons: true,
   showRefreshButton: true,
   showSettingsButton: true,
-  columns: {}, // { columnName: { visible: true, includeInExport: true } }
+  columns: {}, // { columnName: { visible: true, includeInExport: true, displayName: "" } }
   rowsPerPage: 100,
+  exportButtonText: "Exportar",
+  exportEnableExcel: true,
+  exportEnableCSV: true,
+  exportEnablePDF: true,
 }
-
-var sortState = { column: null, ascending: true }
-var searchQuery = ""
-var currentPage = 0
 
 // Inicialización
 function initializeExtension() {
@@ -91,11 +94,20 @@ function setupWorksheetContext() {
 function setupEventListeners() {
   document.getElementById("search-input").addEventListener("input", handleSearch)
   document.getElementById("worksheet-selector").addEventListener("change", (e) => loadWorksheet(e.target.value))
-  document.getElementById("export-excel").addEventListener("click", exportToExcel)
-  document.getElementById("export-csv").addEventListener("click", exportToCSV)
+  document.getElementById("export-btn").addEventListener("click", toggleExportDropdown)
+  document.getElementById("export-excel-opt").addEventListener("click", () => handleExport("excel"))
+  document.getElementById("export-csv-opt").addEventListener("click", () => handleExport("csv"))
+  document.getElementById("export-pdf-opt").addEventListener("click", () => handleExport("pdf"))
   document.getElementById("refresh-btn").addEventListener("click", () => loadWorksheetData(currentWorksheet))
   document.getElementById("settings-btn").addEventListener("click", openSettings)
   document.getElementById("clear-filter").addEventListener("click", clearSearch)
+
+  document.addEventListener("click", (e) => {
+    const dropdown = document.getElementById("export-dropdown")
+    if (!dropdown.contains(e.target)) {
+      document.getElementById("export-dropdown-menu").style.display = "none"
+    }
+  })
 
   document.querySelectorAll(".close-modal").forEach((btn) => {
     btn.addEventListener("click", function () {
@@ -165,6 +177,7 @@ async function loadWorksheetData(worksheet) {
           dataType: col.dataType,
           visible: true,
           includeInExport: true,
+          displayName: "",
         }
         console.log("[v0]   ✓ Columna agregada:", colName, "visible:", true)
       }
@@ -400,6 +413,7 @@ async function openSettings() {
         dataType: col.dataType,
         visible: config.columns[colName]?.visible !== false,
         includeInExport: config.columns[colName]?.includeInExport !== false,
+        displayName: config.columns[colName]?.displayName || "",
       }
     })
 
@@ -446,10 +460,15 @@ function saveSettings() {
 function applyGeneralSettings() {
   document.getElementById("online-indicator").style.display = config.showOnlineStatus ? "flex" : "none"
   document.querySelector(".search-box").style.display = config.showSearch ? "flex" : "none"
-  document.getElementById("export-excel").style.display = config.showExportButtons ? "inline-flex" : "none"
-  document.getElementById("export-csv").style.display = config.showExportButtons ? "inline-flex" : "none"
+  document.getElementById("export-dropdown").style.display = config.showExportButtons ? "inline-block" : "none"
   document.getElementById("refresh-btn").style.display = config.showRefreshButton ? "inline-flex" : "none"
   document.getElementById("settings-btn").style.display = config.showSettingsButton ? "inline-flex" : "none"
+
+  document.getElementById("export-btn-text").textContent = config.exportButtonText || "Exportar"
+
+  document.getElementById("export-excel-opt").style.display = config.exportEnableExcel ? "flex" : "none"
+  document.getElementById("export-csv-opt").style.display = config.exportEnableCSV ? "flex" : "none"
+  document.getElementById("export-pdf-opt").style.display = config.exportEnablePDF ? "flex" : "none"
 
   if (config.tableTitle) {
     document.getElementById("main-title").textContent = config.tableTitle
@@ -474,6 +493,10 @@ function loadConfig() {
     showSettingsButton: savedConfig.showSettingsButton !== false,
     columns: savedConfig.columns || {},
     rowsPerPage: savedConfig.rowsPerPage || 100,
+    exportButtonText: savedConfig.exportButtonText || "Exportar",
+    exportEnableExcel: savedConfig.exportEnableExcel !== false,
+    exportEnableCSV: savedConfig.exportEnableCSV !== false,
+    exportEnablePDF: savedConfig.exportEnablePDF !== false,
   }
 
   console.log("[v0] Configuración cargada, columnas:", Object.keys(config.columns).length)
@@ -568,6 +591,24 @@ function escapeHtml(str) {
   var div = document.createElement("div")
   div.textContent = str
   return div.innerHTML
+}
+
+function toggleExportDropdown(e) {
+  e.stopPropagation()
+  const menu = document.getElementById("export-dropdown-menu")
+  menu.style.display = menu.style.display === "none" ? "block" : "none"
+}
+
+function handleExport(format) {
+  document.getElementById("export-dropdown-menu").style.display = "none"
+
+  if (format === "excel" && config.exportEnableExcel) {
+    exportToExcel()
+  } else if (format === "csv" && config.exportEnableCSV) {
+    exportToCSV()
+  } else if (format === "pdf" && config.exportEnablePDF) {
+    alert("Exportación a PDF próximamente")
+  }
 }
 
 if (document.readyState === "loading") {

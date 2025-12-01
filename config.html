@@ -129,7 +129,7 @@
       }
 
       .column-item.selected {
-        background: #e91e63;
+        background: #f2dc49;
         color: white;
         font-weight: 600;
       }
@@ -421,9 +421,10 @@
 
     <div class="tabs-container">
       <div class="tabs">
-        <!-- Solo mantener pestañas General y Data -->
+        <!-- Added Export tab -->
         <button class="tab-btn active" data-tab="general" onclick="switchTab('general')">General</button>
         <button class="tab-btn" data-tab="data" onclick="switchTab('data')">Data</button>
+        <button class="tab-btn" data-tab="export" onclick="switchTab('export')">Export</button>
       </div>
     </div>
 
@@ -453,6 +454,15 @@
         <div id="general-tab" class="tab-content active">
           <div class="content-section">
             <h2>Configuración General</h2>
+
+            <!-- Added worksheet selector to General tab -->
+            <div class="form-group">
+              <label>Hoja de trabajo</label>
+              <select id="worksheet-selector-config" class="form-input">
+                <option>Cargando hojas...</option>
+              </select>
+              <p class="help-text">Selecciona la hoja de trabajo desde la cual se cargarán los datos</p>
+            </div>
 
             <div class="form-group">
               <label>Título de la tabla</label>
@@ -499,6 +509,39 @@
             </div>
           </div>
         </div>
+        
+        <!-- Added Export tab -->
+        <div id="export-tab" class="tab-content">
+          <div class="content-section">
+            <h2>Configuración de Exportación</h2>
+            <p class="subtitle">Configura las opciones de exportación disponibles para los usuarios</p>
+
+            <div class="form-group">
+              <label>Texto del botón de exportación</label>
+              <input type="text" id="export-button-text" placeholder="Ej: Exportar, Descargar" />
+              <p class="help-text">Personaliza el texto que aparece en el botón de exportación</p>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="form-group">
+              <label>Formatos de exportación disponibles</label>
+              <div class="checkbox-group">
+                <input type="checkbox" id="export-enable-excel" checked />
+                <label for="export-enable-excel">Habilitar exportación a Excel (.xlsx)</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="export-enable-csv" checked />
+                <label for="export-enable-csv">Habilitar exportación a CSV</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="export-enable-pdf" checked />
+                <label for="export-enable-pdf">Habilitar exportación a PDF</label>
+              </div>
+              <p class="help-text">Selecciona qué formatos de exportación estarán disponibles para los usuarios</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -506,7 +549,11 @@
       let config = {
         title: '',
         rowsPerPage: 10,
-        columns: {}
+        columns: {},
+        exportButtonText: 'Exportar',
+        exportEnableExcel: true,
+        exportEnableCSV: true,
+        exportEnablePDF: true,
       };
 
       let currentSelectedColumn = null;
@@ -515,6 +562,7 @@
         console.log('[v0] === CONFIG DIALOG INITIALIZED ===');
         loadConfig();
         populateColumnLists();
+        loadWorksheetList();
       });
 
       function loadConfig() {
@@ -529,7 +577,11 @@
         config = {
           title: savedConfig.tableTitle || '',
           rowsPerPage: savedConfig.rowsPerPage || 10,
-          columns: dialogColumns // Objeto
+          columns: dialogColumns, // Objeto
+          exportButtonText: savedConfig.exportButtonText || 'Exportar',
+          exportEnableExcel: savedConfig.exportEnableExcel !== false,
+          exportEnableCSV: savedConfig.exportEnableCSV !== false,
+          exportEnablePDF: savedConfig.exportEnablePDF !== false,
         };
 
         console.log('[v0] Config loaded:');
@@ -539,6 +591,20 @@
 
         document.getElementById('table-title').value = config.title;
         document.getElementById('rows-per-page').value = config.rowsPerPage;
+        document.getElementById('export-button-text').value = config.exportButtonText;
+        document.getElementById('export-enable-excel').checked = config.exportEnableExcel;
+        document.getElementById('export-enable-csv').checked = config.exportEnableCSV;
+        document.getElementById('export-enable-pdf').checked = config.exportEnablePDF;
+      }
+      
+      function loadWorksheetList() {
+        const worksheetSelector = document.getElementById('worksheet-selector-config');
+        worksheetSelector.innerHTML = '<option>Selecciona una hoja...</option>';
+        
+        // This is a placeholder - in real implementation, we'd get worksheets from Tableau
+        // For now, just show a message
+        worksheetSelector.innerHTML = '<option>La hoja se selecciona desde la extensión</option>';
+        worksheetSelector.disabled = true;
       }
 
       function populateColumnLists() {
@@ -704,11 +770,19 @@
 
         config.title = document.getElementById('table-title').value;
         config.rowsPerPage = parseInt(document.getElementById('rows-per-page').value) || 10;
+        config.exportButtonText = document.getElementById('export-button-text').value || 'Exportar';
+        config.exportEnableExcel = document.getElementById('export-enable-excel').checked;
+        config.exportEnableCSV = document.getElementById('export-enable-csv').checked;
+        config.exportEnablePDF = document.getElementById('export-enable-pdf').checked;
 
         const savedConfig = {
           tableTitle: config.title,
           rowsPerPage: config.rowsPerPage,
-          columns: config.columns
+          columns: config.columns,
+          exportButtonText: config.exportButtonText,
+          exportEnableExcel: config.exportEnableExcel,
+          exportEnableCSV: config.exportEnableCSV,
+          exportEnablePDF: config.exportEnablePDF,
         };
 
         tableau.extensions.settings.set('config', JSON.stringify(savedConfig));
