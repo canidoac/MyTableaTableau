@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <worksheet-extension id="com.supertable.pro.worksheet" extension-version="3.0.0">
+  <worksheet-extension id="com.supertable.pro.worksheet" extension-version="6.0.0">
     <default-locale>es_ES</default-locale>
     <name resource-id="name"/>
     <description>Super Table Pro - Tabla interactiva con formato, búsqueda, ordenamiento y exportación mejorada (versión para hojas)</description>

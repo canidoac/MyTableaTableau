@@ -344,6 +344,7 @@ function clearSearch() {
 
 async function openSettings() {
   console.log("[v0] Abriendo configuración...")
+  console.log("[v0] fullData:", fullData)
 
   if (fullData && fullData.columns) {
     const columnsArray = fullData.columns.map((col) => {
@@ -356,8 +357,11 @@ async function openSettings() {
       }
     })
 
-    tableau.extensions.settings.set("columnsArray", JSON.stringify(columnsArray))
+    console.log("[v0] Guardando columnas en settings:", columnsArray)
+    tableau.extensions.settings.set("columns", JSON.stringify(columnsArray))
     await tableau.extensions.settings.saveAsync()
+  } else {
+    console.log("[v0] ERROR: No hay fullData o columnas disponibles")
   }
 
   var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
@@ -424,7 +428,7 @@ function loadConfig() {
     showRefreshButton: savedConfig.showRefreshButton || false,
     showStatusText: savedConfig.showStatusText !== false,
     showSettingsButton: savedConfig.showSettingsButton !== false,
-    columns: savedConfig.columns || {},
+    columns: JSON.parse(settings.columns || "{}"),
     rowsPerPage: savedConfig.rowsPerPage || 100,
   }
 

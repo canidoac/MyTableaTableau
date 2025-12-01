@@ -515,6 +515,10 @@
 
       function loadConfig() {
         const settings = tableau.extensions.settings.getAll();
+        
+        console.log('[v0] Settings object:', settings);
+        console.log('[v0] settings.columns:', settings.columns);
+        
         config = {
           title: settings.title || '',
           rowsPerPage: parseInt(settings.rowsPerPage) || 10,
@@ -522,16 +526,17 @@
         };
 
         console.log('[v0] Config loaded:', config);
+        console.log('[v0] Columns count:', config.columns.length);
 
         document.getElementById('table-title').value = config.title;
         document.getElementById('rows-per-page').value = config.rowsPerPage;
       }
 
       function populateColumnLists() {
-        const settings = tableau.extensions.settings.getAll();
-        const columns = settings.columns ? JSON.parse(settings.columns) : [];
+        const columns = config.columns;
 
         console.log('[v0] Populating columns:', columns);
+        console.log('[v0] Is array?', Array.isArray(columns));
 
         const dimensionsList = document.getElementById('dimensions-list');
         const measuresList = document.getElementById('measures-list');
@@ -544,17 +549,23 @@
         columnSelect.innerHTML = '<option value="">Seleccionar columna...</option>';
 
         if (!Array.isArray(columns) || columns.length === 0) {
+          console.log('[v0] ERROR: No hay columnas o no es un array');
           dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones.</li>';
           measuresList.innerHTML = '<li class="empty-state">No hay medidas.</li>';
           calculationsList.innerHTML = '<li class="empty-state">No hay cálculos.</li>';
           return;
         }
 
+        console.log('[v0] Clasificando columnas...');
         const dimensions = columns.filter(col => col.dataType === 'string');
         const measures = columns.filter(col => col.dataType === 'float' || col.dataType === 'int');
         const calculations = columns.filter(
           col => col.dataType !== 'string' && col.dataType !== 'float' && col.dataType !== 'int'
         );
+
+        console.log('[v0] Dimensiones:', dimensions.length);
+        console.log('[v0] Medidas:', measures.length);
+        console.log('[v0] Cálculos:', calculations.length);
 
         if (dimensions.length === 0) {
           dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones.</li>';
