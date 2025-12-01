@@ -16,7 +16,6 @@ var config = {
   showSearch: true,
   showExportButtons: true,
   showRefreshButton: true,
-  showStatusText: true,
   showSettingsButton: true,
   columns: {}, // { columnName: { visible: true, includeInExport: true } }
   rowsPerPage: 100,
@@ -147,6 +146,12 @@ async function loadWorksheetData(worksheet) {
       dataTable.columns.map((c) => c.fieldName),
     )
 
+    if (dataTable.data.length > 0) {
+      console.log("[v0]   - Primera fila:", dataTable.data[0])
+      console.log("[v0]   - Tipo primer valor:", typeof dataTable.data[0][0])
+      console.log("[v0]   - Primer valor completo:", dataTable.data[0][0])
+    }
+
     fullData = {
       columns: dataTable.columns,
       data: dataTable.data,
@@ -214,9 +219,10 @@ function applyFiltersAndSort() {
 }
 
 function renderTable() {
-  console.log("[v0] Renderizando tabla...")
+  console.log("[v0] === RENDERIZANDO TABLA ===")
 
   if (!fullData || !fullData.columns || !visibleData) {
+    console.log("[v0] ✗ No hay datos para renderizar")
     hideLoading()
     return
   }
@@ -264,20 +270,35 @@ function renderTable() {
   var end = Math.min(start + config.rowsPerPage, visibleData.length)
   var pageData = visibleData.slice(start, end)
 
-  pageData.forEach((row) => {
+  if (pageData.length > 0) {
+    console.log("[v0] Primera fila a renderizar:", pageData[0])
+  }
+
+  pageData.forEach((row, rowIdx) => {
     var tr = document.createElement("tr")
 
     visibleColumns.forEach((col) => {
       var td = document.createElement("td")
       var cellData = row[col.index]
-      var cellValue = cellData
 
-      // Si es un objeto con propiedades value o formattedValue, extraer el valor
-      if (cellData && typeof cellData === "object") {
+      var cellValue = ""
+
+      if (cellData === null || cellData === undefined) {
+        cellValue = ""
+      } else if (typeof cellData === "object") {
+        // Es un objeto de Tableau con formattedValue, value, etc.
         cellValue = cellData.formattedValue || cellData.value || cellData.nativeValue || ""
+
+        // Debug solo para primera fila
+        if (rowIdx === 0) {
+          console.log(`[v0] Celda [${col.fieldName}]:`, cellData, "→", cellValue)
+        }
+      } else {
+        // Es un valor primitivo (string, number, etc.)
+        cellValue = cellData
       }
 
-      td.textContent = cellValue != null ? cellValue : ""
+      td.textContent = cellValue
       tr.appendChild(td)
     })
 
@@ -301,6 +322,8 @@ function renderTable() {
 
   renderPagination()
   updateTableInfo()
+
+  console.log("[v0] ✓ Tabla renderizada correctamente")
 }
 
 function renderPagination() {
@@ -405,7 +428,6 @@ async function openSettings() {
 function saveSettings() {
   config.tableTitle = document.getElementById("settings-title").value.trim()
   config.showOnlineStatus = document.getElementById("settings-online").checked
-  config.showStatusText = document.getElementById("settings-status").checked
   config.showSearch = document.getElementById("settings-search").checked
   config.showExportButtons = document.getElementById("settings-export").checked
   config.showRefreshButton = document.getElementById("settings-refresh").checked
@@ -420,7 +442,6 @@ function saveSettings() {
 
 function applyGeneralSettings() {
   document.getElementById("online-indicator").style.display = config.showOnlineStatus ? "flex" : "none"
-  document.getElementById("status").style.display = config.showStatusText ? "inline" : "none"
   document.querySelector(".search-box").style.display = config.showSearch ? "flex" : "none"
   document.getElementById("export-excel").style.display = config.showExportButtons ? "inline-flex" : "none"
   document.getElementById("export-csv").style.display = config.showExportButtons ? "inline-flex" : "none"
@@ -447,7 +468,6 @@ function loadConfig() {
     showSearch: savedConfig.showSearch !== false,
     showExportButtons: savedConfig.showExportButtons !== false,
     showRefreshButton: savedConfig.showRefreshButton !== false,
-    showStatusText: savedConfig.showStatusText !== false,
     showSettingsButton: savedConfig.showSettingsButton !== false,
     columns: savedConfig.columns || {},
     rowsPerPage: savedConfig.rowsPerPage || 100,
