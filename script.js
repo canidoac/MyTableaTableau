@@ -110,15 +110,17 @@ async function openSettings() {
   if (fullData && fullData.columns) {
     const currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
 
-    // Preserve existing column configurations, only add new ones
+    // Initialize columns as object for internal use
+    if (!currentConfig.columns) {
+      currentConfig.columns = {}
+    }
+
     fullData.columns.forEach((col) => {
       const colName = col.fieldName || col.name
-      if (!currentConfig.columns) {
-        currentConfig.columns = {}
-      }
       if (!currentConfig.columns[colName]) {
-        // Only add if it doesn't exist yet
         currentConfig.columns[colName] = {
+          name: colName,
+          dataType: col.dataType,
           visible: true,
           visibleToUser: true,
           includeInExport: true,
@@ -128,9 +130,15 @@ async function openSettings() {
       }
     })
 
-    tableau.extensions.settings.set("config", JSON.stringify(currentConfig))
+    const columnsArray = Object.values(currentConfig.columns)
+    const configForDialog = {
+      ...currentConfig,
+      columns: columnsArray,
+    }
+
+    tableau.extensions.settings.set("config", JSON.stringify(configForDialog))
     await tableau.extensions.settings.saveAsync()
-    console.log("[v0] Configuración de columnas guardada antes de abrir diálogo")
+    console.log("[v0] Configuración de columnas guardada:", columnsArray.length, "columnas")
   }
 
   var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
@@ -273,7 +281,7 @@ function loadConfig() {
 }
 
 function refreshData() {
-  loadWorksheetData()
+  loadWorksheetData(currentWorksheet)
 }
 
 function exportToExcel() {
@@ -384,7 +392,7 @@ function setupDashboardContext() {
 
   registerTableauEventListeners()
 
-  loadWorksheetData()
+  loadWorksheetData(currentWorksheet)
 }
 
 function setupWorksheetContext() {
@@ -401,7 +409,7 @@ function setupWorksheetContext() {
   }
 
   console.log("[v0] Cargando datos del worksheet...")
-  loadWorksheetData()
+  loadWorksheetData(currentWorksheet)
 }
 
 function setupEventListeners() {
@@ -434,78 +442,58 @@ function loadWorksheet(name) {
     var dashboard = tableau.extensions.dashboardContent.dashboard
     currentWorksheet = dashboard.worksheets.find((ws) => ws.name === name)
   }
-  loadWorksheetData()
+  loadWorksheetData(currentWorksheet)
 }
 
-function loadWorksheetData() {
-  console.log("[v0] ===== LOAD WORKSHEET DATA INICIADO =====")
-  console.log("[v0] currentWorksheet:", currentWorksheet ? currentWorksheet.name : "NULL")
-
-  if (!currentWorksheet) {
-    console.error("[v0] ERROR: currentWorksheet is null - no se puede cargar datos")
-    showError("No hay worksheet seleccionado")
-    return
-  }
-
+async function loadWorksheetData(worksheet) {
+  console.log("[v0] Loading worksheet data from:", worksheet.name)
   showLoading()
-  console.log("[v0] Llamando a getSummaryDataAsync()...")
 
-  currentWorksheet
-    .getSummaryDataAsync({ maxRows: 10000 })
-    .then((dataTable) => {
-      console.log("[v0] ===== DATOS RECIBIDOS DE TABLEAU =====")
-      console.log("[v0] dataTable:", dataTable)
-      console.log("[v0] Columnas:", dataTable.columns.length)
-      console.log("[v0] Filas:", dataTable.data.length)
+  try {
+    const dataTable = await worksheet.getSummaryDataAsync()
+    console.log("[v0] Data received:", dataTable.totalRowCount, "rows,", dataTable.columns.length, "columns")
 
-      dataTable.columns.forEach((col, idx) => {
-        console.log(`[v0] Columna ${idx}: ${col.fieldName} (index: ${col.index})`)
-      })
+    fullData = {
+      columns: dataTable.columns,
+      data: dataTable.data,
+    }
 
-      fullData = {
-        columns: dataTable.columns.map((col) => ({
-          name: col.fieldName,
-          index: col.index,
+    console.log(
+      "[v0] Columns:",
+      dataTable.columns.map((c) => c.fieldName || c.name),
+    )
+
+    const currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
+    if (!currentConfig.columns) {
+      currentConfig.columns = {}
+    }
+
+    dataTable.columns.forEach((col) => {
+      const colName = col.fieldName || col.name
+      if (!currentConfig.columns[colName]) {
+        currentConfig.columns[colName] = {
+          name: colName,
           dataType: col.dataType,
-        })),
-        rows: dataTable.data.map((row) => row.map((cell) => (cell.value !== undefined ? cell.value : null))),
-      }
-
-      console.log("[v0] ===== FULLDATA CREADO =====")
-      console.log("[v0] fullData.columns:", fullData.columns.length)
-      console.log("[v0] fullData.rows:", fullData.rows.length)
-      console.log("[v0] Primera fila de datos:", fullData.rows[0])
-
-      fullData.columns.forEach((col) => {
-        if (!config.columns[col.name]) {
-          config.columns[col.name] = {
-            visible: true,
-            visibleToUser: true,
-            includeInExport: true,
-            tooltip: "",
-            width: "auto",
-          }
-          console.log(`[v0] ✓ Columna "${col.name}" configurada como VISIBLE`)
-        } else {
-          console.log(`[v0] ✓ Columna "${col.name}" ya existe en config (visible: ${config.columns[col.name].visible})`)
+          visible: true,
+          visibleToUser: true,
+          includeInExport: true,
+          tooltip: "",
+          width: "auto",
         }
-      })
-
-      const currentConfig = JSON.parse(tableau.extensions.settings.get("config") || "{}")
-      currentConfig.columns = config.columns
-      tableau.extensions.settings.set("config", JSON.stringify(currentConfig))
-      tableau.extensions.settings.saveAsync().then(() => {
-        console.log("[v0] ✓ Configuración de columnas guardada en settings")
-      })
-
-      console.log("[v0] ===== APLICANDO FILTROS =====")
-      applyFiltersAndSort()
+      }
     })
-    .catch((error) => {
-      console.error("[v0] ERROR al cargar datos del worksheet:", error)
-      hideLoading()
-      showError("Error al cargar datos: " + error.message)
-    })
+
+    // Save column configuration immediately
+    tableau.extensions.settings.set("config", JSON.stringify(currentConfig))
+    await tableau.extensions.settings.saveAsync()
+    console.log("[v0] Column config saved:", Object.keys(currentConfig.columns).length, "columns")
+
+    applyFiltersAndSort()
+  } catch (error) {
+    console.error("[v0] Error loading data:", error)
+    hideLoading()
+    showError("Error al cargar datos: " + error.message)
+  }
 }
 
 function renderTable() {
@@ -515,7 +503,7 @@ function renderTable() {
 
   if (fullData) {
     console.log("[v0] fullData.columns:", fullData.columns.length)
-    console.log("[v0] fullData.rows:", fullData.rows.length)
+    console.log("[v0] fullData.data:", fullData.data.length)
   }
 
   if (visibleData) {
@@ -770,7 +758,7 @@ function applyGeneralSettings() {
 }
 
 function loadData() {
-  loadWorksheetData()
+  loadWorksheetData(currentWorksheet)
 }
 
 function hideLoading() {
@@ -784,17 +772,17 @@ function registerTableauEventListeners() {
     // Detectar cambios en los datos del worksheet
     currentWorksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, () => {
       console.log("[v0] MarkSelectionChanged event - recargando datos")
-      loadWorksheetData()
+      loadWorksheetData(currentWorksheet)
     })
 
     currentWorksheet.addEventListener(tableau.TableauEventType.FilterChanged, () => {
       console.log("[v0] FilterChanged event - recargando datos")
-      loadWorksheetData()
+      loadWorksheetData(currentWorksheet)
     })
 
     currentWorksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, () => {
       console.log("[v0] SummaryDataChanged event - recargando datos")
-      loadWorksheetData()
+      loadWorksheetData(currentWorksheet)
     })
 
     console.log("[v0] Event listeners de Tableau registrados exitosamente")
