@@ -383,23 +383,19 @@ function setupDashboardContext() {
 
 function setupWorksheetContext() {
   console.log("[v0] Setup WORKSHEET context")
-  const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets
-  console.log("[v0] Worksheets disponibles:", worksheets.length)
 
-  if (worksheets.length > 0) {
-    currentWorksheet = worksheets[0]
-    console.log("[v0] Worksheet seleccionado:", currentWorksheet ? currentWorksheet.name : "NULL")
+  // When in worksheet context, get the current worksheet directly
+  currentWorksheet = tableau.extensions.worksheetContent.worksheet
+  console.log("[v0] Worksheet actual:", currentWorksheet ? currentWorksheet.name : "NULL")
 
-    registerTableauEventListeners()
-
-    setTimeout(() => {
-      console.log("[v0] Llamando loadWorksheetData después de 100ms")
-      loadWorksheetData()
-    }, 100)
-  } else {
-    console.error("[v0] No hay worksheets disponibles")
-    showError("No hay worksheets disponibles")
+  if (!currentWorksheet) {
+    console.error("[v0] ERROR: No se pudo obtener el worksheet")
+    showError("No se pudo obtener el worksheet")
+    return
   }
+
+  console.log("[v0] Cargando datos del worksheet...")
+  loadWorksheetData()
 }
 
 function setupEventListeners() {
@@ -424,8 +420,14 @@ function setupEventListeners() {
 }
 
 function loadWorksheet(name) {
-  var dashboard = tableau.extensions.dashboardContent.dashboard
-  currentWorksheet = dashboard.worksheets.find((ws) => ws.name === name)
+  if (isWorksheetContext) {
+    // In worksheet context, we only have one worksheet
+    currentWorksheet = tableau.extensions.worksheetContent.worksheet
+  } else {
+    // In dashboard context
+    var dashboard = tableau.extensions.dashboardContent.dashboard
+    currentWorksheet = dashboard.worksheets.find((ws) => ws.name === name)
+  }
   loadWorksheetData()
 }
 
