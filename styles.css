@@ -50,6 +50,17 @@ body {
   border-radius: 4px;
 }
 
+/* Adding version-badge style to make version visible */
+.version-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #2563eb;
+  padding: 3px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+}
+
 .status {
   font-size: 12px;
   padding: 4px 10px;
