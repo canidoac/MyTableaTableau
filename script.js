@@ -15,8 +15,8 @@ var currentPage = 0
 // Configuración simplificada
 var config = {
   tableTitle: "",
-  showOnlineStatus: true,
   showSearch: true,
+  showRowCount: true,
   showExportButtons: true,
   showRefreshButton: true,
   showSettingsButton: true,
@@ -64,17 +64,6 @@ function setupDashboardContext() {
     return
   }
 
-  var worksheetSelector = document.getElementById("worksheet-selector")
-  worksheetSelector.style.display = "block"
-  worksheetSelector.innerHTML = ""
-
-  worksheets.forEach((ws) => {
-    var option = document.createElement("option")
-    option.value = ws.name
-    option.textContent = ws.name
-    worksheetSelector.appendChild(option)
-  })
-
   currentWorksheet = worksheets[0]
   loadWorksheetData(currentWorksheet)
 }
@@ -92,20 +81,31 @@ function setupWorksheetContext() {
 }
 
 function setupEventListeners() {
-  document.getElementById("search-input").addEventListener("input", handleSearch)
-  document.getElementById("worksheet-selector").addEventListener("change", (e) => loadWorksheet(e.target.value))
-  document.getElementById("export-btn").addEventListener("click", toggleExportDropdown)
-  document.getElementById("export-excel-opt").addEventListener("click", () => handleExport("excel"))
-  document.getElementById("export-csv-opt").addEventListener("click", () => handleExport("csv"))
-  document.getElementById("export-pdf-opt").addEventListener("click", () => handleExport("pdf"))
-  document.getElementById("refresh-btn").addEventListener("click", () => loadWorksheetData(currentWorksheet))
-  document.getElementById("settings-btn").addEventListener("click", openSettings)
-  document.getElementById("clear-filter").addEventListener("click", clearSearch)
+  const searchInput = document.getElementById("search-input")
+  const worksheetSelector = document.getElementById("worksheet-selector")
+  const exportBtn = document.getElementById("export-btn")
+  const exportExcel = document.getElementById("export-excel-opt")
+  const exportCSV = document.getElementById("export-csv-opt")
+  const exportPDF = document.getElementById("export-pdf-opt")
+  const refreshBtn = document.getElementById("refresh-btn")
+  const settingsBtn = document.getElementById("settings-btn")
+  const clearFilter = document.getElementById("clear-filter")
+
+  if (searchInput) searchInput.addEventListener("input", handleSearch)
+  if (worksheetSelector) worksheetSelector.addEventListener("change", (e) => loadWorksheet(e.target.value))
+  if (exportBtn) exportBtn.addEventListener("click", toggleExportDropdown)
+  if (exportExcel) exportExcel.addEventListener("click", () => handleExport("excel"))
+  if (exportCSV) exportCSV.addEventListener("click", () => handleExport("csv"))
+  if (exportPDF) exportPDF.addEventListener("click", () => handleExport("pdf"))
+  if (refreshBtn) refreshBtn.addEventListener("click", () => loadWorksheetData(currentWorksheet))
+  if (settingsBtn) settingsBtn.addEventListener("click", openSettings)
+  if (clearFilter) clearFilter.addEventListener("click", clearSearch)
 
   document.addEventListener("click", (e) => {
     const dropdown = document.getElementById("export-dropdown")
-    if (!dropdown.contains(e.target)) {
-      document.getElementById("export-dropdown-menu").style.display = "none"
+    const menu = document.getElementById("export-dropdown-menu")
+    if (dropdown && menu && !dropdown.contains(e.target)) {
+      menu.style.display = "none"
     }
   })
 
@@ -115,7 +115,8 @@ function setupEventListeners() {
     })
   })
 
-  document.getElementById("save-settings-btn").addEventListener("click", saveSettings)
+  const saveBtn = document.getElementById("save-settings-btn")
+  if (saveBtn) saveBtn.addEventListener("click", saveSettings)
 
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
@@ -241,7 +242,8 @@ function renderTable() {
   }
 
   hideLoading()
-  document.getElementById("table-container").style.display = "block"
+  const tableContainer = document.getElementById("table-container")
+  if (tableContainer) tableContainer.style.display = "block"
 
   var visibleColumns = fullData.columns.filter((col) => {
     const colName = col.fieldName || col.name
@@ -367,21 +369,11 @@ function goToPage(page) {
 }
 
 function updateTableInfo() {
-  const title = config.tableTitle || (currentWorksheet ? currentWorksheet.name : "Tabla")
-  document.getElementById("main-title").textContent = title
-  document.getElementById("table-title").textContent = title
-
-  var start = currentPage * config.rowsPerPage + 1
-  var end = Math.min((currentPage + 1) * config.rowsPerPage, visibleData.length)
-
-  document.getElementById("row-count").textContent = `Mostrando ${start}-${end} de ${visibleData.length} filas`
-
-  if (searchQuery) {
-    document.getElementById("filter-info").style.display = "flex"
-    document.getElementById("filtered-count").textContent =
-      `${visibleData.length} de ${fullData.data.length} filas (filtrado)`
-  } else {
-    document.getElementById("filter-info").style.display = "none"
+  const rowCountEl = document.getElementById("row-count")
+  if (rowCountEl) {
+    const start = currentPage * config.rowsPerPage + 1
+    const end = Math.min((currentPage + 1) * config.rowsPerPage, visibleData.length)
+    rowCountEl.textContent = `Mostrando ${start}-${end} de ${visibleData.length} filas`
   }
 }
 
@@ -400,8 +392,19 @@ function clearSearch() {
 
 async function openSettings() {
   console.log("[v0] === ABRIENDO CONFIGURACIÓN ===")
-  console.log("[v0] fullData existe:", !!fullData)
-  console.log("[v0] fullData.columns:", fullData?.columns?.length)
+
+  const worksheetSelect = document.getElementById("settings-worksheet")
+  if (worksheetSelect && !isWorksheetContext) {
+    worksheetSelect.innerHTML = ""
+    const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets
+    worksheets.forEach((ws) => {
+      const option = document.createElement("option")
+      option.value = ws.name
+      option.textContent = ws.name
+      option.selected = ws.name === currentWorksheet?.name
+      worksheetSelect.appendChild(option)
+    })
+  }
 
   if (fullData && fullData.columns) {
     const columnsForDialog = {}
@@ -421,11 +424,9 @@ async function openSettings() {
     tableau.extensions.settings.set("dialogColumns", JSON.stringify(columnsForDialog))
     await tableau.extensions.settings.saveAsync()
     console.log("[v0] ✓ Columnas guardadas en dialogColumns")
-  } else {
-    console.log("[v0] ✗ ERROR: No hay fullData o columnas disponibles")
   }
 
-  var popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
+  const popupUrl = window.location.origin + window.location.pathname.replace("index.html", "config.html")
 
   tableau.extensions.ui
     .displayDialogAsync(popupUrl, "", { height: 700, width: 1200 })
@@ -443,9 +444,14 @@ async function openSettings() {
 }
 
 function saveSettings() {
+  const worksheetSelect = document.getElementById("settings-worksheet")
+  if (worksheetSelect && worksheetSelect.value && !isWorksheetContext) {
+    loadWorksheet(worksheetSelect.value)
+  }
+
   config.tableTitle = document.getElementById("settings-title").value.trim()
-  config.showOnlineStatus = document.getElementById("settings-online").checked
   config.showSearch = document.getElementById("settings-search").checked
+  config.showRowCount = document.getElementById("settings-row-count").checked
   config.showExportButtons = document.getElementById("settings-export").checked
   config.showRefreshButton = document.getElementById("settings-refresh").checked
   config.showSettingsButton = document.getElementById("settings-show-config").checked
@@ -458,21 +464,28 @@ function saveSettings() {
 }
 
 function applyGeneralSettings() {
-  document.getElementById("online-indicator").style.display = config.showOnlineStatus ? "flex" : "none"
-  document.querySelector(".search-box").style.display = config.showSearch ? "flex" : "none"
-  document.getElementById("export-dropdown").style.display = config.showExportButtons ? "inline-block" : "none"
-  document.getElementById("refresh-btn").style.display = config.showRefreshButton ? "inline-flex" : "none"
-  document.getElementById("settings-btn").style.display = config.showSettingsButton ? "inline-flex" : "none"
+  const searchBox = document.querySelector(".search-box")
+  const exportDropdown = document.getElementById("export-dropdown")
+  const refreshBtn = document.getElementById("refresh-btn")
+  const settingsBtn = document.getElementById("settings-btn")
+  const rowCount = document.getElementById("row-count")
 
-  document.getElementById("export-btn-text").textContent = config.exportButtonText || "Exportar"
+  if (searchBox) searchBox.style.display = config.showSearch ? "flex" : "none"
+  if (rowCount) rowCount.style.display = config.showRowCount ? "block" : "none"
+  if (exportDropdown) exportDropdown.style.display = config.showExportButtons ? "inline-block" : "none"
+  if (refreshBtn) refreshBtn.style.display = config.showRefreshButton ? "inline-flex" : "none"
+  if (settingsBtn) settingsBtn.style.display = config.showSettingsButton ? "inline-flex" : "none"
 
-  document.getElementById("export-excel-opt").style.display = config.exportEnableExcel ? "flex" : "none"
-  document.getElementById("export-csv-opt").style.display = config.exportEnableCSV ? "flex" : "none"
-  document.getElementById("export-pdf-opt").style.display = config.exportEnablePDF ? "flex" : "none"
+  const exportBtnText = document.getElementById("export-btn-text")
+  if (exportBtnText) exportBtnText.textContent = config.exportButtonText || "Exportar"
 
-  if (config.tableTitle) {
-    document.getElementById("main-title").textContent = config.tableTitle
-  }
+  const exportExcel = document.getElementById("export-excel-opt")
+  const exportCSV = document.getElementById("export-csv-opt")
+  const exportPDF = document.getElementById("export-pdf-opt")
+
+  if (exportExcel) exportExcel.style.display = config.exportEnableExcel ? "flex" : "none"
+  if (exportCSV) exportCSV.style.display = config.exportEnableCSV ? "flex" : "none"
+  if (exportPDF) exportPDF.style.display = config.exportEnablePDF ? "flex" : "none"
 }
 
 function saveConfig() {
@@ -486,8 +499,8 @@ function loadConfig() {
 
   config = {
     tableTitle: savedConfig.tableTitle || "",
-    showOnlineStatus: savedConfig.showOnlineStatus !== false,
     showSearch: savedConfig.showSearch !== false,
+    showRowCount: savedConfig.showRowCount !== false,
     showExportButtons: savedConfig.showExportButtons !== false,
     showRefreshButton: savedConfig.showRefreshButton !== false,
     showSettingsButton: savedConfig.showSettingsButton !== false,
@@ -596,11 +609,14 @@ function escapeHtml(str) {
 function toggleExportDropdown(e) {
   e.stopPropagation()
   const menu = document.getElementById("export-dropdown-menu")
-  menu.style.display = menu.style.display === "none" ? "block" : "none"
+  if (menu) {
+    menu.style.display = menu.style.display === "none" ? "block" : "none"
+  }
 }
 
 function handleExport(format) {
-  document.getElementById("export-dropdown-menu").style.display = "none"
+  const menu = document.getElementById("export-dropdown-menu")
+  if (menu) menu.style.display = "none"
 
   if (format === "excel" && config.exportEnableExcel) {
     exportToExcel()

@@ -830,8 +830,24 @@ body {
   align-items: center;
   gap: 12px;
   padding: 20px 0;
-  margin-top: 16px;
+}
+
+/* Added table footer with row count on the right */
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
   border-top: 1px solid #e2e8f0;
+  margin-top: 16px;
+}
+
+.row-count-footer {
+  font-size: 13px;
+  color: #64748b;
+  padding: 6px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
 }
 
 /* Columnas list */
@@ -1107,63 +1123,48 @@ body {
   padding: 6px 10px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .data-sections {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Added dropdown styles for export button */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  background: white;
+/* Added styles for Info tab */
+.info-section {
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  min-width: 160px;
-  z-index: 1000;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
-.dropdown-item {
+.info-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 14px;
-  border: none;
-  background: none;
-  text-align: left;
+  padding: 12px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  min-width: 120px;
+}
+
+.info-item span {
   font-size: 13px;
   color: #1e293b;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  flex: 1;
+  text-align: right;
 }
 
-.dropdown-item:first-child {
-  border-radius: 6px 6px 0 0;
+.status-online {
+  color: #16a34a;
+  font-weight: 500;
 }
 
-.dropdown-item:last-child {
-  border-radius: 0 0 6px 6px;
-}
-
-.dropdown-item:hover {
-  background: #f8fafc;
-}
-
-.dropdown-item svg {
-  color: #64748b;
-  flex-shrink: 0;
-}
-
-.dropdown-item:hover svg {
-  color: #2563eb;
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <!-- Updated to v6.4.0 - sidebar shows original names, displayName persists -->
-  <dashboard-extension id="com.supertable.pro" extension-version="6.4.0">
+  <!-- Updated to v6.6.0 - removed version badge and online indicator from main view, added checkboxes for search and row count, added Info tab -->
+  <dashboard-extension id="com.supertable.pro" extension-version="6.6.0">
     <default-locale>es_ES</default-locale>
     <name resource-id="name"/>
     <description>Super Table Pro - Tabla interactiva con formato, búsqueda, ordenamiento y exportación mejorada</description>
@@ -16,7 +16,6 @@
     <permissions>
       <permission>full data</permission>
     </permissions>
-    <!-- Removed config-dialog element that was causing the error -->
     <context-menu>
       <configure-context-menu-item />
     </context-menu>

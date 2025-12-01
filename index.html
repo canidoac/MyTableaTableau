@@ -14,9 +14,7 @@
         <header class="toolbar">
             <div class="toolbar-left">
                 <h1 id="main-title" class="main-title"></h1>
-                <!-- Updated version to v6.5 - Export dropdown, worksheet in General tab, Export config tab -->
-                <span class="version-badge">v6.5</span>
-                <span id="online-indicator" class="online-indicator">● Online</span>
+                <select id="worksheet-selector" style="display:none;"></select>
             </div>
             <div class="controls">
                 <div class="search-box" id="search-box">
@@ -26,7 +24,6 @@
                     </svg>
                     <input type="text" id="search-input" placeholder="Buscar...">
                 </div>
-                <!-- Unified export buttons into a dropdown -->
                 <div id="export-dropdown" class="dropdown">
                     <button id="export-btn" class="btn btn-primary">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -92,17 +89,6 @@
             </div>
             
             <div id="table-container" style="display: none;">
-                <div class="table-info">
-                    <div class="info-row">
-                        <span id="table-title" class="table-title"></span>
-                        <span id="row-count" class="row-count"></span>
-                    </div>
-                    <div id="filter-info" class="filter-info" style="display: none;">
-                        <span id="filtered-count"></span>
-                        <button id="clear-filter" class="btn-link">Limpiar</button>
-                    </div>
-                </div>
-                
                 <div class="table-wrapper">
                     <table class="data-table">
                         <thead id="table-header"></thead>
@@ -110,7 +96,10 @@
                     </table>
                 </div>
                 
-                <div id="pagination" class="pagination"></div>
+                <div class="table-footer">
+                    <div id="pagination" class="pagination"></div>
+                    <span id="row-count" class="row-count-footer" style="display: none;"></span>
+                </div>
             </div>
         </main>
     </div>
@@ -125,19 +114,18 @@
             <div class="tabs">
                 <button class="tab-btn active" data-tab="general">General</button>
                 <button class="tab-btn" data-tab="data">Data</button>
-                <!-- Added Export tab -->
                 <button class="tab-btn" data-tab="export">Export</button>
+                <button class="tab-btn" data-tab="info">Información</button>
             </div>
             
             <div class="modal-body">
                 <div id="general-tab" class="tab-content active">
                     <h3>Configuración General</h3>
                     
-                    <!-- Added worksheet selector to General tab -->
                     <div class="form-group">
                         <label>Hoja de trabajo:</label>
                         <select id="settings-worksheet" class="form-input">
-                            <option>Cargando...</option>
+                            <option>Seleccione una hoja...</option>
                         </select>
                         <p class="help-text">Selecciona la hoja desde la que se cargarán los datos</p>
                     </div>
@@ -150,18 +138,18 @@
                     
                     <div class="form-group">
                         <label>Filas por página:</label>
-                        <input type="number" id="settings-rows" min="5" max="1000" value="50" class="form-input">
+                        <input type="number" id="settings-rows" min="5" max="1000" value="100" class="form-input">
                     </div>
                     
                     <div class="form-group">
                         <label>Opciones de visualización:</label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="settings-online" checked>
-                            <span>Mostrar indicador "Online"</span>
-                        </label>
-                        <label class="checkbox-label">
                             <input type="checkbox" id="settings-search" checked>
                             <span>Mostrar buscador</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="settings-row-count" checked>
+                            <span>Mostrar contador de filas</span>
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" id="settings-export" checked>
@@ -178,7 +166,6 @@
                     </div>
                 </div>
                 
-                <!-- Agregando secciones separadas para Medidas, Dimensiones y Detalle -->
                 <div id="data-tab" class="tab-content">
                     <h3>Configuración de Datos</h3>
                     <p class="help-text">Arrastra campos desde Tableau a las secciones correspondientes.</p>
@@ -231,7 +218,6 @@
                     </div>
                 </div>
                 
-                <!-- Added new Export tab -->
                 <div id="export-tab" class="tab-content">
                     <h3>Configuración de Exportación</h3>
                     <p class="help-text">Configura las opciones de exportación disponibles para los usuarios.</p>
@@ -256,6 +242,41 @@
                             <input type="checkbox" id="export-enable-pdf" checked>
                             <span>Habilitar exportación a PDF</span>
                         </label>
+                    </div>
+                </div>
+                
+                <div id="info-tab" class="tab-content">
+                    <h3>Información de la Extensión</h3>
+                    
+                    <div class="info-section">
+                        <div class="info-item">
+                            <strong>Nombre:</strong>
+                            <span>SuperTables Pro - MeliTable</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Versión:</strong>
+                            <span>v6.6.0</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Estado:</strong>
+                            <span class="status-online">● Online</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Descripción:</strong>
+                            <span>Extensión de tabla mejorada para Tableau con exportación, búsqueda y configuración avanzada de columnas</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>Características:</h4>
+                        <ul class="features-list">
+                            <li>✓ Exportación a Excel, CSV y PDF</li>
+                            <li>✓ Búsqueda y filtrado en tiempo real</li>
+                            <li>✓ Configuración personalizada de columnas</li>
+                            <li>✓ Nombres de visualización personalizables</li>
+                            <li>✓ Ordenamiento por columnas</li>
+                            <li>✓ Paginación configurable</li>
+                        </ul>
                     </div>
                 </div>
             </div>
