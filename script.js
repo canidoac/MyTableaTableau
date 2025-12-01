@@ -232,7 +232,7 @@ function renderTable() {
   console.log("[v0] Columnas visibles:", visibleColumns.length)
 
   if (visibleColumns.length === 0) {
-    showError("No hay columnas visibles. Haz clic en 'Extensión de formato' para configurar columnas.")
+    showError("No hay columnas visibles. Configura al menos una columna como visible.")
     return
   }
 
@@ -269,7 +269,14 @@ function renderTable() {
 
     visibleColumns.forEach((col) => {
       var td = document.createElement("td")
-      var cellValue = row[col.index]
+      var cellData = row[col.index]
+      var cellValue = cellData
+
+      // Si es un objeto con propiedades value o formattedValue, extraer el valor
+      if (cellData && typeof cellData === "object") {
+        cellValue = cellData.formattedValue || cellData.value || cellData.nativeValue || ""
+      }
+
       td.textContent = cellValue != null ? cellValue : ""
       tr.appendChild(td)
     })
