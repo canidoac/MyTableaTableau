@@ -840,6 +840,7 @@
         <div id="data-tab" class="tab-content">
           <div class="data-layout">
             <aside class="column-sidebar">
+              <input type="text" id="column-search" class="search-box" placeholder="Buscar columna..." />
               <h3>DIMENSIONES</h3>
               <div class="column-list">
                 <div class="column-section">
@@ -852,9 +853,116 @@
               </div>
             </aside>
 
+            <!-- Added complete column configuration panel -->
             <div class="column-config">
-              <div id="column-config-panel" class="empty-state">
-                Selecciona una columna para configurar
+              <div id="column-config-panel">
+                <div id="no-column-selected" class="empty-state">
+                  Selecciona una columna de la lista para configurar sus opciones
+                </div>
+                
+                <div id="column-config-content" style="display: none;">
+                  <h3 id="config-column-title">Configurar Columna</h3>
+                  
+                  <div class="form-group">
+                    <label>Nombre para mostrar</label>
+                    <input type="text" id="column-display-name" placeholder="Nombre personalizado" />
+                    <p class="help-text">Deja vacío para usar el nombre original</p>
+                  </div>
+
+                  <div class="checkbox-group">
+                    <input type="checkbox" id="column-visible" checked />
+                    <label for="column-visible">Mostrar esta columna en la tabla</label>
+                  </div>
+
+                  <div class="checkbox-group">
+                    <input type="checkbox" id="column-export" checked />
+                    <label for="column-export">Incluir esta columna en las exportaciones</label>
+                  </div>
+
+                  <div class="section-divider"></div>
+
+                  <!-- Conditional Formatting Section -->
+                  <div id="conditional-formatting-section" style="display: none;">
+                    <h3>Formato Condicional</h3>
+                    <p class="help-text">Aplica estilos cuando la celda cumpla una condición</p>
+
+                    <div class="checkbox-group">
+                      <input type="checkbox" id="enable-conditional-format" />
+                      <label for="enable-conditional-format">Habilitar formato condicional</label>
+                    </div>
+
+                    <div id="conditional-format-config" style="display: none;">
+                      <div class="form-group">
+                        <label>Condición</label>
+                        <div style="display: flex; gap: 8px;">
+                          <select id="condition-operator" style="width: 80px;">
+                            <option value=">=">&gt;=</option>
+                            <option value="<=​">&lt;=</option>
+                            <option value="=">=</option>
+                            <option value=">">&gt;</option>
+                            <option value="<">&lt;</option>
+                            <option value="!=">≠</option>
+                          </select>
+                          <input type="number" id="condition-value" placeholder="Valor" style="flex: 1;" />
+                        </div>
+                      </div>
+
+                      <h4>Aplicar formato:</h4>
+
+                      <div class="checkbox-group">
+                        <input type="checkbox" id="format-cell-bg" />
+                        <label for="format-cell-bg">Pintar fondo de celda</label>
+                        <input type="color" id="format-cell-bg-color" value="#ffeb3b" disabled />
+                      </div>
+
+                      <div class="checkbox-group">
+                        <input type="checkbox" id="format-row-bg" />
+                        <label for="format-row-bg">Pintar fondo de fila</label>
+                        <input type="color" id="format-row-bg-color" value="#ffcdd2" disabled />
+                      </div>
+
+                      <div class="checkbox-group">
+                        <input type="checkbox" id="format-cell-text" />
+                        <label for="format-cell-text">Color de texto de celda</label>
+                        <input type="color" id="format-cell-text-color" value="#d32f2f" disabled />
+                      </div>
+
+                      <div class="checkbox-group">
+                        <input type="checkbox" id="format-row-text" />
+                        <label for="format-row-text">Color de texto de fila</label>
+                        <input type="color" id="format-row-text-color" value="#1976d2" disabled />
+                      </div>
+
+                      <div class="checkbox-group">
+                        <input type="checkbox" id="format-add-icon" />
+                        <label for="format-add-icon">Agregar icono</label>
+                      </div>
+
+                      <div id="icon-selection" style="display: none; margin-top: 12px;">
+                        <label>Selecciona un icono:</label>
+                        <div class="icon-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0;">
+                          <button type="button" class="icon-btn" data-icon="↑" onclick="selectIcon('↑')">↑</button>
+                          <button type="button" class="icon-btn" data-icon="↓" onclick="selectIcon('↓')">↓</button>
+                          <button type="button" class="icon-btn" data-icon="→" onclick="selectIcon('→')">→</button>
+                          <button type="button" class="icon-btn" data-icon="←" onclick="selectIcon('←')">←</button>
+                          <button type="button" class="icon-btn" data-icon="⬤" onclick="selectIcon('⬤')">⬤</button>
+                          <button type="button" class="icon-btn" data-icon="○" onclick="selectIcon('○')">○</button>
+                          <button type="button" class="icon-btn" data-icon="■" onclick="selectIcon('■')">■</button>
+                          <button type="button" class="icon-btn" data-icon="□" onclick="selectIcon('□')">□</button>
+                        </div>
+                        <input type="hidden" id="selected-icon" />
+                        <div class="form-group">
+                          <label>Color del icono</label>
+                          <input type="color" id="icon-color" value="#000000" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="button" onclick="saveColumnConfig()" style="margin-top: 16px; padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Guardar Configuración
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1000,19 +1108,9 @@
       })
 
       function setupEventListeners() {
-        // Tab navigation
-        document.querySelectorAll(".tab-btn").forEach((btn) => {
-          btn.addEventListener("click", function () {
-            const targetTab = this.getAttribute("data-tab")
-            switchTab(targetTab)
-          })
-        })
-
-        // Save/Cancel
-        document.getElementById("save-btn").addEventListener("click", saveSettings)
-        document.getElementById("cancel-btn").addEventListener("click", () => tableau.extensions.ui.closeDialog(""))
-
-        // General settings auto-save
+        // Tab navigation (handled by onclick in HTML)
+        
+        // Auto-save on input change
         document.getElementById("table-title").addEventListener("input", autoSave)
         document.getElementById("show-search").addEventListener("change", autoSave)
         document.getElementById("show-row-count").addEventListener("change", autoSave)
@@ -1030,35 +1128,36 @@
         document.getElementById("column-search").addEventListener("input", filterColumns)
 
         // Conditional formatting checkboxes
-        document.getElementById("enable-conditional-format").addEventListener("change", function () {
-          document.getElementById("conditional-format-config").style.display = this.checked ? "block" : "none"
-          saveColumnConfig()
-        })
+        document.getElementById("enable-conditional-format").addEventListener("change", function() {
+          const config = document.getElementById("conditional-format-config");
+          config.style.display = this.checked ? "block" : "none";
+          saveColumnConfig(); // Save immediately when enabling/disabling
+        });
 
-        document.getElementById("format-cell-bg").addEventListener("change", function () {
-          document.getElementById("format-cell-bg-color").disabled = !this.checked
-          saveColumnConfig()
-        })
+        document.getElementById("format-cell-bg").addEventListener("change", function() {
+          document.getElementById("format-cell-bg-color").disabled = !this.checked;
+          saveColumnConfig();
+        });
 
-        document.getElementById("format-row-bg").addEventListener("change", function () {
-          document.getElementById("format-row-bg-color").disabled = !this.checked
-          saveColumnConfig()
-        })
+        document.getElementById("format-row-bg").addEventListener("change", function() {
+          document.getElementById("format-row-bg-color").disabled = !this.checked;
+          saveColumnConfig();
+        });
 
-        document.getElementById("format-cell-text").addEventListener("change", function () {
-          document.getElementById("format-cell-text-color").disabled = !this.checked
-          saveColumnConfig()
-        })
+        document.getElementById("format-cell-text").addEventListener("change", function() {
+          document.getElementById("format-cell-text-color").disabled = !this.checked;
+          saveColumnConfig();
+        });
 
-        document.getElementById("format-row-text").addEventListener("change", function () {
-          document.getElementById("format-row-text-color").disabled = !this.checked
-          saveColumnConfig()
-        })
+        document.getElementById("format-row-text").addEventListener("change", function() {
+          document.getElementById("format-row-text-color").disabled = !this.checked;
+          saveColumnConfig();
+        });
 
-        document.getElementById("format-add-icon").addEventListener("change", function () {
-          document.getElementById("icon-selection").style.display = this.checked ? "block" : "none"
-          saveColumnConfig()
-        })
+        document.getElementById("format-add-icon").addEventListener("change", function() {
+          document.getElementById("icon-selection").style.display = this.checked ? "block" : "none";
+          saveColumnConfig();
+        });
 
         // Color pickers for conditional formatting
         document.getElementById("format-cell-bg-color").addEventListener("change", saveColumnConfig)
@@ -1071,16 +1170,7 @@
         document.getElementById("condition-operator").addEventListener("change", saveColumnConfig)
         document.getElementById("condition-value").addEventListener("input", saveColumnConfig)
 
-        // Icon buttons
-        document.querySelectorAll(".icon-btn").forEach((btn) => {
-          btn.addEventListener("click", function (e) {
-            e.preventDefault()
-            document.querySelectorAll(".icon-btn").forEach((b) => b.classList.remove("selected"))
-            this.classList.add("selected")
-            document.getElementById("selected-icon").value = this.getAttribute("data-icon")
-            saveColumnConfig()
-          })
-        })
+        // Icon buttons (handled by onclick in HTML)
 
         // Column config inputs
         document.getElementById("column-display-name").addEventListener("input", saveColumnConfig)
@@ -1112,7 +1202,7 @@
       function renderColumnList() {
         const dimensionsList = document.getElementById("dimensions-list")
         const measuresList = document.getElementById("measures-list")
-        const calculationsList = document.getElementById("calculations-list")
+        const calculationsList = document.getElementById("calculations-list") // Assuming this might be used later
 
         dimensionsList.innerHTML = ""
         measuresList.innerHTML = ""
@@ -1134,24 +1224,20 @@
             selectColumn(colName, col)
           })
 
-          if (col.dataType === "string" || col.aggregation === "ATTR") {
+          // Categorize columns (basic categorization)
+          if (col.isDimension) { // Assuming Tableau data types indicate dimensions
             dimensionsList.appendChild(item)
-          } else if (col.isCalculatedField) {
-            calculationsList.appendChild(item)
-          } else {
+          } else { // Otherwise, consider it a measure or calculated field
             measuresList.appendChild(item)
           }
         })
 
         // Show empty states if lists are empty
         if (dimensionsList.innerHTML === "") {
-          dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones disponibles.</li>';
+          dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles.</div>';
         }
         if (measuresList.innerHTML === "") {
-          measuresList.innerHTML = '<li class="empty-state">No hay medidas disponibles.</li>';
-        }
-        if (calculationsList.innerHTML === "") {
-          calculationsList.innerHTML = '<li class="empty-state">No hay cálculos disponibles.</li>';
+          measuresList.innerHTML = '<div class="empty-state">No hay medidas disponibles.</div>';
         }
       }
 
@@ -1180,7 +1266,7 @@
         document.getElementById("column-export").checked = columnData.includeInExport !== false
 
         // Show conditional formatting only for measures and calculations
-        const isMeasureOrCalc = columnInfo.dataType !== "string" && columnInfo.aggregation !== "ATTR"
+        const isMeasureOrCalc = !columnInfo.isDimension // Simple check, adjust if needed
         const conditionalSection = document.getElementById("conditional-formatting-section")
         conditionalSection.style.display = isMeasureOrCalc ? "block" : "none"
 
@@ -1316,6 +1402,18 @@
       function saveSettings() {
         autoSave()
         tableau.extensions.ui.closeDialog("saved")
+      }
+
+      function selectIcon(icon) {
+        document.getElementById("selected-icon").value = icon;
+        document.querySelectorAll(".icon-btn").forEach(btn => {
+          if (btn.getAttribute("data-icon") === icon) {
+            btn.classList.add("selected");
+          } else {
+            btn.classList.remove("selected");
+          }
+        });
+        saveColumnConfig(); // Save when an icon is selected
       }
     </script>
   </body>
