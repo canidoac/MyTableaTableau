@@ -1075,6 +1075,7 @@
 
       let currentSelectedColumn = null
       let allColumns = []
+      let columnsConfig = {} // Initialize columnsConfig here
 
       tableau.extensions.initializeDialogAsync().then(function (openPayload) {
         console.log("[v0] Dialog inicializado")
@@ -1100,7 +1101,7 @@
         document.getElementById("export-enable-pdf").checked = settings.exportEnablePDF !== "false"
 
         // Load columns
-        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+        columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {} // Assign to the initialized variable
         allColumns = openPayload ? JSON.parse(openPayload) : []
 
         renderColumnList()
@@ -1108,11 +1109,29 @@
       })
 
       function setupEventListeners() {
-        document.getElementById("save-btn").addEventListener("click", saveSettings)
-        document.getElementById("cancel-btn").addEventListener("click", function() {
-          tableau.extensions.ui.closeDialog("cancelled")
-        })
+        console.log("[v0] Setting up event listeners")
         
+        const saveBtn = document.getElementById("save-btn")
+        const cancelBtn = document.getElementById("cancel-btn")
+        
+        if (saveBtn) {
+          saveBtn.addEventListener("click", function() {
+            console.log("[v0] Save button clicked")
+            saveSettings()
+          })
+        } else {
+          console.error("[v0] Save button not found")
+        }
+        
+        if (cancelBtn) {
+          cancelBtn.addEventListener("click", function() {
+            console.log("[v0] Cancel button clicked")
+            tableau.extensions.ui.closeDialog("cancelled")
+          })
+        } else {
+          console.error("[v0] Cancel button not found")
+        }
+
         // Tab navigation (handled by onclick in HTML)
         
         // Auto-save on input change
@@ -1213,7 +1232,7 @@
         measuresList.innerHTML = ""
 
         const settings = tableau.extensions.settings.getAll()
-        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+        const currentColumnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {} // Use a local variable
 
         if (!allColumns || allColumns.length === 0) {
           dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles.</div>'
@@ -1223,7 +1242,7 @@
 
         allColumns.forEach((col) => {
           const colName = col.fieldName || col.name || col
-          const columnData = columnsConfig[colName] || {}
+          const columnData = currentColumnsConfig[colName] || {} // Use local variable
 
           const item = document.createElement("div")
           item.className = "column-item"
@@ -1264,8 +1283,8 @@
 
         // Load column config
         const settings = tableau.extensions.settings.getAll()
-        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
-        const columnData = columnsConfig[colName] || {
+        const currentColumnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {} // Use a local variable
+        const columnData = currentColumnsConfig[colName] || {
           visible: true,
           includeInExport: true,
         }
@@ -1328,10 +1347,15 @@
       function saveColumnConfig() {
         if (!currentSelectedColumn) return
 
-        const settings = tableau.extensions.settings.getAll()
-        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+        // Retrieve existing columnsConfig from settings or initialize if not present
+        const settings = tableau.extensions.settings.getAll();
+        const currentColumnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {};
 
-        const columnData = columnsConfig[currentSelectedColumn] || {}
+        // Get or initialize the configuration for the current column
+        const columnData = currentColumnsConfig[currentSelectedColumn] || {
+          visible: true,
+          includeInExport: true,
+        };
 
         columnData.displayName = document.getElementById("column-display-name").value
         columnData.visible = document.getElementById("column-visible").checked
@@ -1364,12 +1388,15 @@
           }
         }
 
-        columnsConfig[currentSelectedColumn] = columnData
-        tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig))
+        currentColumnsConfig[currentSelectedColumn] = columnData
+        tableau.extensions.settings.set("columnsConfig", JSON.stringify(currentColumnsConfig))
         tableau.extensions.settings.saveAsync()
       }
 
       function autoSave() {
+        console.log("[v0] AutoSave called")
+        
+        // General settings
         tableau.extensions.settings.set("tableTitle", document.getElementById("table-title").value)
         tableau.extensions.settings.set(
           "showSearch",
@@ -1379,6 +1406,8 @@
           "showRowCount",
           document.getElementById("show-row-count").checked ? "true" : "false",
         )
+        
+        // Export settings
         tableau.extensions.settings.set("exportButtonText", document.getElementById("export-button-text").value)
         tableau.extensions.settings.set("exportFilename", document.getElementById("export-filename").value)
         tableau.extensions.settings.set("exportButtonColor", document.getElementById("export-button-color").value)
@@ -1398,7 +1427,14 @@
           "exportEnablePDF",
           document.getElementById("export-enable-pdf").checked ? "true" : "false",
         )
-        tableau.extensions.settings.saveAsync()
+        
+        // Save columns configuration if exists
+        if (typeof columnsConfig !== 'undefined' && Object.keys(columnsConfig).length > 0) {
+          tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig))
+        }
+        
+        console.log("[v0] Settings saved to tableau.extensions.settings")
+        return tableau.extensions.settings.saveAsync()
       }
 
       function filterColumns() {
@@ -1410,8 +1446,17 @@
       }
 
       function saveSettings() {
+        console.log("[v0] SaveSettings called")
+        
         autoSave()
-        tableau.extensions.ui.closeDialog("saved")
+          .then(() => {
+            console.log("[v0] Settings saved successfully, closing dialog")
+            tableau.extensions.ui.closeDialog("saved")
+          })
+          .catch((error) => {
+            console.error("[v0] Error saving settings:", error)
+            alert("Error al guardar la configuración: " + error.message)
+          })
       }
 
       function selectIcon(icon) {
