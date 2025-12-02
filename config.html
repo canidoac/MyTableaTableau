@@ -1102,9 +1102,22 @@
         document.getElementById("export-enable-csv").checked = settings.exportEnableCSV !== "false"
         document.getElementById("export-enable-pdf").checked = settings.exportEnablePDF !== "false"
 
-        // Load columns
         columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
-        allColumns = openPayload ? JSON.parse(openPayload) : []
+        
+        // Get columns from dialogColumns setting
+        if (settings.dialogColumns) {
+          const dialogColumns = JSON.parse(settings.dialogColumns)
+          allColumns = Object.keys(dialogColumns).map(colName => ({
+            fieldName: colName,
+            name: colName,
+            dataType: dialogColumns[colName].dataType,
+            isDimension: dialogColumns[colName].dataType === "string" || dialogColumns[colName].dataType === "date-time" || dialogColumns[colName].dataType === "date"
+          }))
+          console.log("[v0] Loaded columns from dialogColumns:", allColumns)
+        } else {
+          console.warn("[v0] No dialogColumns found in settings")
+          allColumns = []
+        }
 
         renderColumnList()
         setupEventListeners()

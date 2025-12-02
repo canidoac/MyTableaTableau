@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <!-- Updated to v7.3.0 - Fixed sticky tabs and navigation in config panel -->
-  <worksheet-extension id="com.supertable.pro.worksheet" extension-version="7.3.0">
+  <!-- Updated to v7.9.0 - Fixed column loading from dialogColumns in settings -->
+  <worksheet-extension id="com.supertable.pro.worksheet" extension-version="7.9.0">
     <default-locale>es_ES</default-locale>
     <name resource-id="name"/>
     <description>Super Table Pro - Tabla interactiva con formato condicional, búsqueda, ordenamiento y exportación mejorada (versión para hojas)</description>
