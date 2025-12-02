@@ -870,7 +870,8 @@
         <nav class="tabs">
           <button class="tab-btn active" data-tab="general">General</button>
           <button class="tab-btn" data-tab="data">Data</button>
-          <button class="tab-btn" data-tab="priorities">Prioridades</button>
+          <!-- Renamed Priorities tab to Formatos for creating reusable formats -->
+          <button class="tab-btn" data-tab="formatos">Formatos</button>
           <button class="tab-btn" data-tab="export">Export</button>
           <button class="tab-btn" data-tab="info">Información</button>
         </nav>
@@ -967,19 +968,20 @@
                   </div>
                 </div>
 
-                <!-- Conditional formatting in collapsible section -->
-                <div class="config-section" id="conditional-formatting-section" style="display: none;">
+                <!-- New conditional rules section that selects from created formats -->
+                <div class="config-section">
                   <div class="section-header expanded" onclick="toggleSection(this)">
-                    <h4>Formato Condicional</h4>
+                    <h4>Reglas Condicionales</h4>
                     <span class="section-toggle">▼</span>
                   </div>
                   <div class="section-content expanded">
-                    <div id="conditional-rules-container">
+                    <p class="help-text" style="margin-bottom: 16px;">Define cuando aplicar un formato creado en la pestaña Formatos</p>
+                    <div id="column-rules-container">
                       <!-- Rules will be added here dynamically -->
                     </div>
                     
-                    <button class="add-rule-btn" onclick="addConditionalRule()">
-                      + Agregar Regla de Formato
+                    <button class="add-rule-btn" onclick="addColumnRule()">
+                      + Agregar Regla Condicional
                     </button>
                   </div>
                 </div>
@@ -1198,41 +1200,28 @@
           </div>
         </div>
 
-        <!-- Priorities Tab -->
-        <div id="priorities-tab" class="tab-content">
+        <!-- Replaced Priorities Tab with Formatos Tab for creating reusable formats -->
+        <div id="formatos-tab" class="tab-content">
           <div class="content-section">
-            <h2>Prioridades de Formato Condicional</h2>
+            <h2>Formatos Reutilizables</h2>
             <p class="help-text" style="margin-bottom: 20px;">
-              Arrastra las reglas para reordenarlas. Las reglas en la parte superior tienen mayor prioridad.
-              Los formatos de FILA siempre tienen prioridad sobre formatos de CELDA en la misma posición.
+              Crea formatos de estilo que podrás aplicar en las reglas condicionales de cualquier columna.
             </p>
 
-            <div class="priority-legend" style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 12px;">
-              <strong>Leyenda:</strong>
-              <span style="margin-left: 15px;">🟦 = Celda</span>
-              <span style="margin-left: 10px;">🟥 = Fila</span>
-              <span style="margin-left: 10px;">🎨 = Color de fondo</span>
-              <span style="margin-left: 10px;">📝 = Color de texto</span>
+            <div id="formatos-list-container" style="margin-bottom: 20px;">
+              <!-- Format items will be generated here -->
             </div>
 
-            <div id="priorities-list-container" style="min-height: 200px;">
-              <div id="priorities-empty-state" class="empty-state">
-                No hay reglas de formato condicional configuradas aún.
-                <br><br>
-                Ve a la pestaña "Data" y selecciona una columna para agregar reglas.
-              </div>
-
-              <div id="priorities-list" style="display: none;">
-                <!-- Priority items will be generated here -->
-              </div>
-            </div>
-
-            <button onclick="savePriorities()" class="btn btn-success" style="margin-top: 20px;">
-              Guardar Orden de Prioridades
+            <button onclick="addNewFormat()" class="btn btn-success" style="width: auto; display: inline-block; margin-right: 10px;">
+              + Crear Nuevo Formato
+            </button>
+            
+            <button onclick="saveFormats()" class="btn btn-primary" style="width: auto; display: inline-block;">
+              Guardar Formatos
             </button>
 
-            <div id="priorities-saved-message" class="config-saved-message" style="display: none;">
-              ✓ Prioridades guardadas correctamente
+            <div id="formatos-saved-message" class="config-saved-message">
+              ✓ Formatos guardados correctamente
             </div>
           </div>
         </div>
@@ -1286,10 +1275,10 @@
       let allColumns = []
       let currentSelectedColumn = null
       let columnsConfig = {}
-      let conditionalRuleCounter = 0; // Moved counter here
+      let conditionalRuleCounter = 0;
       
-      // CHANGE: Added priority management state
-      let draggingElement = null;
+      let savedFormats = {}; // Object to store all created formats
+      let formatCounter = 0;
 
       if (typeof tableau === 'undefined') {
         console.error("[v0] Tableau Extensions API not loaded!")
@@ -1426,30 +1415,25 @@
         })
       }
 
-      // CHANGE: Modified switchTab to load priorities when switching to that tab
       function switchTab(tabName) {
-        // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(tab => {
           tab.classList.remove('active');
         });
         
-        // Remove active class from all tab buttons
         document.querySelectorAll('.tab-btn').forEach(btn => {
           btn.classList.remove('active');
         });
         
-        // Show selected tab
         document.getElementById(tabName + '-tab').classList.add('active');
         
-        // Add active class to clicked button
         const clickedButton = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
         if (clickedButton) {
           clickedButton.classList.add('active');
         }
 
-        // Load priorities list when switching to priorities tab
-        if (tabName === 'priorities') {
-          loadPrioritiesList();
+        // Load formats list when switching to formatos tab
+        if (tabName === 'formatos') {
+          loadFormatosList();
         }
       }
 
@@ -1528,7 +1512,6 @@
         document.getElementById("column-config-placeholder").style.display = "none"
         document.getElementById("column-config-content").style.display = "block"
 
-        // Load column data
         const columnData = columnsConfig[colName] || {
           visible: true,
           includeInExport: true,
@@ -1539,22 +1522,35 @@
         document.getElementById("column-visible").checked = columnData.visible !== false
         document.getElementById("column-export").checked = columnData.includeInExport !== false
 
-        // Call the modified showColumnConfig function
-        showColumnConfig(colName);
+        showColumnRules(colName);
       }
 
-      // START: Updated addConditionalRule function
-      function addConditionalRule(ruleData = null) {
-        const ruleId = `rule-${conditionalRuleCounter++}`;
-        const container = document.getElementById("conditional-rules-container");
-        
-        // Detect column type for correct operator/input display
-        const column = allColumns.find(c => c.fieldName === currentSelectedColumn);
+      function showColumnRules(columnName) {
+        console.log("[v0] Showing rules for column:", columnName)
+        currentSelectedColumn = columnName
+
+        const columnData = columnsConfig[columnName] || {}
+        const column = allColumns.find((c) => c.fieldName === columnName)
         const isDimension = column?.dataType === "string" || false;
+
+        const container = document.getElementById("column-rules-container");
+        container.innerHTML = "";
         
-        const ruleDiv = document.createElement("div");
-        ruleDiv.className = "conditional-rule";
-        ruleDiv.id = ruleId;
+        if (columnData.conditionalRules && Array.isArray(columnData.conditionalRules)) {
+          columnData.conditionalRules.forEach((rule, index) => {
+            addColumnRule(rule, isDimension);
+          });
+        }
+      }
+
+      function addColumnRule(ruleData = null, isDimension = null) {
+        if (isDimension === null) {
+          const column = allColumns.find(c => c.fieldName === currentSelectedColumn);
+          isDimension = column?.dataType === "string" || false;
+        }
+
+        const ruleId = `column-rule-${Date.now()}`;
+        const container = document.getElementById("column-rules-container");
         
         const operatorOptions = isDimension ? `
           <option value="equals">Es igual a</option>
@@ -1575,10 +1571,20 @@
           <option value="between">Entre</option>
         `;
 
+        // Get list of available formats for dropdown
+        const formatOptions = Object.keys(savedFormats).map(formatId => {
+          const format = savedFormats[formatId];
+          return `<option value="${formatId}">${format.name}</option>`;
+        }).join('');
+
+        const ruleDiv = document.createElement("div");
+        ruleDiv.className = "conditional-rule";
+        ruleDiv.id = ruleId;
+        
         ruleDiv.innerHTML = `
           <div class="rule-header">
             <span class="rule-title">Regla ${container.children.length + 1}</span>
-            <button class="delete-rule-btn" onclick="deleteConditionalRule('${ruleId}')">Eliminar</button>
+            <button class="delete-rule-btn" onclick="deleteColumnRule('${ruleId}')">Eliminar</button>
           </div>
           
           <div class="rule-condition-row">
@@ -1593,50 +1599,13 @@
             </div>
           </div>
           
-          <div class="rule-formatting-row">
-            <label>Pintar</label>
-            <select class="rule-paint-target">
-              <option value="none">Ninguno</option>
-              <option value="cell">Celda</option>
-              <option value="row">Fila</option>
+          <div class="form-group" style="margin-top: 12px;">
+            <label>Formato a aplicar</label>
+            <select class="rule-format-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+              <option value="">Selecciona un formato...</option>
+              ${formatOptions}
             </select>
-            
-            <label style="margin-left: 12px;">Fondo</label>
-            <input type="color" class="rule-bg-color" value="#ffeb3b" title="Color de fondo">
-            
-            <input type="checkbox" class="rule-text-enabled" id="${ruleId}-text" title="Activar color de texto">
-            <label for="${ruleId}-text" style="margin: 0;">Texto</label>
-            <input type="color" class="rule-text-color" value="#000000" title="Color de texto">
-            
-            <input type="checkbox" class="rule-icon-enabled" id="${ruleId}-icon" title="Activar ícono" style="margin-left: 12px;">
-            <label for="${ruleId}-icon" style="margin: 0;">Ícono</label>
-            <select class="rule-icon" style="min-width: 80px;">
-              <option value="">Ninguno</option>
-              <option value="↑">↑ Arriba</option>
-              <option value="↓">↓ Abajo</option>
-              <option value="→">→ Derecha</option>
-              <option value="←">← Izquierda</option>
-              <option value="⬤">⬤ Círculo</option>
-              <option value="○">○ Vacío</option>
-              <option value="■">■ Cuadrado</option>
-              <option value="□">□ Hueco</option>
-              <option value="✓">✓ Check</option>
-              <option value="✗">✗ X</option>
-              <option value="⚠">⚠ Alerta</option>
-              <option value="★">★ Estrella</option>
-              <option value="☆">☆ Estrella vacía</option>
-              <option value="●">● Punto</option>
-              <option value="▲">▲ Triángulo arriba</option>
-              <option value="▼">▼ Triángulo abajo</option>
-              <option value="◆">◆ Diamante</option>
-              <option value="♥">♥ Corazón</option>
-              <option value="🔴">🔴 Rojo</option>
-              <option value="🟢">🟢 Verde</option>
-              <option value="🟡">🟡 Amarillo</option>
-              <option value="⚫">⚫ Negro</option>
-              <option value="⚪">⚪ Blanco</option>
-            </select>
-            <input type="color" class="rule-icon-color" value="#000000" title="Color del ícono">
+            <p class="help-text">Crea formatos en la pestaña "Formatos"</p>
           </div>
         `;
 
@@ -1655,67 +1624,18 @@
             ruleDiv.querySelector(".rule-value2").value = ruleData.value2;
             ruleDiv.querySelector(".rule-value2").style.display = "block";
           }
-          
-          // Determine paint target from flags
-          let paintTarget = "none";
-          if (ruleData.cellBg || ruleData.cellText) { // Prioritize cell if any cell property is set
-            paintTarget = "cell";
-          } else if (ruleData.rowBg || ruleData.rowText) {
-            paintTarget = "row";
-          }
-          ruleDiv.querySelector(".rule-paint-target").value = paintTarget;
-          
-          if (ruleData.cellBgColor || ruleData.rowBgColor) {
-            ruleDiv.querySelector(".rule-bg-color").value = ruleData.cellBgColor || ruleData.rowBgColor;
-          }
-          
-          if (ruleData.cellText || ruleData.rowText) {
-            ruleDiv.querySelector(".rule-text-enabled").checked = true;
-            ruleDiv.querySelector(".rule-text-color").value = ruleData.cellTextColor || ruleData.rowTextColor || "#000000";
-          }
-          
-          if (ruleData.addIcon) {
-            ruleDiv.querySelector(".rule-icon-enabled").checked = true;
-            ruleDiv.querySelector(".rule-icon").value = ruleData.icon || "";
-            ruleDiv.querySelector(".rule-icon-color").value = ruleData.iconColor || "#000000";
+          if (ruleData.formatId) {
+            ruleDiv.querySelector(".rule-format-select").value = ruleData.formatId;
           }
         }
       }
-      // END: Updated addConditionalRule function
 
-      function showColumnConfig(columnName) {
-        console.log("[v0] Showing config for column:", columnName)
-        currentSelectedColumn = columnName
-
-        const columnData = columnsConfig[columnName] || {}
-        const column = allColumns.find((c) => c.fieldName === columnName)
-
-        document.getElementById("column-display-name").value = columnData.displayName || ""
-        document.getElementById("column-visible").checked = columnData.visible !== false
-        document.getElementById("column-export").checked = columnData.includeInExport !== false
-
-        const isDimension = column?.dataType === "string" || false;
-        const conditionalSection = document.getElementById("conditional-formatting-section");
-        
-        if (conditionalSection) {
-          conditionalSection.style.display = "block";
-          
-          const container = document.getElementById("conditional-rules-container");
-          container.innerHTML = "";
-          conditionalRuleCounter = 0; // Reset counter for each column
-          
-          if (columnData.conditionalRules && Array.isArray(columnData.conditionalRules)) {
-            columnData.conditionalRules.forEach(rule => {
-              addConditionalRule(rule);
-            });
-          } else if (columnData.conditionalFormat && columnData.conditionalFormat.enabled) {
-            // Ensure only one rule is added if migrating from old format
-            addConditionalRule(columnData.conditionalFormat);
-          }
+      function deleteColumnRule(ruleId) {
+        const ruleElement = document.getElementById(ruleId);
+        if (ruleElement) {
+          ruleElement.remove();
+          console.log(`[v0] Deleted rule element: ${ruleId}`);
         }
-
-        document.getElementById("column-config-content").style.display = "block"
-        document.getElementById("column-config-placeholder").style.display = "none"
       }
 
       function saveColumnConfig() {
@@ -1726,50 +1646,27 @@
           return;
         }
 
-        const rulesContainer = document.getElementById("conditional-rules-container");
+        const rulesContainer = document.getElementById("column-rules-container");
         const conditionalRules = [];
         
         rulesContainer.querySelectorAll(".conditional-rule").forEach((ruleDiv) => {
           const operator = ruleDiv.querySelector(".rule-operator").value;
           const value = ruleDiv.querySelector(".rule-value").value;
           const value2 = ruleDiv.querySelector(".rule-value2").value;
-          const paintTarget = ruleDiv.querySelector(".rule-paint-target").value;
-          const bgColor = ruleDiv.querySelector(".rule-bg-color").value;
-          const textEnabled = ruleDiv.querySelector(".rule-text-enabled").checked;
-          const textColor = ruleDiv.querySelector(".rule-text-color").value;
-          const iconEnabled = ruleDiv.querySelector(".rule-icon-enabled").checked;
-          const icon = ruleDiv.querySelector(".rule-icon").value;
-          const iconColor = ruleDiv.querySelector(".rule-icon-color").value;
+          const formatId = ruleDiv.querySelector(".rule-format-select").value;
           
+          if (!formatId) {
+            console.warn("[v0] Rule without format, skipping");
+            return;
+          }
+
           const rule = {
             operator,
             value,
+            formatId // Store reference to format
           };
           
           if (value2) rule.value2 = value2;
-          
-          // Set flags based on paint target
-          if (paintTarget === "cell") {
-            rule.cellBg = true;
-            rule.cellBgColor = bgColor;
-            if (textEnabled) {
-              rule.cellText = true;
-              rule.cellTextColor = textColor;
-            }
-          } else if (paintTarget === "row") {
-            rule.rowBg = true;
-            rule.rowBgColor = bgColor;
-            if (textEnabled) {
-              rule.rowText = true;
-              rule.rowTextColor = textColor;
-            }
-          }
-          
-          if (iconEnabled && icon) {
-            rule.addIcon = true;
-            rule.icon = icon;
-            rule.iconColor = iconColor;
-          }
           
           conditionalRules.push(rule);
         });
@@ -1779,48 +1676,164 @@
         const columnData = {
           displayName: document.getElementById("column-display-name").value,
           visible: document.getElementById("column-visible").checked,
-          export: document.getElementById("column-export").checked,
+          includeInExport: document.getElementById("column-export").checked,
           conditionalRules: conditionalRules
         };
 
         console.log("[v0] Guardando configuración de columna:", currentSelectedColumn, columnData);
 
-        // Get existing config
         const existingConfigStr = tableau.extensions.settings.get("columnsConfig");
         const columnsConfig = existingConfigStr ? JSON.parse(existingConfigStr) : {};
         
-        // Update column config
         columnsConfig[currentSelectedColumn] = columnData;
         
         console.log("[v0] Config actualizado:", columnsConfig);
 
-        // Save to settings
         tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig));
         
-        // Save settings
         tableau.extensions.settings.saveAsync().then(() => {
           console.log("[v0] Config guardado exitosamente");
           
-          // Reload config in memory
           const reloadedStr = tableau.extensions.settings.get("columnsConfig");
           if (reloadedStr) {
             Object.assign(columnsConfig, JSON.parse(reloadedStr));
           }
           console.log("[v0] Config recargado en memoria:", columnsConfig);
+          
+          // Show confirmation
+          const message = document.getElementById("config-saved-message");
+          message.classList.add("show");
+          setTimeout(() => message.classList.remove("show"), 3000);
         }).catch((error) => {
           console.error("[v0] Error al guardar config:", error);
         });
       }
-      
-      function reloadColumns() {
-        console.log("[v0] Reloading columns...")
-        const worksheetSelector = document.getElementById("worksheet-select")
-        if (worksheetSelector && worksheetSelector.value) {
-          loadColumnsFromWorksheet(worksheetSelector.value)
-        } else {
-          console.log("[v0] No worksheet selected, cannot reload columns")
+
+
+      function loadFormatosList() {
+        console.log('[v0] Loading formats list...');
+        const container = document.getElementById('formatos-list-container');
+        
+        if (Object.keys(savedFormats).length === 0) {
+          container.innerHTML = '<div class="empty-state">No hay formatos creados. Haz clic en "Crear Nuevo Formato" para empezar.</div>';
+          return;
+        }
+
+        container.innerHTML = Object.keys(savedFormats).map(formatId => {
+          const format = savedFormats[formatId];
+          return generateFormatHTML(formatId, format);
+        }).join('');
+      }
+
+      function generateFormatHTML(formatId, format) {
+        const paintTargetText = format.paintTarget === 'row' ? 'Fila' : format.paintTarget === 'cell' ? 'Celda' : 'Ninguno';
+        
+        return `
+          <div class="conditional-rule" id="${formatId}">
+            <div class="rule-header">
+              <span class="rule-title">${format.name || 'Sin nombre'}</span>
+              <button class="delete-rule-btn" onclick="deleteFormat('${formatId}')">Eliminar</button>
+            </div>
+            
+            <div class="form-group">
+              <label>Nombre del formato</label>
+              <input type="text" class="format-name" value="${format.name || ''}" placeholder="Ej: Alerta Roja, Éxito Verde">
+            </div>
+            
+            <div class="rule-formatting-row">
+              <label>Pintar</label>
+              <select class="rule-paint-target">
+                <option value="none" ${format.paintTarget === 'none' ? 'selected' : ''}>Ninguno</option>
+                <option value="cell" ${format.paintTarget === 'cell' ? 'selected' : ''}>Celda</option>
+                <option value="row" ${format.paintTarget === 'row' ? 'selected' : ''}>Fila</option>
+              </select>
+              
+              <label style="margin-left: 12px;">Fondo</label>
+              <input type="color" class="rule-bg-color" value="${format.bgColor || '#ffeb3b'}" title="Color de fondo">
+              
+              <input type="checkbox" class="rule-text-enabled" ${format.textEnabled ? 'checked' : ''} id="${formatId}-text" title="Activar color de texto">
+              <label for="${formatId}-text" style="margin: 0;">Texto</label>
+              <input type="color" class="rule-text-color" value="${format.textColor || '#000000'}" title="Color de texto">
+              
+              <input type="checkbox" class="rule-icon-enabled" ${format.iconEnabled ? 'checked' : ''} id="${formatId}-icon" title="Activar ícono" style="margin-left: 12px;">
+              <label for="${formatId}-icon" style="margin: 0;">Ícono</label>
+              <select class="rule-icon" style="min-width: 80px;">
+                <option value="">Ninguno</option>
+                <option value="↑" ${format.icon === '↑' ? 'selected' : ''}>↑ Arriba</option>
+                <option value="↓" ${format.icon === '↓' ? 'selected' : ''}>↓ Abajo</option>
+                <option value="⬤" ${format.icon === '⬤' ? 'selected' : ''}>⬤ Círculo</option>
+                <option value="✓" ${format.icon === '✓' ? 'selected' : ''}>✓ Check</option>
+                <option value="✗" ${format.icon === '✗' ? 'selected' : ''}>✗ X</option>
+                <option value="⚠" ${format.icon === '⚠' ? 'selected' : ''}>⚠ Alerta</option>
+                <option value="★" ${format.icon === '★' ? 'selected' : ''}>★ Estrella</option>
+                <option value="▲" ${format.icon === '▲' ? 'selected' : ''}>▲ Triángulo</option>
+                <option value="🔴" ${format.icon === '🔴' ? 'selected' : ''}>🔴 Rojo</option>
+                <option value="🟢" ${format.icon === '🟢' ? 'selected' : ''}>🟢 Verde</option>
+                <option value="🟡" ${format.icon === '🟡' ? 'selected' : ''}>🟡 Amarillo</option>
+              </select>
+              <input type="color" class="rule-icon-color" value="${format.iconColor || '#000000'}" title="Color del ícono">
+            </div>
+          </div>
+        `;
+      }
+
+      function addNewFormat() {
+        const formatId = `format-${formatCounter++}`;
+        const newFormat = {
+          name: 'Nuevo Formato',
+          paintTarget: 'cell',
+          bgColor: '#ffeb3b',
+          textEnabled: false,
+          textColor: '#000000',
+          iconEnabled: false,
+          icon: '',
+          iconColor: '#000000'
+        };
+        
+        savedFormats[formatId] = newFormat;
+        loadFormatosList();
+      }
+
+      function deleteFormat(formatId) {
+        if (confirm('¿Estás seguro de eliminar este formato? Las reglas que lo usan dejarán de funcionar.')) {
+          delete savedFormats[formatId];
+          loadFormatosList();
         }
       }
+
+      async function saveFormats() {
+        console.log('[v0] Saving formats...');
+        
+        // Collect all format data from the DOM
+        document.querySelectorAll('#formatos-list-container .conditional-rule').forEach(formatDiv => {
+          const formatId = formatDiv.id;
+          
+          savedFormats[formatId] = {
+            name: formatDiv.querySelector('.format-name').value,
+            paintTarget: formatDiv.querySelector('.rule-paint-target').value,
+            bgColor: formatDiv.querySelector('.rule-bg-color').value,
+            textEnabled: formatDiv.querySelector('.rule-text-enabled').checked,
+            textColor: formatDiv.querySelector('.rule-text-color').value,
+            iconEnabled: formatDiv.querySelector('.rule-icon-enabled').checked,
+            icon: formatDiv.querySelector('.rule-icon').value,
+            iconColor: formatDiv.querySelector('.rule-icon-color').value
+          };
+        });
+
+        console.log('[v0] Formats to save:', savedFormats);
+
+        // Save to settings
+        tableau.extensions.settings.set('savedFormats', JSON.stringify(savedFormats));
+        await tableau.extensions.settings.saveAsync();
+
+        // Show confirmation
+        const message = document.getElementById('formatos-saved-message');
+        message.classList.add('show');
+        setTimeout(() => message.classList.remove('show'), 3000);
+
+        console.log('[v0] Formats saved successfully');
+      }
+
 
       function autoSave() {
         console.log("[v0] === AUTOSAVE INICIADO ===")
@@ -2078,7 +2091,6 @@
           
           populateWorksheetSelector()
           
-          // Load columns from settings
           if (settings.dialogColumns) {
             try {
               const parsed = JSON.parse(settings.dialogColumns)
@@ -2099,7 +2111,6 @@
             allColumns = []
           }
           
-          // Load existing columnsConfig
           if (settings.columnsConfig) {
             try {
               columnsConfig = JSON.parse(settings.columnsConfig)
@@ -2107,6 +2118,16 @@
             } catch (e) {
               console.error("[v0] Error parsing columnsConfig:", e)
               columnsConfig = {}
+            }
+          }
+          
+          if (settings.savedFormats) {
+            try {
+              savedFormats = JSON.parse(settings.savedFormats)
+              console.log("[v0] Loaded savedFormats:", savedFormats)
+            } catch (e) {
+              console.error("[v0] Error parsing savedFormats:", e)
+              savedFormats = {}
             }
           }
           
@@ -2123,201 +2144,7 @@
         }
       }
 
-      // CHANGE: Added priority management functions
-      
-      function loadPrioritiesList() {
-        console.log('[v0] Loading priorities list...');
-        const container = document.getElementById('priorities-list');
-        const emptyState = document.getElementById('priorities-empty-state');
-        
-        // Get all conditional rules from all columns
-        const allRules = [];
-        Object.keys(columnsConfig).forEach(fieldName => {
-          const colConfig = columnsConfig[fieldName];
-          if (colConfig.conditionalRules && Array.isArray(colConfig.conditionalRules)) {
-            colConfig.conditionalRules.forEach((rule, index) => {
-              allRules.push({
-                columnName: colConfig.displayName || fieldName,
-                fieldName: fieldName,
-                ruleIndex: index,
-                rule: rule,
-                priority: rule.priority || 999 // Default to a high priority if not set
-              });
-            });
-          }
-        });
-
-        console.log('[v0] Found rules:', allRules);
-
-        if (allRules.length === 0) {
-          container.style.display = 'none';
-          emptyState.style.display = 'block';
-          return;
-        }
-
-        // Sort by priority
-        allRules.sort((a, b) => a.priority - b.priority);
-
-        // Generate HTML
-        container.innerHTML = allRules.map((item, index) => {
-          const rule = item.rule;
-          const paintType = rule.paintTarget === 'row' ? 'Fila' : rule.paintTarget === 'cell' ? 'Celda' : 'Ninguno';
-          const paintBadge = rule.paintTarget === 'row' ? 
-            '<span class="priority-badge badge-row">🟥 Fila</span>' : 
-            '<span class="priority-badge badge-cell">🟦 Celda</span>';
-          
-          let formatDetails = [];
-          if (rule.cellBg || rule.rowBg) formatDetails.push('🎨 Fondo');
-          if (rule.cellText || rule.rowText) formatDetails.push('📝 Texto');
-          if (rule.icon && rule.icon !== 'none' && rule.icon !== '') formatDetails.push('🔶 Icono');
-
-          return `
-            <div class="priority-item" draggable="true" data-field="${item.fieldName}" data-rule-index="${item.ruleIndex}">
-              <span class="priority-drag-handle">⋮⋮</span>
-              <div class="priority-number">${index + 1}</div>
-              <div class="priority-info">
-                <div class="priority-column-name">${item.columnName}</div>
-                <div class="priority-rule-details">
-                  ${paintBadge}
-                  <span>${rule.operator} "${rule.value}"</span>
-                  ${formatDetails.length > 0 ? '<span>→</span>' : ''}
-                  ${formatDetails.join(' ')}
-                </div>
-              </div>
-              <div class="priority-actions">
-                <button class="priority-btn" onclick="movePriorityUp(${index})" ${index === 0 ? 'disabled' : ''} title="Mover arriba">▲</button>
-                <button class="priority-btn" onclick="movePriorityDown(${index})" ${index === allRules.length - 1 ? 'disabled' : ''} title="Mover abajo">▼</button>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        container.style.display = 'block';
-        emptyState.style.display = 'none';
-
-        // Setup drag and drop
-        setupDragAndDrop();
-      }
-
-      function setupDragAndDrop() {
-        const items = document.querySelectorAll('.priority-item');
-        
-        items.forEach(item => {
-          item.addEventListener('dragstart', function(event) {
-            draggingElement = this;
-            this.classList.add('dragging');
-            // Store the index of the dragged item to re-apply it later if needed
-            event.dataTransfer.effectAllowed = 'move';
-            event.dataTransfer.setData('text/plain', ''); // Required for Firefox
-          });
-
-          item.addEventListener('dragend', function() {
-            this.classList.remove('dragging');
-            draggingElement = null;
-          });
-        });
-
-        const container = document.getElementById('priorities-list');
-        container.addEventListener('dragover', function(e) {
-          e.preventDefault(); // Necessary to allow dropping
-          if (draggingElement) {
-            const afterElement = getDragAfterElement(container, e.clientY);
-            if (afterElement == null) {
-              container.appendChild(draggingElement);
-            } else {
-              container.insertBefore(draggingElement, afterElement);
-            }
-            updatePriorityNumbers();
-          }
-        });
-      }
-
-      function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.priority-item:not(.dragging)')];
-
-        return draggableElements.reduce((closest, child) => {
-          const box = child.getBoundingClientRect();
-          const offset = y - box.top - box.height / 2;
-          if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-          } else {
-            return closest;
-          }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-      }
-
-      function updatePriorityNumbers() {
-        const items = document.querySelectorAll('.priority-item');
-        items.forEach((item, index) => {
-          const numberEl = item.querySelector('.priority-number');
-          if (numberEl) numberEl.textContent = index + 1;
-
-          const upBtn = item.querySelector('.priority-btn:first-child');
-          const downBtn = item.querySelector('.priority-btn:last-child');
-          if (upBtn) upBtn.disabled = index === 0;
-          if (downBtn) downBtn.disabled = index === items.length - 1;
-        });
-      }
-
-      function movePriorityUp(index) {
-        const container = document.getElementById('priorities-list');
-        const items = container.querySelectorAll('.priority-item');
-        if (index > 0) {
-          container.insertBefore(items[index], items[index - 1]);
-          updatePriorityNumbers();
-        }
-      }
-
-      function movePriorityDown(index) {
-        const container = document.getElementById('priorities-list');
-        const items = container.querySelectorAll('.priority-item');
-        if (index < items.length - 1) {
-          container.insertBefore(items[index + 1], items[index]);
-          updatePriorityNumbers();
-        }
-      }
-
-      async function savePriorities() {
-        console.log('[v0] Saving priorities...');
-        const items = document.querySelectorAll('.priority-item');
-        
-        // Update priority values in columnsConfig
-        items.forEach((item, priority) => {
-          const fieldName = item.dataset.field;
-          const ruleIndex = parseInt(item.dataset.ruleIndex);
-          
-          if (columnsConfig[fieldName] && columnsConfig[fieldName].conditionalRules) {
-            const rule = columnsConfig[fieldName].conditionalRules[ruleIndex];
-            if (rule) {
-              rule.priority = priority;
-              console.log(`[v0] Set priority ${priority} for ${fieldName} rule ${ruleIndex}`);
-            }
-          }
-        });
-
-        // Save to settings
-        tableau.extensions.settings.set('columnsConfig', JSON.stringify(columnsConfig));
-        await tableau.extensions.settings.saveAsync();
-
-        // Show confirmation
-        const message = document.getElementById('priorities-saved-message');
-        message.style.display = 'block';
-        setTimeout(() => {
-          message.style.display = 'none';
-        }, 3000);
-
-        console.log('[v0] Priorities saved successfully');
-      }
-
-      function deleteConditionalRule(ruleId) {
-        const ruleElement = document.getElementById(ruleId);
-        if (ruleElement) {
-          ruleElement.remove();
-          // Optionally, update the column config if you need to persist this deletion immediately
-          // For now, it will be saved when the main save button is clicked.
-          console.log(`[v0] Deleted rule element: ${ruleId}`);
-        }
-      }
+      // Removed outdated priority management functions and related HTML comments
     </script>
   </body>
 </html>

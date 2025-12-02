@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <!-- Updated to v9.3 - Added priority management system for conditional formatting -->
-  <worksheet-extension id="com.supertable.pro.worksheet" extension-version="9.3">
+  <!-- CHANGE: Updated to v9.4 - Removed Design tab, fixed hover effects to only use translucent overlay -->
+  <worksheet-extension id="com.supertable.pro.worksheet" extension-version="9.4">
     <default-locale>es_ES</default-locale>
     <name resource-id="name"/>
     <description>Super Table Pro - Tabla interactiva con formato condicional, búsqueda, ordenamiento, exportación mejorada y gestión de prioridades (versión para hojas)</description>

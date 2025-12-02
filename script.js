@@ -443,7 +443,7 @@ function renderTable() {
                 textColor: cf.rowText && cf.rowTextColor ? cf.rowTextColor : null,
               }
               if (rowIdx === 0) {
-                console.log(`[v0] ROW FORMAT FOUND for column [${colName}]:`, rowFormat)
+                console.log(`[v0] 🎨 ROW FORMAT FOUND for column [${colName}]:`, rowFormat)
               }
               break
             }
@@ -490,7 +490,7 @@ function renderTable() {
     })
 
     if (rowFormat && rowIdx === 0) {
-      console.log(`[v0] ROW FORMAT APPLIED to all cells`)
+      console.log(`[v0] ✓ ROW FORMAT APPLIED to all cells`)
     }
 
     tbody.appendChild(tr)
@@ -513,10 +513,6 @@ function renderTable() {
 
   updatePagination()
   updateTableInfo()
-
-  setTimeout(() => {
-    applyDesignSettings()
-  }, 100)
 }
 
 function updatePagination() {
@@ -987,113 +983,49 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
 }
 
 function applyGeneralSettings() {
-  console.log("[v0] Applying general settings:", config)
+  console.log("[v0] Applying general settings...")
 
   // Show/hide search box
   const searchBox = document.getElementById("search-box")
   if (searchBox) {
     searchBox.style.display = config.showSearch ? "flex" : "none"
+    console.log("[v0] Search box display:", config.showSearch ? "visible" : "hidden")
   }
 
   // Show/hide row count
   const rowCount = document.getElementById("row-count")
   if (rowCount) {
-    rowCount.style.display = config.showRowCount ? "inline" : "none"
+    rowCount.style.display = config.showRowCount ? "block" : "none"
+    console.log("[v0] Row count display:", config.showRowCount ? "visible" : "hidden")
   }
 
-  // Show/hide export dropdown
-  const exportDropdown = document.getElementById("export-dropdown")
-  if (exportDropdown) {
-    exportDropdown.style.display = config.showExportButtons ? "block" : "none"
+  // Show/hide export button
+  const exportBtn = document.getElementById("export-btn")
+  if (exportBtn) {
+    exportBtn.style.display = config.showExportButtons ? "inline-flex" : "none"
+    console.log("[v0] Export button display:", config.showExportButtons ? "visible" : "hidden")
   }
 
   // Show/hide refresh button
   const refreshBtn = document.getElementById("refresh-btn")
   if (refreshBtn) {
     refreshBtn.style.display = config.showRefreshButton ? "inline-flex" : "none"
+    console.log("[v0] Refresh button display:", config.showRefreshButton ? "visible" : "hidden")
   }
 
   // Show/hide settings button
   const settingsBtn = document.getElementById("settings-btn")
   if (settingsBtn) {
     settingsBtn.style.display = config.showSettingsButton ? "inline-flex" : "none"
+    console.log("[v0] Settings button display:", config.showSettingsButton ? "visible" : "hidden")
   }
 
   // Update table title
   const mainTitle = document.getElementById("main-title")
-  if (mainTitle && config.tableTitle) {
-    mainTitle.textContent = config.tableTitle
+  if (mainTitle) {
+    mainTitle.textContent = config.tableTitle || currentWorksheet?.name || "Mi Tabla"
+    console.log("[v0] Table title:", mainTitle.textContent)
   }
-
-  // Update export button text and colors
-  const exportBtnText = document.getElementById("export-btn-text")
-  if (exportBtnText && config.exportButtonText) {
-    exportBtnText.textContent = config.exportButtonText
-  }
-
-  const exportBtn = document.getElementById("export-btn")
-  if (exportBtn) {
-    if (config.exportButtonColor) {
-      exportBtn.style.backgroundColor = config.exportButtonColor
-    }
-    if (config.exportButtonTextColor) {
-      exportBtn.style.color = config.exportButtonTextColor
-    }
-  }
-
-  console.log("[v0] ✓ General settings applied")
-}
-
-function applyDesignSettings() {
-  const settings = tableau.extensions.settings.getAll()
-
-  // Apply header colors
-  const headerBg = settings.headerBackgroundColor || "#f3f4f6"
-  const headerText = settings.headerTextColor || "#111827"
-  const headerFont = settings.headerFont || "Arial, sans-serif"
-  const headerFontSize = settings.headerFontSize || "14px"
-
-  const headers = document.querySelectorAll("#table-header th")
-  headers.forEach((th) => {
-    th.style.backgroundColor = headerBg
-    th.style.color = headerText
-    th.style.fontFamily = headerFont
-    th.style.fontSize = headerFontSize
-  })
-
-  // Apply body colors
-  const bodyFont = settings.bodyFont || "Arial, sans-serif"
-  const bodyFontSize = settings.bodyFontSize || "13px"
-  const bodyTextColor = settings.bodyTextColor || "#374151"
-  const rowEvenBg = settings.rowEvenColor || "#ffffff"
-  const rowOddBg = settings.rowOddColor || "#f9fafb"
-
-  const rows = document.querySelectorAll("#table-body tr")
-  rows.forEach((tr, index) => {
-    const cells = tr.querySelectorAll("td")
-    cells.forEach((td) => {
-      td.style.fontFamily = bodyFont
-      td.style.fontSize = bodyFontSize
-      td.style.color = bodyTextColor
-    })
-
-    // Apply row background if no conditional formatting applied
-    if (!tr.style.backgroundColor) {
-      tr.style.backgroundColor = index % 2 === 0 ? rowEvenBg : rowOddBg
-    }
-  })
-
-  // Apply border styling
-  const borderColor = settings.borderColor || "#e5e7eb"
-  const borderWidth = settings.borderWidth || "1px"
-
-  const table = document.querySelector(".data-table")
-  if (table) {
-    table.style.setProperty("--border-color", borderColor)
-    table.style.setProperty("--border-width", borderWidth)
-  }
-
-  console.log("[v0] Design settings applied")
 }
 
 if (document.readyState === "loading") {
