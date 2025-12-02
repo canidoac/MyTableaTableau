@@ -897,7 +897,8 @@
                     <div id="conditional-format-config" style="display: none;">
                       <div class="form-group">
                         <label>Condición</label>
-                        <div style="display: flex; gap: 8px;">
+                        <!-- Added separate condition inputs for numeric and text types -->
+                        <div id="numeric-condition" style="display: flex; gap: 8px;">
                           <select id="condition-operator" style="width: 80px;">
                             <option value=">=">&gt;=</option>
                             <option value="<=​">&lt;=</option>
@@ -907,6 +908,20 @@
                             <option value="!=">≠</option>
                           </select>
                           <input type="number" id="condition-value" placeholder="Valor" style="flex: 1;" />
+                        </div>
+                        
+                        <div id="text-condition" style="display: none; gap: 8px;">
+                          <select id="text-condition-operator" style="width: 150px;">
+                            <option value="equals">Es igual a</option>
+                            <option value="notEquals">No es igual a</option>
+                            <option value="contains">Contiene</option>
+                            <option value="notContains">No contiene</option>
+                            <option value="startsWith">Empieza con</option>
+                            <option value="endsWith">Termina con</option>
+                            <option value="isEmpty">Está vacío</option>
+                            <option value="isNotEmpty">No está vacío</option>
+                          </select>
+                          <input type="text" id="text-condition-value" placeholder="Texto" style="flex: 1;" />
                         </div>
                       </div>
 
@@ -1284,6 +1299,17 @@
           });
         }
 
+        const textConditionOp = document.getElementById("text-condition-operator")
+        if (textConditionOp) {
+          textConditionOp.addEventListener("change", function() {
+            const textConditionValue = document.getElementById("text-condition-value")
+            if (textConditionValue) {
+              const operator = this.value
+              textConditionValue.style.display = (operator === "isEmpty" || operator === "isNotEmpty") ? "none" : "block"
+            }
+          })
+        }
+
         console.log("[v0] All event listeners set up")
       }
 
@@ -1400,21 +1426,51 @@
         document.getElementById("column-visible").checked = columnData.visible !== false
         document.getElementById("column-export").checked = columnData.includeInExport !== false
 
-        // Show/hide conditional formatting section
-        const isMeasure = !columnInfo.isDimension && columnInfo.aggregation !== "NONE"
+        const isDimension = columnInfo.isDimension || columnInfo.aggregation === "NONE" || columnInfo.dataType === "string"
         const conditionalSection = document.getElementById("conditional-formatting-section")
+        const numericCondition = document.getElementById("numeric-condition")
+        const textCondition = document.getElementById("text-condition")
+        const textConditionValue = document.getElementById("text-condition-value")
+        
         if (conditionalSection) {
-          conditionalSection.style.display = isMeasure ? "block" : "none"
+          // Always show conditional formatting section
+          conditionalSection.style.display = "block"
+          
+          // Show appropriate condition controls based on column type
+          if (isDimension) {
+            // Text/Dimension column - show text operators
+            if (numericCondition) numericCondition.style.display = "none"
+            if (textCondition) textCondition.style.display = "flex"
+          } else {
+            // Numeric/Measure column - show numeric operators
+            if (numericCondition) numericCondition.style.display = "flex"
+            if (textCondition) textCondition.style.display = "none"
+          }
         }
 
         // Load conditional format settings if available
-        if (isMeasure && columnData.conditionalFormat) {
+        if (columnData.conditionalFormat) {
           const cf = columnData.conditionalFormat
           document.getElementById("enable-conditional-format").checked = cf.enabled || false
           document.getElementById("conditional-format-config").style.display = cf.enabled ? "block" : "none"
           
-          document.getElementById("condition-operator").value = cf.operator || ">="
-          document.getElementById("condition-value").value = cf.value || 0
+          if (isDimension) {
+            // Load text condition settings
+            const textOp = document.getElementById("text-condition-operator")
+            const textVal = document.getElementById("text-condition-value")
+            if (textOp) textOp.value = cf.operator || "equals"
+            if (textVal) textVal.value = cf.value || ""
+            // Hide text value input for isEmpty/isNotEmpty operators
+            if (textConditionValue && (cf.operator === "isEmpty" || cf.operator === "isNotEmpty")) {
+              textConditionValue.style.display = "none"
+            } else if (textConditionValue) {
+              textConditionValue.style.display = "block"
+            }
+          } else {
+            // Load numeric condition settings
+            document.getElementById("condition-operator").value = cf.operator || ">="
+            document.getElementById("condition-value").value = cf.value || 0
+          }
           
           document.getElementById("format-cell-bg").checked = cf.cellBg || false
           document.getElementById("format-cell-bg-color").value = cf.cellBgColor || "#ffeb3b"
@@ -1463,10 +1519,11 @@
           const enabledCF = document.getElementById("enable-conditional-format").checked
 
           if (enabledCF) {
+            const isDimension = allColumns.find(c => c.fieldName === currentSelectedColumn)?.dataType === "string" || false; // Basic check, might need refinement
             columnData.conditionalFormat = {
               enabled: true,
-              operator: document.getElementById("condition-operator").value,
-              value: parseFloat(document.getElementById("condition-value").value) || 0,
+              operator: isDimension ? document.getElementById("text-condition-operator").value : document.getElementById("condition-operator").value,
+              value: isDimension ? document.getElementById("text-condition-value").value : parseFloat(document.getElementById("condition-value").value) || 0,
               cellBg: document.getElementById("format-cell-bg").checked,
               cellBgColor: document.getElementById("format-cell-bg-color").value,
               rowBg: document.getElementById("format-row-bg").checked,
