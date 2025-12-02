@@ -50,7 +50,7 @@
       .config-header {
         background: white;
         border-bottom: 1px solid #e0e0e0;
-        padding: 20px 30px;
+        padding: 16px 24px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -58,7 +58,7 @@
       }
 
       .config-header h1 {
-        font-size: 20px;
+        font-size: 18px;
         color: #1a1a1a;
         font-weight: 600;
         margin: 0;
@@ -66,7 +66,7 @@
 
       .header-actions {
         display: flex;
-        gap: 12px;
+        gap: 10px;
       }
 
       /* Config content area with proper flex */
@@ -83,17 +83,17 @@
         gap: 0;
         background: white;
         border-bottom: 2px solid #e0e0e0;
-        padding: 0 30px;
+        padding: 0 24px;
         flex-shrink: 0;
       }
 
       .tab-btn {
-        padding: 16px 24px;
+        padding: 12px 20px;
         background: none;
         border: none;
         border-bottom: 3px solid transparent;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         color: #666;
         transition: all 0.2s;
@@ -121,148 +121,366 @@
 
       .tab-content {
         display: none;
-        padding: 30px;
-        animation: fadeIn 0.3s;
+        height: 100%;
       }
 
       .tab-content.active {
-        display: block;
-      }
-
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-
-      /* --- Main Layout --- */
-      .config-body {
         display: flex;
-        min-height: calc(100vh - 120px); /* Adjust based on header/tab height */
+        flex-direction: column;
       }
 
-      .sidebar {
-        width: 280px;
+      /* New compact data layout with better spacing */
+      .data-layout {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+        height: 100%;
+      }
+
+      .column-sidebar {
+        width: 260px;
         background: white;
         border-right: 1px solid #e0e0e0;
-        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        background: #fafafa;
+      }
+
+      .search-reload-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .search-box {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+
+      .reload-btn {
+        padding: 8px 12px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        white-space: nowrap;
+        transition: background 0.2s;
+      }
+
+      .reload-btn:hover {
+        background: #1d4ed8;
+      }
+
+      .column-list {
+        flex: 1;
+        padding: 12px;
         overflow-y: auto;
       }
 
-      .sidebar h3 {
-        font-size: 14px;
+      .column-section h3 {
+        font-size: 11px;
         font-weight: 600;
         color: #666;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 15px;
-        margin-top: 20px;
+        margin-bottom: 8px;
+        padding: 0 8px;
       }
 
-      .sidebar h3:first-child {
-        margin-top: 0;
-      }
-
-      .sidebar-list {
-        list-style: none;
-      }
-
-      /* --- Content Sections --- */
-      .content-section {
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      }
-
-      .content-section h2 {
-        font-size: 18px;
-        margin-bottom: 24px;
-        color: #1a1a1a;
-      }
-
-      .content-section h3 {
-        font-size: 16px;
-        margin: 24px 0 16px;
+      .column-item {
+        padding: 8px 12px;
+        margin-bottom: 2px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
         color: #333;
+        transition: all 0.15s;
       }
 
-      .content-section .subtitle {
-        color: #666;
+      .column-item:hover {
+        background-color: #f0f7ff;
+      }
+
+      .column-item.selected {
+        background-color: #f2dc49;
+        color: #1a1a1a;
+        font-weight: 600;
+      }
+
+      .column-config-panel {
+        flex: 1;
+        background: white;
+        padding: 24px;
+        overflow-y: auto;
+      }
+
+      .empty-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #999;
         font-size: 14px;
-        margin-bottom: 25px;
+        font-style: italic;
       }
 
-      /* --- Forms --- */
+      /* Redesigned accordion-style sections */
+      .config-section {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        background: white;
+        overflow: hidden;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f9fafb;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+      }
+
+      .section-header:hover {
+        background: #f3f4f6;
+      }
+
+      .section-header h4 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin: 0;
+      }
+
+      .section-toggle {
+        font-size: 18px;
+        color: #6b7280;
+        transition: transform 0.2s;
+      }
+
+      .section-header.collapsed .section-toggle {
+        transform: rotate(-90deg);
+      }
+
+      .section-content {
+        padding: 16px;
+        border-top: 1px solid #e5e7eb;
+        display: none;
+      }
+
+      .section-content.expanded {
+        display: block;
+      }
+
+      /* Compact horizontal form layout */
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .form-row.single {
+        grid-template-columns: 1fr;
+      }
+
       .form-group {
-        margin-bottom: 24px;
+        margin-bottom: 0;
       }
 
       .form-group label {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         font-weight: 500;
-        color: #333;
-        font-size: 14px;
+        color: #374151;
+        font-size: 12px;
       }
 
       .form-group input[type="text"],
       .form-group input[type="number"],
-      .form-group select,
-      .form-group textarea {
+      .form-group select {
         width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 14px;
+        padding: 8px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 13px;
         transition: border-color 0.2s;
       }
 
       .form-group input:focus,
-      .form-group select:focus,
-      .form-group textarea:focus {
+      .form-group select:focus {
         outline: none;
-        border-color: #0066cc;
+        border-color: #2563eb;
       }
 
       .form-group input[type="color"] {
-        width: 60px;
-        height: 40px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
+        width: 50px;
+        height: 32px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
         cursor: pointer;
+        padding: 2px;
       }
 
       .checkbox-group {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 12px;
+        gap: 8px;
+        padding: 6px 0;
       }
 
       .checkbox-group input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         cursor: pointer;
       }
 
       .checkbox-group label {
         margin: 0;
         cursor: pointer;
+        font-size: 13px;
         font-weight: 400;
+        color: #374151;
       }
 
-      /* --- Buttons --- */
-      .btn {
-        padding: 10px 20px;
-        border: none;
+      /* Compact conditional formatting rules */
+      .conditional-rule {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
         border-radius: 6px;
-        font-size: 14px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+
+      .rule-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .rule-title {
+        font-weight: 600;
+        color: #374151;
+        font-size: 13px;
+      }
+
+      .delete-rule-btn {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        transition: background 0.2s;
+      }
+
+      .delete-rule-btn:hover {
+        background: #dc2626;
+      }
+
+      /* Horizontal layout for rule conditions */
+      .rule-condition-grid {
+        display: grid;
+        grid-template-columns: 140px 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .rule-condition-grid.with-between {
+        grid-template-columns: 140px 1fr 1fr;
+      }
+
+      .rule-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .rule-input-group label {
+        font-size: 11px;
+        color: #6b7280;
+        font-weight: 500;
+      }
+
+      .rule-input-group select,
+      .rule-input-group input {
+        padding: 6px 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+
+      /* Compact grid for formatting options */
+      .rule-formatting-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .format-option {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+      }
+
+      .format-option input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+      }
+
+      .format-option input[type="color"] {
+        width: 32px;
+        height: 24px;
+        border: 1px solid #d1d5db;
+        border-radius: 3px;
+        cursor: pointer;
+        padding: 1px;
+      }
+
+      .format-option select {
+        padding: 4px 6px;
+        border: 1px solid #d1d5db;
+        border-radius: 3px;
+        font-size: 11px;
+      }
+
+      .format-option label {
+        font-size: 11px;
+        color: #6b7280;
+        cursor: pointer;
+        margin: 0;
+      }
+
+      /* Buttons */
+      .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        font-size: 13px;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s;
       }
 
-      /* CHANGE: Changed primary button color to green */
       .btn-primary {
         background: #28a745;
         color: white;
@@ -272,7 +490,6 @@
         background: #218838;
       }
 
-      /* CHANGE: Changed secondary button color to red */
       .btn-secondary {
         background: #dc3545;
         color: white;
@@ -283,655 +500,203 @@
       }
 
       .btn-success {
-        background: #28a745;
+        background: #2563eb;
         color: white;
+        width: 100%;
+        padding: 10px;
+        margin-top: 12px;
       }
 
       .btn-success:hover {
-        background: #218838;
+        background: #1d4ed8;
       }
 
-      .btn-danger {
-        background: #dc3545;
+      .add-rule-btn {
+        width: 100%;
+        padding: 10px;
+        background: #10b981;
         color: white;
-        padding: 6px 12px;
-        font-size: 12px;
-      }
-
-      .btn-danger:hover {
-        background: #c82333;
-      }
-
-      /* --- Helpers & Misc --- */
-      .help-text {
-        margin-top: 6px;
+        border: none;
+        border-radius: 5px;
         font-size: 13px;
-        color: #666;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 8px;
       }
 
-      .color-picker-group {
+      .add-rule-btn:hover {
+        background: #059669;
+      }
+
+      /* General content section for non-data tabs */
+      .content-section {
+        background: white;
+        padding: 24px;
+        margin: 24px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+
+      .content-section h2 {
+        font-size: 18px;
+        margin-bottom: 20px;
+        color: #1a1a1a;
+        font-weight: 600;
+      }
+
+      .content-section h3 {
+        font-size: 15px;
+        margin: 20px 0 12px;
+        color: #374151;
+        font-weight: 600;
+      }
+
+      .help-text {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+
+      .section-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 20px 0;
+      }
+
+      .color-preview {
         display: flex;
         align-items: center;
         gap: 10px;
       }
 
-      .color-preview {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .color-preview input[type="color"] {
-        width: 50px;
-        height: 36px;
-      }
-
       .color-preview span {
-        font-size: 13px;
-        color: #666;
+        font-size: 12px;
+        color: #6b7280;
+        font-family: monospace;
       }
 
-      .section-divider {
-        height: 1px;
-        background: #e0e0e0;
-        margin: 24px 0;
-      }
-
-      .info-box {
-        background: #f0f7ff;
-        border-left: 4px solid #0066cc;
-        padding: 15px;
-        border-radius: 6px;
-        margin: 15px 0;
-      }
-
-      .info-box p {
-        font-size: 14px;
-        color: #333;
-        line-height: 1.5;
-      }
-
-      .column-config-panel {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-      }
-
-      .column-config-panel h3 {
-        font-size: 16px;
-        margin-bottom: 15px;
-        color: #1a1a1a;
-      }
-
-      .radio-group {
-        display: flex;
-        gap: 20px;
-        margin: 10px 0;
-      }
-
-      .radio-group label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        font-weight: normal;
-      }
-
-      .radio-group input[type='radio'] {
-        cursor: pointer;
-      }
-
-      input[type='range'] {
-        width: 100%;
-        height: 6px;
-        border-radius: 3px;
-        background: #ddd;
-        outline: none;
-      }
-
-      input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #0066cc;
-        cursor: pointer;
-      }
-
-      input[type='range']::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #0066cc;
-        cursor: pointer;
-        border: none;
-      }
-
-      .search-box {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 13px;
-        margin-bottom: 15px;
-      }
-
-      .search-box:focus {
-        outline: none;
-        border-color: #0066cc;
-      }
-
-      .empty-state {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        color: #999;
-        font-size: 14px;
-      }
-
+      /* Info tab specific */
       .info-grid {
         display: grid;
-        gap: 16px;
-        margin-top: 20px;
+        gap: 12px;
+        margin-top: 16px;
       }
 
       .info-item {
-        background: #f8f9fa;
-        padding: 16px;
+        background: #f9fafb;
+        padding: 12px 16px;
         border-radius: 6px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        font-size: 13px;
       }
 
       .info-item strong {
-        color: #555;
+        color: #374151;
       }
 
-      .status-badge {
-        display: inline-block;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: green;
-      }
-      .status-online {
-        background-color: #28a745; /* Green for online */
-        color: #28a745;
-        font-weight: 600;
-      }
-      .status-offline {
-        background-color: #dc3545; /* Red for offline */
-      }
-
-      .features-list {
-        list-style: none;
-        padding: 0;
-      }
-
-      .features-list li {
-        margin-bottom: 5px;
-        color: #28a745;
-      }
-
-      /* --- Updates Specific Styles --- */
-      .config-container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }
-
-      .config-content {
-        flex: 1;
-        display: flex;
-        overflow: hidden; /* Prevent scrolling of the entire page */
-      }
-
-      .tabs {
-        position: sticky;
-        top: 60px; /* Adjust based on header height */
-        z-index: 99;
-        background: white;
-        border-bottom: 1px solid #e0e0e0;
-      }
-
-      .tab-panels {
-        flex: 1;
-        overflow-y: auto; /* Allow scrolling within tab panels */
-        padding: 30px;
-      }
-
-      .data-layout {
-        display: flex;
-        flex: 1; /* Take remaining space */
-        overflow: hidden; /* Prevent internal scrolling issues */
-      }
-
-      .column-sidebar {
-        width: 280px; /* Fixed width for sidebar */
-        background: white;
-        border-right: 1px solid #e0e0e0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* Prevent sidebar scrolling issues */
-      }
-
-      .column-sidebar .search-box {
-        padding: 15px 20px;
-        margin-bottom: 0; /* Remove bottom margin */
-        border: none;
-        border-bottom: 1px solid #e0e0e0; /* Separator */
-      }
-
-      .column-sidebar .search-box input {
-        border: 1px solid #ddd; /* Ensure input has border */
-      }
-
-      .column-list {
-        flex: 1; /* Take remaining space */
-        padding: 20px;
-        overflow-y: auto; /* Allow scrolling for the list of columns */
-      }
-
-      .column-section {
-        margin-bottom: 25px;
-      }
-
-      .column-section h3 {
-        font-size: 13px;
-        font-weight: 600;
-        color: #666;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 15px;
-      }
-
-      .column-item {
-        padding: 10px 12px;
-        margin-bottom: 4px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        color: #333;
-        transition: background-color 0.2s ease;
-        background-color: transparent; /* Default */
-      }
-
-      .column-item:hover {
-        background-color: #f0f7ff;
-      }
-
-      .column-item.selected {
-        background-color: #f2dc49;
-        color: white;
-        font-weight: 600;
-      }
-
-      .column-config-panel {
-        flex: 1; /* Take remaining space */
-        background: white; /* Changed from #f8f9fa */
-        padding: 30px; /* Increased padding */
-        border-radius: 0; /* No border-radius */
-        margin-top: 0; /* Removed top margin */
-        box-shadow: none; /* Removed shadow */
-        overflow-y: auto; /* Allow scrolling */
-      }
-
-      .column-config-panel h2 {
-        margin-bottom: 20px; /* Increased margin */
-      }
-
-      .icon-btn {
-        padding: 8px 12px;
-        border: 2px solid #ddd;
-        background: white;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 18px;
-        transition: all 0.2s;
-      }
-
-      .icon-btn:hover {
-        border-color: #2563eb;
-        background: #eff6ff;
-      }
-
-      .icon-btn.selected {
-        border-color: #2563eb;
-        background: #2563eb;
-        color: white;
-      }
-
-      /* Custom disabled input style */
-      input[disabled] {
-        background-color: #f5f5f5;
-        cursor: not-allowed;
-      }
-
-      /* Adjusting label for conditional formatting */
-      .form-group label strong {
-        font-size: 15px; /* Slightly larger for emphasis */
-      }
-      /* Form layout improvements */
-      .form-group input[type='color'] {
-        cursor: pointer;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
-
-      .checkbox-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 0;
-      }
-
-      .checkbox-group input[type='checkbox'] {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-      }
-
-      .checkbox-group label {
-        cursor: pointer;
-        margin: 0;
-      }
-
-      /* Status badges */
       .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 6px;
         padding: 4px 12px;
         border-radius: 12px;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 500;
       }
 
       .status-online {
-        background: #d4edda;
-        color: #155724;
-      }
-
-      /* Export Tab */
-      .export-options {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      /* Conditional Formatting Styles */
-      .conditional-formatting {
-        background: #fafafa;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 16px;
-      }
-
-      .conditional-formatting h4 {
-        font-size: 14px;
-        margin-bottom: 16px;
-        color: #333;
-      }
-
-      .formatting-rule {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-bottom: 16px;
-      }
-
-      .formatting-rule select,
-      .formatting-rule input[type="number"] {
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-      }
-
-      .formatting-options {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-top: 16px;
-      }
-
-      .formatting-option {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .icon-selector {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 8px;
-      }
-
-      .icon-option {
-        width: 36px;
-        height: 36px;
-        border: 2px solid #ddd;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 18px;
-        transition: all 0.2s;
-      }
-
-      .icon-option:hover {
-        border-color: #0066cc;
-        background: #f0f4f8;
-      }
-
-      .icon-option.selected {
-        border-color: #0066cc;
-        background: #e6f2ff;
-      }
-
-      /* Information Tab */
-      .info-grid {
-        display: grid;
-        gap: 16px;
-        margin-top: 20px;
-      }
-
-      .info-item {
-        background: #f8f9fa;
-        padding: 16px;
-        border-radius: 6px;
-      }
-
-      .info-item strong {
-        color: #555;
+        background: #d1fae5;
+        color: #065f46;
       }
 
       .feature-list {
         list-style: none;
         margin-top: 16px;
+        padding: 0;
       }
 
       .feature-list li {
-        padding: 8px 0;
+        padding: 6px 0;
         padding-left: 24px;
         position: relative;
+        font-size: 13px;
+        color: #374151;
       }
 
       .feature-list li:before {
         content: '✓';
         position: absolute;
         left: 0;
-        color: #28a745;
+        color: #10b981;
         font-weight: bold;
-      }
-      
-      /* Added styles for multiple conditional format rules */
-      .conditional-rule {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 8px; /* CHANGED: Changed from 6px to 8px */
-        padding: 16px; /* CHANGED: Reduced padding */
-        margin-bottom: 12px; /* CHANGED: Reduced margin */
-        position: relative;
-      }
-
-      .conditional-rule-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px; /* CHANGED: Reduced margin */
-        padding-bottom: 8px; /* CHANGED: Added padding */
-        border-bottom: 1px solid #dee2e6; /* CHANGED: Added border */
-      }
-
-      .rule-title {
-        font-weight: 600;
-        color: #495057;
-        font-size: 14px; /* CHANGED: Adjusted font size */
-      }
-
-      .delete-rule-btn {
-        background: #dc3545;
-        color: white;
-        border: none;
-        padding: 6px 12px; /* CHANGED: Reduced padding */
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        transition: background 0.2s; /* Added transition */
-      }
-
-      .delete-rule-btn:hover {
-        background: #c82333;
-      }
-
-      /* ADDED: New structure for conditions - more compact and horizontal */
-      .rule-condition {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px; /* CHANGED: Adjusted gap */
-        margin-bottom: 12px; /* CHANGED: Reduced margin */
-      }
-
-      .rule-condition > div {
-        display: flex;
-        flex-direction: column;
-        gap: 4px; /* CHANGED: Adjusted gap */
-      }
-
-      .rule-condition label {
-        font-size: 12px; /* CHANGED: Adjusted font size */
-        font-weight: 500;
-        color: #6c757d;
-      }
-
-      .rule-operator,
-      .rule-value,
-      .rule-value2 {
-        padding: 8px; /* CHANGED: Adjusted padding */
-        border: 1px solid #ced4da;
-        border-radius: 4px;
         font-size: 14px;
-        width: 100%;
       }
 
-      .rule-value-container {
-        display: flex;
-        flex-direction: column;
-        gap: 4px; /* CHANGED: Adjusted gap */
-      }
-
-      /* ADDED: Compact grid for formatting options */
-      .rule-formatting {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px; /* CHANGED: Adjusted gap */
-        padding-top: 12px; /* CHANGED: Added padding */
-        border-top: 1px solid #e9ecef; /* CHANGED: Added border */
-      }
-
-      .rule-format-item {
-        display: flex;
-        align-items: center;
-        gap: 8px; /* CHANGED: Adjusted gap */
-        font-size: 13px; /* CHANGED: Adjusted font size */
-      }
-
-      .rule-format-item input[type="checkbox"] {
-        width: 16px; /* CHANGED: Adjusted size */
-        height: 16px; /* CHANGED: Adjusted size */
-        cursor: pointer;
-      }
-
-      .rule-format-item input[type="color"] {
-        width: 40px; /* CHANGED: Adjusted size */
-        height: 28px; /* CHANGED: Adjusted size */
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-
-      .rule-format-item select {
-        padding: 4px 8px; /* CHANGED: Adjusted padding */
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        font-size: 12px; /* CHANGED: Adjusted font size */
-      }
-
-      .rule-format-item label {
-        display: flex;
-        align-items: center;
-        gap: 6px; /* CHANGED: Adjusted gap */
-        cursor: pointer;
-        font-size: 12px; /* CHANGED: Adjusted font size */
-        color: #495057;
-      }
-
-      /* ADDED: More compact add rule button */
-      .add-rule-btn {
-        width: 100%;
-        padding: 10px; /* CHANGED: Adjusted padding */
-        background: #28a745;
+      /* Config saved message */
+      .config-saved-message {
+        display: none;
+        margin-top: 12px;
+        padding: 10px 14px;
+        background: #10b981;
         color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
+        border-radius: 5px;
+        font-size: 13px;
         font-weight: 500;
-        cursor: pointer;
-        transition: background 0.2s; /* Added transition */
-        margin-top: 8px; /* CHANGED: Reduced margin */
       }
 
-      .add-rule-btn:hover {
-        background: #218838;
+      .config-saved-message.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
       }
 
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+      }
     </style>
   </head>
   <body>
-    <!-- Prevent right-click context menu -->
     <script>
       document.addEventListener('contextmenu', event => event.preventDefault());
     </script>
 
     <div class="config-container">
       <header class="config-header">
-        <h1>SuperTables - Configuración <span style="font-size: 14px; color: #666;">v8.0.0</span></h1>
+        <h1>SuperTables - Configuración <span style="font-size: 13px; color: #999; font-weight: 400;">v9.0.0</span></h1>
         <div class="header-actions">
           <button id="cancel-btn" class="btn btn-secondary" onclick="closeDialog()">Cancelar</button>
           <button id="save-btn" class="btn btn-primary" onclick="saveAndClose()">Guardar y Cerrar</button>
         </div>
       </header>
 
-      <!-- Simplified tabs structure -->
       <nav class="tabs">
         <button class="tab-btn active" onclick="switchTab('general')">General</button>
         <button class="tab-btn" onclick="switchTab('data')">Data</button>
@@ -947,11 +712,7 @@
 
             <div class="form-group">
               <label>Hoja de trabajo</label>
-              <select
-                id="worksheet-select"
-                placeholder="Selecciona la hoja de trabajo"
-                style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"
-              >
+              <select id="worksheet-select">
                 <option value="">La hoja se selecciona desde la extensión</option>
               </select>
               <p class="help-text">Selecciona la hoja de trabajo desde la cual se cargarán los datos</p>
@@ -976,7 +737,6 @@
               <input type="checkbox" id="show-row-count" checked />
               <label for="show-row-count">Mostrar contador de filas</label>
             </div>
-            <p class="help-text">Controla qué elementos se muestran en la interfaz</p>
           </div>
         </div>
 
@@ -984,57 +744,64 @@
         <div id="data-tab" class="tab-content">
           <div class="data-layout">
             <aside class="column-sidebar">
-              <!-- Added reload button next to search -->
-              <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <input type="text" id="column-search" class="search-box" placeholder="Buscar columna..." style="flex: 1;" />
-                <button onclick="reloadColumns()" style="padding: 8px 12px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 14px;" title="Recargar columnas">
-                  ↻ Recargar
-                </button>
+              <div class="sidebar-header">
+                <div class="search-reload-group">
+                  <input type="text" id="column-search" class="search-box" placeholder="Buscar..." />
+                  <button onclick="reloadColumns()" class="reload-btn" title="Recargar columnas">↻</button>
+                </div>
               </div>
-              <h3>DIMENSIONES</h3>
               <div class="column-list">
                 <div class="column-section">
+                  <h3>DIMENSIONES</h3>
                   <div id="dimensions-list"></div>
                 </div>
-                <h3 style="margin-top: 20px; font-size: 12px; text-transform: uppercase; color: #666; padding: 0 8px;">MEDIDAS</h3>
-                <div class="column-section">
+                <div class="column-section" style="margin-top: 20px;">
+                  <h3>MEDIDAS</h3>
                   <div id="measures-list"></div>
                 </div>
               </div>
             </aside>
 
-            <!-- Added complete column configuration panel -->
-            <div class="column-config">
-              <div id="column-config-panel">
-                <div id="column-config-placeholder" class="empty-state">
-                  Selecciona una columna de la lista para configurar sus opciones
-                </div>
+            <div class="column-config-panel">
+              <div id="column-config-placeholder" class="empty-state">
+                Selecciona una columna de la lista para configurar sus opciones
+              </div>
+              
+              <div id="column-config-content" style="display: none;">
+                <h2 id="config-column-title" style="margin-bottom: 20px; font-size: 18px;">Configurar Columna</h2>
                 
-                <div id="column-config-content" style="display: none;">
-                  <h3 id="config-column-title">Configurar Columna</h3>
-                  
-                  <div class="form-group">
-                    <label>Nombre para mostrar</label>
-                    <input type="text" id="column-display-name" placeholder="Nombre personalizado" />
-                    <p class="help-text">Deja vacío para usar el nombre original</p>
+                <!-- Organized config sections with accordions -->
+                <div class="config-section">
+                  <div class="section-header expanded" onclick="toggleSection(this)">
+                    <h4>Opciones Básicas</h4>
+                    <span class="section-toggle">▼</span>
                   </div>
+                  <div class="section-content expanded">
+                    <div class="form-group">
+                      <label>Nombre para mostrar</label>
+                      <input type="text" id="column-display-name" placeholder="Nombre personalizado" />
+                      <p class="help-text">Deja vacío para usar el nombre original</p>
+                    </div>
 
-                  <div class="checkbox-group">
-                    <input type="checkbox" id="column-visible" checked />
-                    <label for="column-visible">Mostrar esta columna en la tabla</label>
+                    <div class="checkbox-group">
+                      <input type="checkbox" id="column-visible" checked />
+                      <label for="column-visible">Mostrar esta columna en la tabla</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                      <input type="checkbox" id="column-export" checked />
+                      <label for="column-export">Incluir en exportaciones</label>
+                    </div>
                   </div>
+                </div>
 
-                  <div class="checkbox-group">
-                    <input type="checkbox" id="column-export" checked />
-                    <label for="column-export">Incluir esta columna en las exportaciones</label>
+                <!-- Conditional formatting in collapsible section -->
+                <div class="config-section" id="conditional-formatting-section" style="display: none;">
+                  <div class="section-header expanded" onclick="toggleSection(this)">
+                    <h4>Formato Condicional</h4>
+                    <span class="section-toggle">▼</span>
                   </div>
-
-                  <div class="section-divider"></div>
-
-                  <!-- Conditional Formatting Section -->
-                  <div id="conditional-formatting-section" style="display: none;">
-                    <h3 style="margin: 20px 0 10px 0; font-size: 16px;">Formato Condicional</h3>
-                    
+                  <div class="section-content expanded">
                     <div id="conditional-rules-container">
                       <!-- Rules will be added here dynamically -->
                     </div>
@@ -1043,14 +810,14 @@
                       + Agregar Regla de Formato
                     </button>
                   </div>
+                </div>
 
-                  <button type="button" onclick="saveColumnConfig()" style="margin-top: 16px; padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    Guardar Configuración
-                  </button>
-                  <!-- Added confirmation message for saved config -->
-                  <div id="config-saved-message" style="display: none; margin-top: 12px; padding: 8px 12px; background: #10b981; color: white; border-radius: 4px; font-size: 14px;">
-                    ✓ Configuración guardada
-                  </div>
+                <button type="button" onclick="saveColumnConfig()" class="btn btn-success">
+                  Guardar Configuración
+                </button>
+                
+                <div id="config-saved-message" class="config-saved-message">
+                  ✓ Configuración guardada correctamente
                 </div>
               </div>
             </div>
@@ -1083,7 +850,7 @@
               <label>Color de fondo</label>
               <div class="color-preview">
                 <input type="color" id="export-button-color" value="#2563eb" />
-                <span id="export-color-value">#2563eb</span>
+                <span id="export-color-value-bg">#2563eb</span>
               </div>
             </div>
 
@@ -1091,7 +858,7 @@
               <label>Color del texto</label>
               <div class="color-preview">
                 <input type="color" id="export-button-text-color" value="#ffffff" />
-                <span id="export-color-value">#ffffff</span>
+                <span id="export-color-value-text">#ffffff</span>
               </div>
             </div>
 
@@ -1125,7 +892,7 @@
               </div>
               <div class="info-item">
                 <strong>Versión:</strong>
-                <span>v8.0.0</span>
+                <span>v9.0.0</span>
               </div>
               <div class="info-item">
                 <strong>Estado:</strong>
@@ -1292,6 +1059,12 @@
         document.getElementById("export-enable-csv").checked = settings.exportEnableCSV !== "false" && settings.exportEnableCSV !== false
         document.getElementById("export-enable-pdf").checked = settings.exportEnablePDF !== "false" && settings.exportEnablePDF !== false
         
+        // Update color value spans
+        const bgSpan = document.getElementById("export-color-value-bg");
+        if (bgSpan) bgSpan.textContent = settings.exportButtonColor || "#2563eb";
+        const textSpan = document.getElementById("export-color-value-text");
+        if (textSpan) textSpan.textContent = settings.exportButtonTextColor || "#ffffff";
+
         console.log("[v0] Settings loaded successfully")
       }
 
@@ -1304,14 +1077,13 @@
           columnSearch.addEventListener("input", filterColumns)
         }
         
-        // Conditional formatting toggles - Removed as it's now rule-based
-        
-        // Format checkboxes to enable/disable color pickers
-        // This section needs to be refactored to work with individual rules
-        // For now, keeping the old structure might be problematic.
-        // The new rule-based approach handles this within addConditionalRule.
-        
-        // Color pickers and inputs - These will be handled within rule events
+        // Color picker updates
+        document.getElementById("export-button-color").addEventListener("input", function() {
+          document.getElementById("export-color-value-bg").textContent = this.value;
+        });
+        document.getElementById("export-button-text-color").addEventListener("input", function() {
+          document.getElementById("export-color-value-text").textContent = this.value;
+        });
         
         const worksheetSelect = document.getElementById("worksheet-select");
         if (worksheetSelect) {
@@ -1323,18 +1095,6 @@
             await loadColumnsFromWorksheet(this.value);
           });
         }
-
-        // Handled within addConditionalRule now
-        // const textConditionOp = document.getElementById("text-condition-operator")
-        // if (textConditionOp) {
-        //   textConditionOp.addEventListener("change", function() {
-        //     const textConditionValue = document.getElementById("text-condition-value")
-        //     if (textConditionValue) {
-        //       const operator = this.value
-        //       textConditionValue.style.display = (operator === "isEmpty" || operator === "isNotEmpty") ? "none" : "block"
-        //     }
-        //   })
-        // }
 
         console.log("[v0] All event listeners set up")
       }
@@ -1350,23 +1110,19 @@
       function switchTab(tabName) {
         console.log("[v0] Switching to tab:", tabName)
         
-        // Hide all tab contents
         document.querySelectorAll('.tab-content').forEach(tab => {
           tab.classList.remove('active')
         })
         
-        // Remove active class from all buttons
         document.querySelectorAll('.tab-btn').forEach(btn => {
           btn.classList.remove('active')
         })
         
-        // Show selected tab
         const selectedTab = document.getElementById(tabName + '-tab')
         if (selectedTab) {
           selectedTab.classList.add('active')
         }
         
-        // Add active class to clicked button
         const buttons = document.querySelectorAll('.tab-btn')
         buttons.forEach(btn => {
           if (btn.textContent.toLowerCase().includes(tabName)) {
@@ -1503,73 +1259,66 @@
         `;
 
         ruleDiv.innerHTML = `
-          <div class="conditional-rule-header">
+          <div class="rule-header">
             <span class="rule-title">Regla ${container.children.length + 1}</span>
             <button class="delete-rule-btn" onclick="deleteConditionalRule('${ruleId}')">Eliminar</button>
           </div>
           
-          <div class="rule-condition">
-            <div>
+          <div class="rule-condition-grid">
+            <div class="rule-input-group">
               <label>Operador</label>
               <select class="rule-operator">${operatorOptions}</select>
             </div>
-            <div class="rule-value-container">
+            <div class="rule-input-group">
               <label>Valor</label>
               <input type="${isDimension ? 'text' : 'number'}" class="rule-value" placeholder="Valor">
-              <input type="number" class="rule-value2" placeholder="Valor 2" style="display: none;">
+            </div>
+            <div class="rule-input-group" style="display: none;">
+              <label>Valor 2</label>
+              <input type="number" class="rule-value2" placeholder="Valor 2">
             </div>
           </div>
           
-          <div class="rule-formatting">
-            <div class="rule-format-item">
+          <div class="rule-formatting-grid">
+            <div class="format-option">
               <input type="checkbox" class="rule-cell-bg" id="${ruleId}-cell-bg">
-              <label for="${ruleId}-cell-bg">
-                Fondo celda
-                <input type="color" class="rule-cell-bg-color" value="#ffeb3b">
-              </label>
+              <label for="${ruleId}-cell-bg">Fondo Celda</label>
+              <input type="color" class="rule-cell-bg-color" value="#ffeb3b">
             </div>
             
-            <div class="rule-format-item">
+            <div class="format-option">
               <input type="checkbox" class="rule-cell-text" id="${ruleId}-cell-text">
-              <label for="${ruleId}-cell-text">
-                Texto celda
-                <input type="color" class="rule-cell-text-color" value="#000000">
-              </label>
+              <label for="${ruleId}-cell-text">Texto Celda</label>
+              <input type="color" class="rule-cell-text-color" value="#000000">
             </div>
             
-            <div class="rule-format-item">
+            <div class="format-option">
               <input type="checkbox" class="rule-row-bg" id="${ruleId}-row-bg">
-              <label for="${ruleId}-row-bg">
-                Fondo fila
-                <input type="color" class="rule-row-bg-color" value="#ffeb3b">
-              </label>
+              <label for="${ruleId}-row-bg">Fondo Fila</label>
+              <input type="color" class="rule-row-bg-color" value="#ffeb3b">
             </div>
             
-            <div class="rule-format-item">
+            <div class="format-option">
               <input type="checkbox" class="rule-row-text" id="${ruleId}-row-text">
-              <label for="${ruleId}-row-text">
-                Texto fila
-                <input type="color" class="rule-row-text-color" value="#000000">
-              </label>
+              <label for="${ruleId}-row-text">Texto Fila</label>
+              <input type="color" class="rule-row-text-color" value="#000000">
             </div>
             
-            <div class="rule-format-item" style="grid-column: 1 / -1;">
+            <div class="format-option">
               <input type="checkbox" class="rule-add-icon" id="${ruleId}-icon">
-              <label for="${ruleId}-icon">
-                Ícono
-                <select class="rule-icon">
-                  <option value="">Ninguno</option>
-                  <option value="arrow_upward">↑ Arriba</option>
-                  <option value="arrow_downward">↓ Abajo</option>
-                  <option value="arrow_forward">→ Derecha</option>
-                  <option value="arrow_back">← Izquierda</option>
-                  <option value="circle">⬤ Círculo</option>
-                  <option value="circle_outline">○ Vacío</option>
-                  <option value="square">■ Cuadrado</option>
-                  <option value="square_outline">□ Hueco</option>
-                </select>
-                <input type="color" class="rule-icon-color" value="#000000">
-              </label>
+              <label for="${ruleId}-icon">Ícono</label>
+              <select class="rule-icon">
+                <option value="">Ninguno</option>
+                <option value="arrow_upward">↑ Arriba</option>
+                <option value="arrow_downward">↓ Abajo</option>
+                <option value="arrow_forward">→ Derecha</option>
+                <option value="arrow_back">← Izquierda</option>
+                <option value="circle">⬤ Círculo</option>
+                <option value="circle_outline">○ Vacío</option>
+                <option value="square">■ Cuadrado</option>
+                <option value="square_outline">□ Hueco</option>
+              </select>
+              <input type="color" class="rule-icon-color" value="#000000">
             </div>
           </div>
         `;
@@ -1579,12 +1328,13 @@
         const operatorSelect = ruleDiv.querySelector(".rule-operator");
         const valueInput = ruleDiv.querySelector(".rule-value");
         const value2Input = ruleDiv.querySelector(".rule-value2");
+        const value2Container = ruleDiv.querySelector(".rule-input-group:nth-child(3)"); // Select the third rule-input-group which is for value2
         
         operatorSelect.addEventListener("change", () => {
           if (operatorSelect.value === "between") {
-            value2Input.style.display = "block";
+            value2Container.style.display = "flex"; // Show the value2 input group
           } else {
-            value2Input.style.display = "none";
+            value2Container.style.display = "none"; // Hide the value2 input group
           }
           
           // Toggle visibility of the single value input for isEmpty/isNotEmpty
@@ -1603,7 +1353,7 @@
           valueInput.value = ruleData.value;
           if (ruleData.value2) value2Input.value = ruleData.value2;
           
-          if (ruleData.operator === "between") value2Input.style.display = "block";
+          if (ruleData.operator === "between") value2Container.style.display = "flex";
           if (ruleData.operator === "isEmpty" || ruleData.operator === "isNotEmpty") {
             valueInput.style.display = "none";
           }
@@ -1689,14 +1439,16 @@
         const conditionalRules = [];
         
         rulesContainer.querySelectorAll(".conditional-rule").forEach((ruleDiv, index) => {
-          const operator = ruleDiv.querySelector(".rule-operator").value;
+          const operatorSelect = ruleDiv.querySelector(".rule-operator");
+          const operator = operatorSelect.value;
           const value = ruleDiv.querySelector(".rule-value").value;
-          const value2 = ruleDiv.querySelector(".rule-value2").value;
+          const value2Input = ruleDiv.querySelector(".rule-value2");
+          const value2 = value2Input.style.display !== "none" ? value2Input.value : undefined;
           
           const rule = {
             operator,
             value,
-            value2: value2 || undefined,
+            value2,
             cellBg: ruleDiv.querySelector(".rule-cell-bg").checked,
             cellBgColor: ruleDiv.querySelector(".rule-cell-bg-color").value,
             cellText: ruleDiv.querySelector(".rule-cell-text").checked,
@@ -1758,9 +1510,9 @@
           // Show confirmation message
           const message = document.getElementById("config-saved-message");
           if (message) {
-            message.style.display = "block";
+            message.classList.add("show");
             setTimeout(() => {
-              message.style.display = "none";
+              message.classList.remove("show");
             }, 3000);
           }
         }).catch(err => {
@@ -1914,6 +1666,22 @@
           }
         } else {
           console.warn("[v0] Tableau dashboard content not available for worksheet selection.")
+        }
+      }
+
+      // Function to toggle accordion sections
+      function toggleSection(element) {
+        const sectionHeader = element;
+        const sectionContent = sectionHeader.nextElementSibling;
+        const sectionToggle = sectionHeader.querySelector('.section-toggle');
+
+        sectionHeader.classList.toggle('collapsed');
+        sectionContent.classList.toggle('expanded');
+        
+        if (sectionContent.classList.contains('expanded')) {
+            sectionToggle.textContent = '▼'; // Expanded state
+        } else {
+            sectionToggle.textContent = '▶'; // Collapsed state
         }
       }
     </script>
