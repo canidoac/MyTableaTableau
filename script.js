@@ -340,10 +340,119 @@ function renderTable() {
 
   pageData.forEach((row, rowIdx) => {
     var tr = document.createElement("tr")
-    let rowFormattingApplied = false
-    let rowBgColor = null
-    let rowTextColor = null
+    let rowFormat = null
 
+    // First pass: check if ANY column has a row-level format rule for this row
+    visibleColumns.forEach((col) => {
+      if (rowFormat) return // Already found row format
+
+      var cellData = row[col.index]
+      var cellValue = ""
+      var numericValue = null
+
+      if (cellData === null || cellData === undefined) {
+        cellValue = ""
+      } else if (typeof cellData === "object") {
+        cellValue = cellData.formattedValue || cellData.value || cellData.nativeValue || ""
+        numericValue = cellData.value || cellData.nativeValue
+      } else {
+        cellValue = cellData
+        numericValue = cellData
+      }
+
+      // Check for row-level conditional formatting
+      const colName = col.fieldName || col.name
+      const columnConfig = config.columns[colName]
+
+      if (columnConfig && columnConfig.conditionalRules && Array.isArray(columnConfig.conditionalRules)) {
+        const sortedRules = [...columnConfig.conditionalRules].sort((a, b) => {
+          const priorityA = a.priority !== undefined ? a.priority : 999
+          const priorityB = b.priority !== undefined ? b.priority : 999
+          return priorityA - priorityB
+        })
+
+        for (const cf of sortedRules) {
+          if (cf.rowBg || cf.rowText) {
+            // This is a row-level rule, check if condition is met
+            let conditionMet = false
+            const isTextValue = typeof cellValue === "string" || col.dataType === "string"
+
+            if (isTextValue) {
+              const strValue = String(cellValue)
+              switch (cf.operator) {
+                case "equals":
+                  conditionMet = strValue === cf.value
+                  break
+                case "notEquals":
+                  conditionMet = strValue !== cf.value
+                  break
+                case "contains":
+                  conditionMet = strValue.includes(cf.value)
+                  break
+                case "notContains":
+                  conditionMet = !strValue.includes(cf.value)
+                  break
+                case "startsWith":
+                  conditionMet = strValue.startsWith(cf.value)
+                  break
+                case "endsWith":
+                  conditionMet = strValue.endsWith(cf.value)
+                  break
+                case "isEmpty":
+                  conditionMet = strValue === "" || strValue === null || strValue === undefined
+                  break
+                case "isNotEmpty":
+                  conditionMet = strValue !== "" && strValue !== null && strValue !== undefined
+                  break
+              }
+            } else {
+              const cellNumValue = Number.parseFloat(numericValue)
+              const condValue = Number.parseFloat(cf.value)
+              const condValue2 = Number.parseFloat(cf.value2)
+
+              if (!isNaN(cellNumValue)) {
+                switch (cf.operator) {
+                  case ">=":
+                    conditionMet = cellNumValue >= condValue
+                    break
+                  case "<=":
+                    conditionMet = cellNumValue <= condValue
+                    break
+                  case "=":
+                    conditionMet = cellNumValue === condValue
+                    break
+                  case ">":
+                    conditionMet = cellNumValue > condValue
+                    break
+                  case "<":
+                    conditionMet = cellNumValue < condValue
+                    break
+                  case "!=":
+                    conditionMet = cellNumValue !== condValue
+                    break
+                  case "between":
+                    conditionMet = cellNumValue >= condValue && cellNumValue <= condValue2
+                    break
+                }
+              }
+            }
+
+            if (conditionMet) {
+              rowFormat = {
+                bgColor: cf.rowBg && cf.rowBgColor ? cf.rowBgColor : null,
+                textColor: cf.rowText && cf.rowTextColor ? cf.rowTextColor : null,
+              }
+              if (rowIdx === 0) {
+                console.log(`[v0] ROW FORMAT FOUND for column [${colName}]:`, rowFormat)
+              }
+              break
+            }
+          }
+        }
+      }
+    })
+
+    // Now create cells and apply row format if found
     visibleColumns.forEach((col) => {
       var td = document.createElement("td")
       var cellData = row[col.index]
@@ -356,10 +465,6 @@ function renderTable() {
       } else if (typeof cellData === "object") {
         cellValue = cellData.formattedValue || cellData.value || cellData.nativeValue || ""
         numericValue = cellData.value || cellData.nativeValue
-
-        if (rowIdx === 0) {
-          console.log(`[v0] Celda [${col.fieldName}]:`, cellData, "→", cellValue)
-        }
       } else {
         cellValue = cellData
         numericValue = cellData
@@ -367,37 +472,25 @@ function renderTable() {
 
       td.textContent = cellValue
 
-      const formatResult = applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx)
-
-      if (formatResult && formatResult.type === "row") {
-        rowFormattingApplied = true
-        if (formatResult.bgColor) rowBgColor = formatResult.bgColor
-        if (formatResult.textColor) rowTextColor = formatResult.textColor
-
-        if (rowIdx === 0) {
-          console.log(`[v0] 🎨 ROW FORMAT will be applied - bg: ${rowBgColor}, text: ${rowTextColor}`)
+      // Apply row format if found, otherwise check cell-level formatting
+      if (rowFormat) {
+        if (rowFormat.bgColor) {
+          td.style.setProperty("background-color", rowFormat.bgColor, "important")
         }
+        if (rowFormat.textColor) {
+          td.style.setProperty("color", rowFormat.textColor, "important")
+        }
+        tr.classList.add("row-formatted")
+      } else {
+        // Apply cell-level conditional formatting
+        applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx)
       }
 
       tr.appendChild(td)
     })
 
-    if (rowFormattingApplied) {
-      tr.dataset.rowFormatApplied = "true"
-      tr.classList.add("row-formatted")
-
-      tr.querySelectorAll("td").forEach((cell) => {
-        if (rowBgColor) {
-          cell.style.setProperty("background-color", rowBgColor, "important")
-        }
-        if (rowTextColor) {
-          cell.style.setProperty("color", rowTextColor, "important")
-        }
-      })
-
-      if (rowIdx === 0) {
-        console.log(`[v0] ✅ ROW FORMAT APPLIED to entire row`)
-      }
+    if (rowFormat && rowIdx === 0) {
+      console.log(`[v0] ROW FORMAT APPLIED to all cells`)
     }
 
     tbody.appendChild(tr)
@@ -793,20 +886,9 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
   const colName = col.fieldName || col.name
   const columnConfig = config.columns[colName]
 
-  if (rowIdx === 0 && columnConfig) {
-    console.log(`[v0] 🎨 Checking conditional format for column [${colName}]`)
-    console.log(`[v0]   - Has conditionalRules:`, !!columnConfig.conditionalRules)
-    if (columnConfig.conditionalRules) {
-      console.log(`[v0]   - Rules count:`, columnConfig.conditionalRules.length)
-    }
-  }
-
   if (!columnConfig || !columnConfig.conditionalRules || !Array.isArray(columnConfig.conditionalRules)) {
-    return null
+    return
   }
-
-  const row = td.parentElement
-  const rowFormatApplied = row?.dataset?.rowFormatApplied === "true"
 
   const sortedRules = [...columnConfig.conditionalRules].sort((a, b) => {
     const priorityA = a.priority !== undefined ? a.priority : 999
@@ -814,23 +896,14 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
     return priorityA - priorityB
   })
 
-  if (rowIdx === 0 && sortedRules.length > 0) {
-    console.log(
-      `[v0]   - Rules sorted by priority:`,
-      sortedRules.map((r) => r.priority || 999),
-    )
-  }
-
-  for (let i = 0; i < sortedRules.length; i++) {
-    const cf = sortedRules[i]
-    let conditionMet = false
-
-    const isTextValue = typeof cellValue === "string" || col.dataType === "string"
-
-    if (rowIdx === 0) {
-      console.log(`[v0]   - Evaluating rule ${i + 1} (priority: ${cf.priority || 999}):`, cf)
-      console.log(`[v0]   - Cell value: "${cellValue}" (type: ${typeof cellValue})`)
+  for (const cf of sortedRules) {
+    // Skip row-level rules
+    if (cf.rowBg || cf.rowText) {
+      continue
     }
+
+    let conditionMet = false
+    const isTextValue = typeof cellValue === "string" || col.dataType === "string"
 
     if (isTextValue) {
       const strValue = String(cellValue)
@@ -893,52 +966,24 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
     }
 
     if (conditionMet) {
-      if (rowIdx === 0) {
-        console.log(`[v0]   ✅ Rule ${i + 1} MATCHED! (Priority: ${cf.priority || 999})`)
-        console.log(`[v0]   - Applying format:`, cf)
+      if (cf.cellBg && cf.cellBgColor) {
+        td.style.setProperty("background-color", cf.cellBgColor, "important")
       }
 
-      if (cf.rowBg || cf.rowText) {
-        if (rowIdx === 0) {
-          console.log(`[v0]   - 🎨 ROW format detected - will apply to entire row`)
-        }
-        return {
-          type: "row",
-          bgColor: cf.rowBg && cf.rowBgColor ? cf.rowBgColor : null,
-          textColor: cf.rowText && cf.rowTextColor ? cf.rowTextColor : null,
-        }
+      if (cf.cellText && cf.cellTextColor) {
+        td.style.setProperty("color", cf.cellTextColor, "important")
       }
 
-      if (!rowFormatApplied) {
-        if (cf.cellBg && cf.cellBgColor) {
-          td.style.setProperty("background-color", cf.cellBgColor, "important")
-          if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied CELL bg: ${cf.cellBgColor}`)
-        }
-
-        if (cf.cellText && cf.cellTextColor) {
-          td.style.setProperty("color", cf.cellTextColor, "important")
-          if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied CELL text color: ${cf.cellTextColor}`)
-        }
-
-        if (cf.icon && cf.iconType) {
-          var iconSpan = document.createElement("span")
-          iconSpan.textContent = cf.iconType
-          iconSpan.className =
-            "icon-" + (cf.iconType === "✓" ? "positive" : cf.iconType === "✗" ? "negative" : "neutral")
-          td.insertBefore(iconSpan, td.firstChild)
-          if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied icon: ${cf.iconType}`)
-        }
-      } else {
-        if (rowIdx === 0) {
-          console.log(`[v0]   - ⚠️ Skipping cell format - row format already applied`)
-        }
+      if (cf.icon && cf.iconType) {
+        var iconSpan = document.createElement("span")
+        iconSpan.textContent = cf.iconType
+        iconSpan.className = "icon-" + (cf.iconType === "✓" ? "positive" : cf.iconType === "✗" ? "negative" : "neutral")
+        td.insertBefore(iconSpan, td.firstChild)
       }
 
-      return null
+      return
     }
   }
-
-  return null
 }
 
 function applyGeneralSettings() {
