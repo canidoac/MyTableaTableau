@@ -1083,6 +1083,55 @@
         // Optionally, you might want to disable further execution or provide a fallback
       }
 
+      async function loadColumnsFromWorksheet(worksheetName) {
+        console.log("[v0] Loading columns from worksheet:", worksheetName)
+        
+        try {
+          if (!worksheetName) {
+            console.warn("[v0] No worksheet name provided")
+            allColumns = []
+            renderColumnList()
+            return
+          }
+          
+          // Get the worksheet object
+          const dashboard = tableau.extensions.dashboardContent.dashboard
+          const worksheet = dashboard.worksheets.find(ws => ws.name === worksheetName)
+          
+          if (!worksheet) {
+            console.error("[v0] Worksheet not found:", worksheetName)
+            allColumns = []
+            renderColumnList()
+            return
+          }
+          
+          console.log("[v0] Found worksheet, fetching data...")
+          const dataTable = await worksheet.getSummaryDataAsync()
+          console.log("[v0] Data received, columns:", dataTable.columns.length)
+          
+          // Store columns in global variable
+          allColumns = dataTable.columns.map(col => ({
+            fieldName: col.fieldName,
+            dataType: col.dataType,
+            index: col.index
+          }))
+          
+          console.log("[v0] Columns loaded:", allColumns.length)
+          
+          // Also save to settings for persistence
+          tableau.extensions.settings.set("dialogColumns", JSON.stringify(allColumns))
+          
+          // Re-render the column list
+          renderColumnList()
+          
+        } catch (error) {
+          console.error("[v0] Error loading columns:", error)
+          alert("Error al cargar las columnas: " + error.message)
+          allColumns = []
+          renderColumnList()
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", function() {
         console.log("[v0] DOM loaded, initializing Tableau Extensions...")
         
@@ -1224,13 +1273,14 @@
           }
         })
         
-        // Add listener for worksheet selection
         const worksheetSelect = document.getElementById("worksheet-select");
         if (worksheetSelect) {
-          worksheetSelect.addEventListener("change", function() {
+          worksheetSelect.addEventListener("change", async function() {
             console.log("[v0] Worksheet selected:", this.value);
             tableau.extensions.settings.set("worksheet", this.value);
-            // autoSave(); // Optionally save immediately
+            
+            // Load columns from the selected worksheet
+            await loadColumnsFromWorksheet(this.value);
           });
         }
 
