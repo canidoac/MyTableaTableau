@@ -20,7 +20,7 @@ var config = {
   showExportButtons: true,
   showRefreshButton: true,
   showSettingsButton: true,
-  columns: {}, // { columnName: { visible: true, includeInExport: true, displayName: "", conditionalFormat: { enabled: false, operator: '', value: '', cellBg: false, cellBgColor: '', cellText: false, cellTextColor: '', rowBg: false, rowBgColor: '', rowText: false, rowTextColor: '', addIcon: false, icon: '', iconColor: '' } }
+  columns: {}, // { columnName: { visible: true, includeInExport: true, displayName: "", conditionalRules: [], conditionalFormat: { enabled: false, operator: '', value: '', value2: '', cellBg: false, cellBgColor: '', cellText: false, cellTextColor: '', rowBg: false, rowBgColor: '', rowText: false, rowTextColor: '', addIcon: false, icon: '', iconColor: '' } } }
   rowsPerPage: 100,
   exportButtonText: "Exportar",
   exportButtonColor: "#2563eb", // Default color
@@ -182,10 +182,12 @@ async function loadWorksheetData(worksheet) {
           visible: true,
           includeInExport: true,
           displayName: "",
+          conditionalRules: [],
           conditionalFormat: {
             enabled: false,
             operator: "",
             value: "",
+            value2: "",
             cellBg: false,
             cellBgColor: "",
             cellText: false,
@@ -341,7 +343,110 @@ function renderTable() {
       const colName = col.fieldName || col.name
       const columnConfig = config.columns[colName]
 
-      if (columnConfig && columnConfig.conditionalFormat && columnConfig.conditionalFormat.enabled) {
+      if (columnConfig && columnConfig.conditionalRules && Array.isArray(columnConfig.conditionalRules)) {
+        columnConfig.conditionalRules.forEach((cf) => {
+          let conditionMet = false
+
+          if (typeof cellValue === "string") {
+            switch (cf.operator) {
+              case "equals":
+                conditionMet = cellValue === cf.value
+                break
+              case "notEquals":
+                conditionMet = cellValue !== cf.value
+                break
+              case "contains":
+                conditionMet = cellValue.includes(cf.value)
+                break
+              case "notContains":
+                conditionMet = !cellValue.includes(cf.value)
+                break
+              case "startsWith":
+                conditionMet = cellValue.startsWith(cf.value)
+                break
+              case "endsWith":
+                conditionMet = cellValue.endsWith(cf.value)
+                break
+              case "isEmpty":
+                conditionMet = cellValue === "" || cellValue === null || cellValue === undefined
+                break
+              case "isNotEmpty":
+                conditionMet = cellValue !== "" && cellValue !== null && cellValue !== undefined
+                break
+            }
+          } else {
+            const cellNumValue = Number.parseFloat(numericValue)
+            const condValue = Number.parseFloat(cf.value)
+            const condValue2 = Number.parseFloat(cf.value2)
+
+            if (!isNaN(cellNumValue)) {
+              switch (cf.operator) {
+                case ">=":
+                  conditionMet = cellNumValue >= condValue
+                  break
+                case "<=":
+                  conditionMet = cellNumValue <= condValue
+                  break
+                case "=":
+                  conditionMet = cellNumValue === condValue
+                  break
+                case ">":
+                  conditionMet = cellNumValue > condValue
+                  break
+                case "<":
+                  conditionMet = cellNumValue < condValue
+                  break
+                case "!=":
+                  conditionMet = cellNumValue !== condValue
+                  break
+                case "between":
+                  conditionMet = cellNumValue >= condValue && cellNumValue <= condValue2
+                  break
+              }
+            }
+          }
+
+          if (conditionMet) {
+            if (cf.cellBg) {
+              td.style.backgroundColor = cf.cellBgColor
+            }
+            if (cf.cellText) {
+              td.style.color = cf.cellTextColor
+            }
+
+            if (cf.rowBg) {
+              rowFormattingApplied = true
+              rowBgColor = cf.rowBgColor
+            }
+            if (cf.rowText) {
+              rowFormattingApplied = true
+              rowTextColor = cf.rowTextColor
+            }
+
+            if (cf.addIcon && cf.icon) {
+              const iconSpan = document.createElement("span")
+              iconSpan.style.marginRight = "6px"
+              iconSpan.style.color = cf.iconColor || "#000000"
+
+              const iconMap = {
+                arrow_upward: "↑",
+                arrow_downward: "↓",
+                arrow_forward: "→",
+                arrow_back: "←",
+                circle: "⬤",
+                circle_outline: "○",
+                square: "■",
+                square_outline: "□",
+              }
+
+              iconSpan.textContent = iconMap[cf.icon] || ""
+              td.prepend(iconSpan)
+            }
+
+            return
+          }
+        })
+      } else if (columnConfig && columnConfig.conditionalFormat && columnConfig.conditionalFormat.enabled) {
         const cf = columnConfig.conditionalFormat
         const condValue = Number.parseFloat(cf.value)
         const cellNumValue = Number.parseFloat(numericValue)
@@ -371,7 +476,6 @@ function renderTable() {
           }
 
           if (conditionMet) {
-            // Apply cell formatting
             if (cf.cellBg) {
               td.style.backgroundColor = cf.cellBgColor
             }
@@ -379,7 +483,6 @@ function renderTable() {
               td.style.color = cf.cellTextColor
             }
 
-            // Track row formatting
             if (cf.rowBg) {
               rowFormattingApplied = true
               rowBgColor = cf.rowBgColor
@@ -389,13 +492,11 @@ function renderTable() {
               rowTextColor = cf.rowTextColor
             }
 
-            // Add icon if configured
             if (cf.addIcon && cf.icon) {
               const iconSpan = document.createElement("span")
               iconSpan.style.marginRight = "6px"
               iconSpan.style.color = cf.iconColor || "#000000"
 
-              // Map icon names to Unicode symbols
               const iconMap = {
                 arrow_upward: "↑",
                 arrow_downward: "↓",
@@ -526,10 +627,12 @@ async function openSettings() {
         visible: config.columns[colName]?.visible !== false,
         includeInExport: config.columns[colName]?.includeInExport !== false,
         displayName: config.columns[colName]?.displayName || "",
+        conditionalRules: config.columns[colName]?.conditionalRules || [],
         conditionalFormat: config.columns[colName]?.conditionalFormat || {
           enabled: false,
           operator: "",
           value: "",
+          value2: "",
           cellBg: false,
           cellBgColor: "",
           cellText: false,

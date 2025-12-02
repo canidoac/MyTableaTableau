@@ -772,7 +772,71 @@
         color: #28a745;
         font-weight: bold;
       }
+      
+      /* Added styles for multiple conditional format rules */
+      .conditional-rule {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 15px;
+        position: relative;
+      }
 
+      .conditional-rule-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .rule-title {
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .delete-rule-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .delete-rule-btn:hover {
+        background: #c82333;
+      }
+
+      .add-rule-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+      }
+
+      .add-rule-btn:hover {
+        background: #218838;
+      }
+
+      .rule-condition {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .rule-formatting {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+        align-items: center;
+      }
     </style>
   </head>
   <body>
@@ -865,7 +929,7 @@
             <!-- Added complete column configuration panel -->
             <div class="column-config">
               <div id="column-config-panel">
-                <div id="no-column-selected" class="empty-state">
+                <div id="column-config-placeholder" class="empty-state">
                   Selecciona una columna de la lista para configurar sus opciones
                 </div>
                 
@@ -892,95 +956,15 @@
 
                   <!-- Conditional Formatting Section -->
                   <div id="conditional-formatting-section" style="display: none;">
-                    <h3>Formato Condicional</h3>
-                    <p class="help-text">Aplica estilos cuando la celda cumpla una condición</p>
-
-                    <div class="checkbox-group">
-                      <input type="checkbox" id="enable-conditional-format" />
-                      <label for="enable-conditional-format">Habilitar formato condicional</label>
+                    <h3 style="margin: 20px 0 10px 0; font-size: 16px;">Formato Condicional</h3>
+                    
+                    <div id="conditional-rules-container">
+                      <!-- Rules will be added here dynamically -->
                     </div>
-
-                    <div id="conditional-format-config" style="display: none;">
-                      <div class="form-group">
-                        <label>Condición</label>
-                        <!-- Added separate condition inputs for numeric and text types -->
-                        <div id="numeric-condition" style="display: flex; gap: 8px;">
-                          <select id="condition-operator" style="width: 80px;">
-                            <option value=">=">&gt;=</option>
-                            <option value="<=​">&lt;=</option>
-                            <option value="=">=</option>
-                            <option value=">">&gt;</option>
-                            <option value="<">&lt;</option>
-                            <option value="!=">≠</option>
-                          </select>
-                          <input type="number" id="condition-value" placeholder="Valor" style="flex: 1;" />
-                        </div>
-                        
-                        <div id="text-condition" style="display: none; gap: 8px;">
-                          <select id="text-condition-operator" style="width: 150px;">
-                            <option value="equals">Es igual a</option>
-                            <option value="notEquals">No es igual a</option>
-                            <option value="contains">Contiene</option>
-                            <option value="notContains">No contiene</option>
-                            <option value="startsWith">Empieza con</option>
-                            <option value="endsWith">Termina con</option>
-                            <option value="isEmpty">Está vacío</option>
-                            <option value="isNotEmpty">No está vacío</option>
-                          </select>
-                          <input type="text" id="text-condition-value" placeholder="Texto" style="flex: 1;" />
-                        </div>
-                      </div>
-
-                      <h4>Aplicar formato:</h4>
-
-                      <div class="checkbox-group">
-                        <input type="checkbox" id="format-cell-bg" />
-                        <label for="format-cell-bg">Pintar fondo de celda</label>
-                        <input type="color" id="format-cell-bg-color" value="#ffeb3b" disabled />
-                      </div>
-
-                      <div class="checkbox-group">
-                        <input type="checkbox" id="format-row-bg" />
-                        <label for="format-row-bg">Pintar fondo de fila</label>
-                        <input type="color" id="format-row-bg-color" value="#ffcdd2" disabled />
-                      </div>
-
-                      <div class="checkbox-group">
-                        <input type="checkbox" id="format-cell-text" />
-                        <label for="format-cell-text">Color de texto de celda</label>
-                        <input type="color" id="format-cell-text-color" value="#d32f2f" disabled />
-                      </div>
-
-                      <div class="checkbox-group">
-                        <input type="checkbox" id="format-row-text" />
-                        <label for="format-row-text">Color de texto de fila</label>
-                        <input type="color" id="format-row-text-color" value="#1976d2" disabled />
-                      </div>
-
-                      <div class="checkbox-group">
-                        <input type="checkbox" id="format-add-icon" />
-                        <label for="format-add-icon">Agregar icono</label>
-                      </div>
-
-                      <div id="icon-selection" style="display: none; margin-top: 12px;">
-                        <label>Selecciona un icono:</label>
-                        <div class="icon-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0;">
-                          <button type="button" class="icon-btn" data-icon="↑" onclick="selectIcon('↑')">↑</button>
-                          <button type="button" class="icon-btn" data-icon="↓" onclick="selectIcon('↓')">↓</button>
-                          <button type="button" class="icon-btn" data-icon="→" onclick="selectIcon('→')">→</button>
-                          <button type="button" class="icon-btn" data-icon="←" onclick="selectIcon('←')">←</button>
-                          <button type="button" class="icon-btn" data-icon="⬤" onclick="selectIcon('⬤')">⬤</button>
-                          <button type="button" class="icon-btn" data-icon="○" onclick="selectIcon('○')">○</button>
-                          <button type="button" class="icon-btn" data-icon="■" onclick="selectIcon('■')">■</button>
-                          <button type="button" class="icon-btn" data-icon="□" onclick="selectIcon('□')">□</button>
-                        </div>
-                        <input type="hidden" id="selected-icon" />
-                        <div class="form-group">
-                          <label>Color del icono</label>
-                          <input type="color" id="icon-color" value="#000000" />
-                        </div>
-                      </div>
-                    </div>
+                    
+                    <button class="add-rule-btn" onclick="addConditionalRule()">
+                      + Agregar Regla de Formato
+                    </button>
                   </div>
 
                   <button type="button" onclick="saveColumnConfig()" style="margin-top: 16px; padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">
@@ -1101,6 +1085,7 @@
       let allColumns = []
       let currentSelectedColumn = null
       let columnsConfig = {}
+      let conditionalRuleCounter = 0; // Moved counter here
 
       if (typeof tableau === 'undefined') {
         console.error("[v0] Tableau Extensions API not loaded!")
@@ -1242,61 +1227,14 @@
           columnSearch.addEventListener("input", filterColumns)
         }
         
-        // Conditional formatting toggles
-        const enableCF = document.getElementById("enable-conditional-format")
-        if (enableCF) {
-          enableCF.addEventListener("change", function() {
-            const configDiv = document.getElementById("conditional-format-config")
-            if (configDiv) {
-              configDiv.style.display = this.checked ? "block" : "none"
-            }
-            saveColumnConfig()
-          })
-        }
+        // Conditional formatting toggles - Removed as it's now rule-based
         
         // Format checkboxes to enable/disable color pickers
-        const formatToggles = [
-          { checkbox: "format-cell-bg", colorPicker: "format-cell-bg-color" },
-          { checkbox: "format-row-bg", colorPicker: "format-row-bg-color" },
-          { checkbox: "format-cell-text", colorPicker: "format-cell-text-color" },
-          { checkbox: "format-row-text", colorPicker: "format-row-text-color" },
-          { checkbox: "format-add-icon", targetDiv: "icon-selection" }
-        ]
+        // This section needs to be refactored to work with individual rules
+        // For now, keeping the old structure might be problematic.
+        // The new rule-based approach handles this within addConditionalRule.
         
-        formatToggles.forEach(toggle => {
-          const checkbox = document.getElementById(toggle.checkbox)
-          if (checkbox) {
-            checkbox.addEventListener("change", function() {
-              if (toggle.colorPicker) {
-                const colorPicker = document.getElementById(toggle.colorPicker)
-                if (colorPicker) {
-                  colorPicker.disabled = !this.checked
-                }
-              } else if (toggle.targetDiv) {
-                const targetDiv = document.getElementById(toggle.targetDiv)
-                if (targetDiv) {
-                  targetDiv.style.display = this.checked ? "block" : "none"
-                }
-              }
-              saveColumnConfig()
-            })
-          }
-        })
-        
-        // Color pickers and inputs
-        const autoSaveInputs = [
-          "column-display-name", "column-visible", "column-export",
-          "condition-operator", "condition-value",
-          "format-cell-bg-color", "format-row-bg-color",
-          "format-cell-text-color", "format-row-text-color", "icon-color"
-        ]
-        
-        autoSaveInputs.forEach(id => {
-          const element = document.getElementById(id)
-          if (element) {
-            element.addEventListener("change", saveColumnConfig)
-          }
-        })
+        // Color pickers and inputs - These will be handled within rule events
         
         const worksheetSelect = document.getElementById("worksheet-select");
         if (worksheetSelect) {
@@ -1309,16 +1247,17 @@
           });
         }
 
-        const textConditionOp = document.getElementById("text-condition-operator")
-        if (textConditionOp) {
-          textConditionOp.addEventListener("change", function() {
-            const textConditionValue = document.getElementById("text-condition-value")
-            if (textConditionValue) {
-              const operator = this.value
-              textConditionValue.style.display = (operator === "isEmpty" || operator === "isNotEmpty") ? "none" : "block"
-            }
-          })
-        }
+        // Handled within addConditionalRule now
+        // const textConditionOp = document.getElementById("text-condition-operator")
+        // if (textConditionOp) {
+        //   textConditionOp.addEventListener("change", function() {
+        //     const textConditionValue = document.getElementById("text-condition-value")
+        //     if (textConditionValue) {
+        //       const operator = this.value
+        //       textConditionValue.style.display = (operator === "isEmpty" || operator === "isNotEmpty") ? "none" : "block"
+        //     }
+        //   })
+        // }
 
         console.log("[v0] All event listeners set up")
       }
@@ -1428,7 +1367,7 @@
         }
 
         // Show config panel
-        document.getElementById("no-column-selected").style.display = "none"
+        document.getElementById("column-config-placeholder").style.display = "none"
         document.getElementById("column-config-content").style.display = "block"
 
         // Load column data
@@ -1442,78 +1381,187 @@
         document.getElementById("column-visible").checked = columnData.visible !== false
         document.getElementById("column-export").checked = columnData.includeInExport !== false
 
-        const isDimension = columnInfo.isDimension || columnInfo.aggregation === "NONE" || columnInfo.dataType === "string"
-        const conditionalSection = document.getElementById("conditional-formatting-section")
-        const numericCondition = document.getElementById("numeric-condition")
-        const textCondition = document.getElementById("text-condition")
-        const textConditionValue = document.getElementById("text-condition-value")
+        // Call the modified showColumnConfig function
+        showColumnConfig(colName);
+      }
+
+      function addConditionalRule(ruleData = null) {
+        const ruleId = `rule-${conditionalRuleCounter++}`;
+        const container = document.getElementById("conditional-rules-container");
+        
+        // Detect column type for correct operator/input display
+        const column = allColumns.find(c => c.fieldName === currentSelectedColumn);
+        const isDimension = column?.dataType === "string" || false;
+        
+        const ruleDiv = document.createElement("div");
+        ruleDiv.className = "conditional-rule";
+        ruleDiv.id = ruleId;
+        
+        // Populate operators based on column type
+        const operatorOptions = isDimension ? `
+          <option value="equals">Es igual a</option>
+          <option value="notEquals">No es igual a</option>
+          <option value="contains">Contiene</option>
+          <option value="notContains">No contiene</option>
+          <option value="startsWith">Empieza con</option>
+          <option value="endsWith">Termina con</option>
+          <option value="isEmpty">Está vacío</option>
+          <option value="isNotEmpty">No está vacío</option>
+        ` : `
+          <option value=">=">Mayor o igual (>=)</option>
+          <option value="<=">Menor o igual (<=)</option>
+          <option value="=">Igual (=)</option>
+          <option value=">">Mayor (>)</option>
+          <option value="<">Menor (<)</option>
+          <option value="!=">Diferente (!=)</option>
+          <option value="between">Entre</option>
+        `;
+
+        ruleDiv.innerHTML = `
+          <div class="conditional-rule-header">
+            <span class="rule-title">Regla ${container.children.length + 1}</span>
+            <button class="delete-rule-btn" onclick="deleteConditionalRule('${ruleId}')">Eliminar</button>
+          </div>
+          
+          <div class="rule-condition">
+            <div>
+              <label>Operador:</label>
+              <select class="rule-operator">${operatorOptions}</select>
+            </div>
+            <div class="rule-value-container">
+              <label>Valor:</label>
+              <input type="${isDimension ? 'text' : 'number'}" class="rule-value" placeholder="Valor">
+              <input type="number" class="rule-value2" placeholder="Valor 2" style="display: none; margin-top: 5px;">
+            </div>
+          </div>
+          
+          <div class="rule-formatting">
+            <input type="checkbox" class="rule-cell-bg">
+            <label>Fondo de celda: <input type="color" class="rule-cell-bg-color" value="#ffeb3b"></label>
+            
+            <input type="checkbox" class="rule-cell-text">
+            <label>Color de texto celda: <input type="color" class="rule-cell-text-color" value="#000000"></label>
+            
+            <input type="checkbox" class="rule-row-bg">
+            <label>Fondo de fila: <input type="color" class="rule-row-bg-color" value="#ffeb3b"></label>
+            
+            <input type="checkbox" class="rule-row-text">
+            <label>Color de texto fila: <input type="color" class="rule-row-text-color" value="#000000"></label>
+            
+            <input type="checkbox" class="rule-add-icon">
+            <label>Agregar ícono:
+              <select class="rule-icon">
+                <option value="">Ninguno</option>
+                <option value="arrow_upward">↑ Flecha arriba</option>
+                <option value="arrow_downward">↓ Flecha abajo</option>
+                <option value="arrow_forward">→ Flecha derecha</option>
+                <option value="arrow_back">← Flecha izquierda</option>
+                <option value="circle">⬤ Círculo</option>
+                <option value="circle_outline">○ Círculo vacío</option>
+                <option value="square">■ Cuadrado</option>
+                <option value="square_outline">□ Cuadrado vacío</option>
+              </select>
+              <input type="color" class="rule-icon-color" value="#000000">
+            </label>
+          </div>
+        `;
+        
+        container.appendChild(ruleDiv);
+        
+        const operatorSelect = ruleDiv.querySelector(".rule-operator");
+        const valueInput = ruleDiv.querySelector(".rule-value");
+        const value2Input = ruleDiv.querySelector(".rule-value2");
+        
+        operatorSelect.addEventListener("change", () => {
+          if (operatorSelect.value === "between") {
+            value2Input.style.display = "block";
+          } else {
+            value2Input.style.display = "none";
+          }
+          
+          // Toggle visibility of the single value input for isEmpty/isNotEmpty
+          if (operatorSelect.value === "isEmpty" || operatorSelect.value === "isNotEmpty") {
+            valueInput.style.display = "none";
+          } else {
+            valueInput.style.display = "block";
+          }
+        });
+        
+        // Trigger change event to set initial display correctly
+        operatorSelect.dispatchEvent(new Event('change'));
+
+        if (ruleData) {
+          operatorSelect.value = ruleData.operator;
+          valueInput.value = ruleData.value;
+          if (ruleData.value2) value2Input.value = ruleData.value2;
+          
+          if (ruleData.operator === "between") value2Input.style.display = "block";
+          if (ruleData.operator === "isEmpty" || ruleData.operator === "isNotEmpty") {
+            valueInput.style.display = "none";
+          }
+          
+          ruleDiv.querySelector(".rule-cell-bg").checked = ruleData.cellBg;
+          ruleDiv.querySelector(".rule-cell-bg-color").value = ruleData.cellBgColor || "#ffeb3b";
+          ruleDiv.querySelector(".rule-cell-text").checked = ruleData.cellText;
+          ruleDiv.querySelector(".rule-cell-text-color").value = ruleData.cellTextColor || "#000000";
+          ruleDiv.querySelector(".rule-row-bg").checked = ruleData.rowBg;
+          ruleDiv.querySelector(".rule-row-bg-color").value = ruleData.rowBgColor || "#ffeb3b";
+          ruleDiv.querySelector(".rule-row-text").checked = ruleData.rowText;
+          ruleDiv.querySelector(".rule-row-text-color").value = ruleData.rowTextColor || "#000000";
+          ruleDiv.querySelector(".rule-add-icon").checked = ruleData.addIcon;
+          ruleDiv.querySelector(".rule-icon").value = ruleData.icon || "";
+          ruleDiv.querySelector(".rule-icon-color").value = ruleData.iconColor || "#000000";
+        }
+      }
+
+      function deleteConditionalRule(ruleId) {
+        const rule = document.getElementById(ruleId);
+        if (rule) {
+          rule.remove();
+          
+          const container = document.getElementById("conditional-rules-container");
+          Array.from(container.children).forEach((child, index) => {
+            const header = child.querySelector(".rule-title");
+            if (header) {
+              header.textContent = `Regla ${index + 1}`;
+            }
+          });
+        }
+      }
+
+      function showColumnConfig(columnName) {
+        console.log("[v0] Showing config for column:", columnName)
+        currentSelectedColumn = columnName
+
+        const columnData = columnsConfig[columnName] || {}
+        const column = allColumns.find((c) => c.fieldName === columnName)
+
+        document.getElementById("column-display-name").value = columnData.displayName || ""
+        document.getElementById("column-visible").checked = columnData.visible !== false
+        document.getElementById("column-export").checked = columnData.includeInExport !== false
+
+        const isDimension = column?.dataType === "string" || false;
+        const conditionalSection = document.getElementById("conditional-formatting-section");
         
         if (conditionalSection) {
-          // Always show conditional formatting section
-          conditionalSection.style.display = "block"
+          conditionalSection.style.display = "block";
           
-          // Show appropriate condition controls based on column type
-          if (isDimension) {
-            // Text/Dimension column - show text operators
-            if (numericCondition) numericCondition.style.display = "none"
-            if (textCondition) textCondition.style.display = "flex"
-          } else {
-            // Numeric/Measure column - show numeric operators
-            if (numericCondition) numericCondition.style.display = "flex"
-            if (textCondition) textCondition.style.display = "none"
+          const container = document.getElementById("conditional-rules-container");
+          container.innerHTML = "";
+          conditionalRuleCounter = 0; // Reset counter for each column
+          
+          if (columnData.conditionalRules && Array.isArray(columnData.conditionalRules)) {
+            columnData.conditionalRules.forEach(rule => {
+              addConditionalRule(rule);
+            });
+          } else if (columnData.conditionalFormat && columnData.conditionalFormat.enabled) {
+            // Ensure only one rule is added if migrating from old format
+            addConditionalRule(columnData.conditionalFormat);
           }
         }
 
-        // Load conditional format settings if available
-        if (columnData.conditionalFormat) {
-          const cf = columnData.conditionalFormat
-          document.getElementById("enable-conditional-format").checked = cf.enabled || false
-          document.getElementById("conditional-format-config").style.display = cf.enabled ? "block" : "none"
-          
-          if (isDimension) {
-            // Load text condition settings
-            const textOp = document.getElementById("text-condition-operator")
-            const textVal = document.getElementById("text-condition-value")
-            if (textOp) textOp.value = cf.operator || "equals"
-            if (textVal) textVal.value = cf.value || ""
-            // Hide text value input for isEmpty/isNotEmpty operators
-            if (textConditionValue && (cf.operator === "isEmpty" || cf.operator === "isNotEmpty")) {
-              textConditionValue.style.display = "none"
-            } else if (textConditionValue) {
-              textConditionValue.style.display = "block"
-            }
-          } else {
-            // Load numeric condition settings
-            document.getElementById("condition-operator").value = cf.operator || ">="
-            document.getElementById("condition-value").value = cf.value || 0
-          }
-          
-          document.getElementById("format-cell-bg").checked = cf.cellBg || false
-          document.getElementById("format-cell-bg-color").value = cf.cellBgColor || "#ffeb3b"
-          document.getElementById("format-cell-bg-color").disabled = !cf.cellBg
-          
-          document.getElementById("format-row-bg").checked = cf.rowBg || false
-          document.getElementById("format-row-bg-color").value = cf.rowBgColor || "#ffcdd2"
-          document.getElementById("format-row-bg-color").disabled = !cf.rowBg
-          
-          document.getElementById("format-cell-text").checked = cf.cellText || false
-          document.getElementById("format-cell-text-color").value = cf.cellTextColor || "#d32f2f"
-          document.getElementById("format-cell-text-color").disabled = !cf.cellText
-          
-          document.getElementById("format-row-text").checked = cf.rowText || false
-          document.getElementById("format-row-text-color").value = cf.rowTextColor || "#1976d2"
-          document.getElementById("format-row-text-color").disabled = !cf.rowText
-          
-          document.getElementById("format-add-icon").checked = cf.addIcon || false
-          document.getElementById("icon-selection").style.display = cf.addIcon ? "block" : "none"
-          document.getElementById("selected-icon").value = cf.icon || ""
-          document.getElementById("icon-color").value = cf.iconColor || "#000000"
-        } else {
-          document.getElementById("enable-conditional-format").checked = false
-          document.getElementById("conditional-format-config").style.display = "none"
-        }
-        
-        console.log("[v0] Column selection complete")
+        document.getElementById("column-config-content").style.display = "block"
+        document.getElementById("column-config-placeholder").style.display = "none"
       }
 
       function saveColumnConfig() {
@@ -1530,39 +1578,43 @@
         columnData.visible = document.getElementById("column-visible").checked
         columnData.includeInExport = document.getElementById("column-export").checked
 
-        const conditionalSection = document.getElementById("conditional-formatting-section")
-        if (conditionalSection && conditionalSection.style.display !== "none") {
-          const enabledCF = document.getElementById("enable-conditional-format").checked
+        const container = document.getElementById("conditional-rules-container");
+        const rules = [];
+        
+        Array.from(container.children).forEach(ruleDiv => {
+          const operatorSelect = ruleDiv.querySelector(".rule-operator");
+          const valueInput = ruleDiv.querySelector(".rule-value");
+          const value2Input = ruleDiv.querySelector(".rule-value2");
 
-          if (enabledCF) {
-            const isDimension = allColumns.find(c => c.fieldName === currentSelectedColumn)?.dataType === "string" || false; // Basic check, might need refinement
-            columnData.conditionalFormat = {
-              enabled: true,
-              operator: isDimension ? document.getElementById("text-condition-operator").value : document.getElementById("condition-operator").value,
-              value: isDimension ? document.getElementById("text-condition-value").value : parseFloat(document.getElementById("condition-value").value) || 0,
-              cellBg: document.getElementById("format-cell-bg").checked,
-              cellBgColor: document.getElementById("format-cell-bg-color").value,
-              rowBg: document.getElementById("format-row-bg").checked,
-              rowBgColor: document.getElementById("format-row-bg-color").value,
-              cellText: document.getElementById("format-cell-text").checked,
-              cellTextColor: document.getElementById("format-cell-text-color").value,
-              rowText: document.getElementById("format-row-text").checked,
-              rowTextColor: document.getElementById("format-row-text-color").value,
-              addIcon: document.getElementById("format-add-icon").checked,
-              icon: document.getElementById("selected-icon").value,
-              iconColor: document.getElementById("icon-color").value,
-            }
-          } else {
-            delete columnData.conditionalFormat
-          }
-        }
+          const rule = {
+            operator: operatorSelect.value,
+            value: (operatorSelect.value === "isEmpty" || operatorSelect.value === "isNotEmpty") ? "" : valueInput.value, // Don't save value if not applicable
+            value2: (operatorSelect.value === "between") ? value2Input.value : "", // Only save value2 if operator is "between"
+            cellBg: ruleDiv.querySelector(".rule-cell-bg").checked,
+            cellBgColor: ruleDiv.querySelector(".rule-cell-bg-color").value,
+            cellText: ruleDiv.querySelector(".rule-cell-text").checked,
+            cellTextColor: ruleDiv.querySelector(".rule-cell-text-color").value,
+            rowBg: ruleDiv.querySelector(".rule-row-bg").checked,
+            rowBgColor: ruleDiv.querySelector(".rule-row-bg-color").value,
+            rowText: ruleDiv.querySelector(".rule-row-text").checked,
+            rowTextColor: ruleDiv.querySelector(".rule-row-text-color").value,
+            addIcon: ruleDiv.querySelector(".rule-add-icon").checked,
+            icon: ruleDiv.querySelector(".rule-icon").value,
+            iconColor: ruleDiv.querySelector(".rule-icon-color").value,
+          };
+          rules.push(rule);
+        });
+        
+        columnData.conditionalRules = rules;
+        
+        delete columnData.conditionalFormat;
 
         columnsConfig[currentSelectedColumn] = columnData
         console.log("[v0] Column config saved:", columnsConfig)
         
         showConfigSavedMessage()
       }
-      
+
       function showConfigSavedMessage() {
         const message = document.getElementById("config-saved-message")
         if (message) {
