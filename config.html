@@ -868,14 +868,11 @@
       <!-- CHANGE: Changed nav structure for tabs -->
       <div class="tabs-container">
         <nav class="tabs">
-          <button class="tab-btn active" onclick="switchTab('general')">General</button>
-          <button class="tab-btn" onclick="switchTab('data')">Data</button>
-          <button class="tab-btn" onclick="switchTab('export')">Export</button>
-          <!-- Added Design tab -->
-          <button class="tab-btn" onclick="switchTab('design')">Diseño</button>
-          <!-- CHANGE: Added new Priorities tab for managing conditional format order -->
-          <button class="tab-btn" onclick="switchTab('priorities')">Prioridades</button>
-          <button class="tab-btn" onclick="switchTab('info')">Información</button>
+          <button class="tab-btn active" data-tab="general">General</button>
+          <button class="tab-btn" data-tab="data">Data</button>
+          <button class="tab-btn" data-tab="priorities">Prioridades</button>
+          <button class="tab-btn" data-tab="export">Export</button>
+          <button class="tab-btn" data-tab="info">Información</button>
         </nav>
       </div>
 
@@ -1055,7 +1052,7 @@
           </div>
         </div>
 
-        <!-- Added Design Tab -->
+        <!-- Design Tab -->
         <div id="design-tab" class="tab-content">
           <div class="content-section">
             <h2>Diseño de la Tabla</h2>
@@ -1201,7 +1198,7 @@
           </div>
         </div>
 
-        <!-- Added Priorities Tab -->
+        <!-- Priorities Tab -->
         <div id="priorities-tab" class="tab-content">
           <div class="content-section">
             <h2>Prioridades de Formato Condicional</h2>
@@ -1410,6 +1407,14 @@
           });
         }
 
+        // Tab button click listeners
+        document.querySelectorAll('.tab-btn').forEach(button => {
+          button.addEventListener('click', () => {
+            const tabName = button.getAttribute('data-tab');
+            switchTab(tabName);
+          });
+        });
+
         console.log("[v0] All event listeners set up")
       }
 
@@ -1437,10 +1442,7 @@
         document.getElementById(tabName + '-tab').classList.add('active');
         
         // Add active class to clicked button
-        // The `event.target` is the button that was clicked.
-        // We need to ensure `event` is passed to this function or find the button differently.
-        // For simplicity, let's assume the function is called with an event object or we find the button.
-        const clickedButton = document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`);
+        const clickedButton = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
         if (clickedButton) {
           clickedButton.classList.add('active');
         }
@@ -1656,7 +1658,7 @@
           
           // Determine paint target from flags
           let paintTarget = "none";
-          if (ruleData.cellBg || ruleData.cellText) {
+          if (ruleData.cellBg || ruleData.cellText) { // Prioritize cell if any cell property is set
             paintTarget = "cell";
           } else if (ruleData.rowBg || ruleData.rowText) {
             paintTarget = "row";
@@ -2139,7 +2141,7 @@
                 fieldName: fieldName,
                 ruleIndex: index,
                 rule: rule,
-                priority: rule.priority || 999
+                priority: rule.priority || 999 // Default to a high priority if not set
               });
             });
           }
@@ -2201,11 +2203,12 @@
         const items = document.querySelectorAll('.priority-item');
         
         items.forEach(item => {
-          item.addEventListener('dragstart', function() {
+          item.addEventListener('dragstart', function(event) {
             draggingElement = this;
             this.classList.add('dragging');
-            // Optional: Set dataTransfer data if needed for more complex scenarios
-            // event.dataTransfer.setData('text/plain', this.id);
+            // Store the index of the dragged item to re-apply it later if needed
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', ''); // Required for Firefox
           });
 
           item.addEventListener('dragend', function() {

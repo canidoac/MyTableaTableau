@@ -504,21 +504,50 @@ body {
   color: #1e293b;
 }
 
-/* Prevent hover from overriding conditional formatting */
+/* Simplified hover effect with translucent overlay only */
 .data-table tr:hover td {
-  background: #f8fafc;
+  position: relative;
 }
 
+.data-table tr:hover td::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.03);
+  pointer-events: none;
+}
+
+.data-table tr.row-alt:hover td::before {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Remove all color changes on hover - only translucent overlay */
+.data-table tr:hover td {
+  background: inherit !important;
+  color: inherit !important;
+}
+
+.data-table tr.row-alt:hover td {
+  background: inherit !important;
+  color: inherit !important;
+}
+
+/* Ensure formatted rows keep their colors */
 .data-table tr.row-formatted:hover td {
   background: inherit !important;
+  color: inherit !important;
+}
+
+.data-table tr.row-alt.row-formatted:hover td {
+  background: inherit !important;
+  color: inherit !important;
 }
 
 .data-table tr.row-formatted:hover {
   opacity: 0.95;
-}
-
-.data-table tr.row-alt:hover td {
-  background: #f1f5f9;
 }
 
 .data-table tr.row-alt.row-formatted:hover td {
@@ -1139,35 +1168,4 @@ body {
 .column-data-options label {
   font-size: 12px;
   color: #64748b;
-  margin-bottom: 4px;
-}
-
-.column-data-options input[type="text"] {
-  font-size: 13px;
-  padding: 6px 10px;
-}
-
-/* Added styles for Info tab */
-.info-section {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.info-item strong {
-  font-weight: 600;
 }
