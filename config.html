@@ -777,9 +777,9 @@
       .conditional-rule {
         background: #f8f9fa;
         border: 1px solid #dee2e6;
-        border-radius: 6px;
-        padding: 15px;
-        margin-bottom: 15px;
+        border-radius: 8px; /* CHANGED: Changed from 6px to 8px */
+        padding: 16px; /* CHANGED: Reduced padding */
+        margin-bottom: 12px; /* CHANGED: Reduced margin */
         position: relative;
       }
 
@@ -787,56 +787,133 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 12px; /* CHANGED: Reduced margin */
+        padding-bottom: 8px; /* CHANGED: Added padding */
+        border-bottom: 1px solid #dee2e6; /* CHANGED: Added border */
       }
 
       .rule-title {
         font-weight: 600;
         color: #495057;
+        font-size: 14px; /* CHANGED: Adjusted font size */
       }
 
       .delete-rule-btn {
         background: #dc3545;
         color: white;
         border: none;
-        padding: 4px 12px;
+        padding: 6px 12px; /* CHANGED: Reduced padding */
         border-radius: 4px;
         cursor: pointer;
         font-size: 12px;
+        transition: background 0.2s; /* Added transition */
       }
 
       .delete-rule-btn:hover {
         background: #c82333;
       }
 
+      /* ADDED: New structure for conditions - more compact and horizontal */
+      .rule-condition {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px; /* CHANGED: Adjusted gap */
+        margin-bottom: 12px; /* CHANGED: Reduced margin */
+      }
+
+      .rule-condition > div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px; /* CHANGED: Adjusted gap */
+      }
+
+      .rule-condition label {
+        font-size: 12px; /* CHANGED: Adjusted font size */
+        font-weight: 500;
+        color: #6c757d;
+      }
+
+      .rule-operator,
+      .rule-value,
+      .rule-value2 {
+        padding: 8px; /* CHANGED: Adjusted padding */
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 100%;
+      }
+
+      .rule-value-container {
+        display: flex;
+        flex-direction: column;
+        gap: 4px; /* CHANGED: Adjusted gap */
+      }
+
+      /* ADDED: Compact grid for formatting options */
+      .rule-formatting {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px; /* CHANGED: Adjusted gap */
+        padding-top: 12px; /* CHANGED: Added padding */
+        border-top: 1px solid #e9ecef; /* CHANGED: Added border */
+      }
+
+      .rule-format-item {
+        display: flex;
+        align-items: center;
+        gap: 8px; /* CHANGED: Adjusted gap */
+        font-size: 13px; /* CHANGED: Adjusted font size */
+      }
+
+      .rule-format-item input[type="checkbox"] {
+        width: 16px; /* CHANGED: Adjusted size */
+        height: 16px; /* CHANGED: Adjusted size */
+        cursor: pointer;
+      }
+
+      .rule-format-item input[type="color"] {
+        width: 40px; /* CHANGED: Adjusted size */
+        height: 28px; /* CHANGED: Adjusted size */
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .rule-format-item select {
+        padding: 4px 8px; /* CHANGED: Adjusted padding */
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 12px; /* CHANGED: Adjusted font size */
+      }
+
+      .rule-format-item label {
+        display: flex;
+        align-items: center;
+        gap: 6px; /* CHANGED: Adjusted gap */
+        cursor: pointer;
+        font-size: 12px; /* CHANGED: Adjusted font size */
+        color: #495057;
+      }
+
+      /* ADDED: More compact add rule button */
       .add-rule-btn {
+        width: 100%;
+        padding: 10px; /* CHANGED: Adjusted padding */
         background: #28a745;
         color: white;
         border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
         cursor: pointer;
-        margin-top: 10px;
-        width: 100%;
+        transition: background 0.2s; /* Added transition */
+        margin-top: 8px; /* CHANGED: Reduced margin */
       }
 
       .add-rule-btn:hover {
         background: #218838;
       }
 
-      .rule-condition {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-
-      .rule-formatting {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 10px;
-        align-items: center;
-      }
     </style>
   </head>
   <body>
@@ -1425,47 +1502,70 @@
           
           <div class="rule-condition">
             <div>
-              <label>Operador:</label>
+              <label>Operador</label>
               <select class="rule-operator">${operatorOptions}</select>
             </div>
             <div class="rule-value-container">
-              <label>Valor:</label>
+              <label>Valor</label>
               <input type="${isDimension ? 'text' : 'number'}" class="rule-value" placeholder="Valor">
-              <input type="number" class="rule-value2" placeholder="Valor 2" style="display: none; margin-top: 5px;">
+              <input type="number" class="rule-value2" placeholder="Valor 2" style="display: none;">
             </div>
           </div>
           
           <div class="rule-formatting">
-            <input type="checkbox" class="rule-cell-bg">
-            <label>Fondo de celda: <input type="color" class="rule-cell-bg-color" value="#ffeb3b"></label>
+            <div class="rule-format-item">
+              <input type="checkbox" class="rule-cell-bg" id="${ruleId}-cell-bg">
+              <label for="${ruleId}-cell-bg">
+                Fondo celda
+                <input type="color" class="rule-cell-bg-color" value="#ffeb3b">
+              </label>
+            </div>
             
-            <input type="checkbox" class="rule-cell-text">
-            <label>Color de texto celda: <input type="color" class="rule-cell-text-color" value="#000000"></label>
+            <div class="rule-format-item">
+              <input type="checkbox" class="rule-cell-text" id="${ruleId}-cell-text">
+              <label for="${ruleId}-cell-text">
+                Texto celda
+                <input type="color" class="rule-cell-text-color" value="#000000">
+              </label>
+            </div>
             
-            <input type="checkbox" class="rule-row-bg">
-            <label>Fondo de fila: <input type="color" class="rule-row-bg-color" value="#ffeb3b"></label>
+            <div class="rule-format-item">
+              <input type="checkbox" class="rule-row-bg" id="${ruleId}-row-bg">
+              <label for="${ruleId}-row-bg">
+                Fondo fila
+                <input type="color" class="rule-row-bg-color" value="#ffeb3b">
+              </label>
+            </div>
             
-            <input type="checkbox" class="rule-row-text">
-            <label>Color de texto fila: <input type="color" class="rule-row-text-color" value="#000000"></label>
+            <div class="rule-format-item">
+              <input type="checkbox" class="rule-row-text" id="${ruleId}-row-text">
+              <label for="${ruleId}-row-text">
+                Texto fila
+                <input type="color" class="rule-row-text-color" value="#000000">
+              </label>
+            </div>
             
-            <input type="checkbox" class="rule-add-icon">
-            <label>Agregar ícono:
-              <select class="rule-icon">
-                <option value="">Ninguno</option>
-                <option value="arrow_upward">↑ Flecha arriba</option>
-                <option value="arrow_downward">↓ Flecha abajo</option>
-                <option value="arrow_forward">→ Flecha derecha</option>
-                <option value="arrow_back">← Flecha izquierda</option>
-                <option value="circle">⬤ Círculo</option>
-                <option value="circle_outline">○ Círculo vacío</option>
-                <option value="square">■ Cuadrado</option>
-                <option value="square_outline">□ Cuadrado vacío</option>
-              </select>
-              <input type="color" class="rule-icon-color" value="#000000">
-            </label>
+            <div class="rule-format-item" style="grid-column: 1 / -1;">
+              <input type="checkbox" class="rule-add-icon" id="${ruleId}-icon">
+              <label for="${ruleId}-icon">
+                Ícono
+                <select class="rule-icon">
+                  <option value="">Ninguno</option>
+                  <option value="arrow_upward">↑ Arriba</option>
+                  <option value="arrow_downward">↓ Abajo</option>
+                  <option value="arrow_forward">→ Derecha</option>
+                  <option value="arrow_back">← Izquierda</option>
+                  <option value="circle">⬤ Círculo</option>
+                  <option value="circle_outline">○ Vacío</option>
+                  <option value="square">■ Cuadrado</option>
+                  <option value="square_outline">□ Hueco</option>
+                </select>
+                <input type="color" class="rule-icon-color" value="#000000">
+              </label>
+            </div>
           </div>
         `;
-        
+  
         container.appendChild(ruleDiv);
         
         const operatorSelect = ruleDiv.querySelector(".rule-operator");
@@ -1565,31 +1665,30 @@
       }
 
       function saveColumnConfig() {
+        console.log("[v0] === GUARDANDO CONFIGURACIÓN DE COLUMNA ===");
+        console.log("[v0] Current selected column:", currentSelectedColumn);
+        
         if (!currentSelectedColumn) {
-          console.log("[v0] No column selected, skipping save")
-          return
+          alert("No hay columna seleccionada");
+          return;
         }
 
-        console.log("[v0] Saving config for column:", currentSelectedColumn)
-
-        const columnData = columnsConfig[currentSelectedColumn] || {}
-
-        columnData.displayName = document.getElementById("column-display-name").value
-        columnData.visible = document.getElementById("column-visible").checked
-        columnData.includeInExport = document.getElementById("column-export").checked
-
-        const container = document.getElementById("conditional-rules-container");
-        const rules = [];
+        const displayName = document.getElementById("column-display-name").value;
+        const visible = document.getElementById("column-visible").checked;
+        const includeInExport = document.getElementById("column-export").checked;
         
-        Array.from(container.children).forEach(ruleDiv => {
-          const operatorSelect = ruleDiv.querySelector(".rule-operator");
-          const valueInput = ruleDiv.querySelector(".rule-value");
-          const value2Input = ruleDiv.querySelector(".rule-value2");
-
+        const rulesContainer = document.getElementById("conditional-rules-container");
+        const conditionalRules = [];
+        
+        rulesContainer.querySelectorAll(".conditional-rule").forEach((ruleDiv) => {
+          const operator = ruleDiv.querySelector(".rule-operator").value;
+          const value = ruleDiv.querySelector(".rule-value").value;
+          const value2 = ruleDiv.querySelector(".rule-value2").value;
+          
           const rule = {
-            operator: operatorSelect.value,
-            value: (operatorSelect.value === "isEmpty" || operatorSelect.value === "isNotEmpty") ? "" : valueInput.value, // Don't save value if not applicable
-            value2: (operatorSelect.value === "between") ? value2Input.value : "", // Only save value2 if operator is "between"
+            operator,
+            value,
+            value2: value2 || undefined,
             cellBg: ruleDiv.querySelector(".rule-cell-bg").checked,
             cellBgColor: ruleDiv.querySelector(".rule-cell-bg-color").value,
             cellText: ruleDiv.querySelector(".rule-cell-text").checked,
@@ -1602,27 +1701,38 @@
             icon: ruleDiv.querySelector(".rule-icon").value,
             iconColor: ruleDiv.querySelector(".rule-icon-color").value,
           };
-          rules.push(rule);
+          
+          conditionalRules.push(rule);
         });
         
-        columnData.conditionalRules = rules;
+        console.log("[v0] Collected conditional rules:", conditionalRules);
         
-        delete columnData.conditionalFormat;
-
-        columnsConfig[currentSelectedColumn] = columnData
-        console.log("[v0] Column config saved:", columnsConfig)
+        const columnsConfigStr = tableau.extensions.settings.get("columnsConfig") || "{}";
+        let columnsConfig = JSON.parse(columnsConfigStr);
         
-        showConfigSavedMessage()
-      }
-
-      function showConfigSavedMessage() {
-        const message = document.getElementById("config-saved-message")
-        if (message) {
-          message.style.display = "block"
+        columnsConfig[currentSelectedColumn] = {
+          displayName,
+          visible,
+          includeInExport,
+          conditionalRules, // Guardar array de reglas
+        };
+        
+        console.log("[v0] Saving columnsConfig:", columnsConfig);
+        tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig));
+        
+        tableau.extensions.settings.saveAsync().then(() => {
+          console.log("[v0] ✓ Configuración guardada exitosamente");
+          
+          // Show confirmation message
+          const message = document.getElementById("config-saved-message");
+          message.style.display = "block";
           setTimeout(() => {
-            message.style.display = "none"
-          }, 3000)
-        }
+            message.style.display = "none";
+          }, 3000);
+        }).catch((error) => {
+          console.error("[v0] ✗ Error al guardar:", error);
+          alert("Error al guardar la configuración: " + error);
+        });
       }
       
       function reloadColumns() {

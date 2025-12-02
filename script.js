@@ -343,35 +343,48 @@ function renderTable() {
       const colName = col.fieldName || col.name
       const columnConfig = config.columns[colName]
 
+      if (rowIdx === 0) {
+        console.log(`[v0] Checking column [${colName}] for conditional rules`)
+        console.log(`[v0] Column config:`, columnConfig)
+      }
+
       if (columnConfig && columnConfig.conditionalRules && Array.isArray(columnConfig.conditionalRules)) {
-        columnConfig.conditionalRules.forEach((cf) => {
+        if (rowIdx === 0) {
+          console.log(`[v0] Found ${columnConfig.conditionalRules.length} conditional rules for [${colName}]`)
+        }
+
+        for (let i = 0; i < columnConfig.conditionalRules.length; i++) {
+          const cf = columnConfig.conditionalRules[i]
           let conditionMet = false
 
-          if (typeof cellValue === "string") {
+          const isTextValue = typeof cellValue === "string" || col.dataType === "string"
+
+          if (isTextValue) {
+            const strValue = String(cellValue)
             switch (cf.operator) {
               case "equals":
-                conditionMet = cellValue === cf.value
+                conditionMet = strValue === cf.value
                 break
               case "notEquals":
-                conditionMet = cellValue !== cf.value
+                conditionMet = strValue !== cf.value
                 break
               case "contains":
-                conditionMet = cellValue.includes(cf.value)
+                conditionMet = strValue.includes(cf.value)
                 break
               case "notContains":
-                conditionMet = !cellValue.includes(cf.value)
+                conditionMet = !strValue.includes(cf.value)
                 break
               case "startsWith":
-                conditionMet = cellValue.startsWith(cf.value)
+                conditionMet = strValue.startsWith(cf.value)
                 break
               case "endsWith":
-                conditionMet = cellValue.endsWith(cf.value)
+                conditionMet = strValue.endsWith(cf.value)
                 break
               case "isEmpty":
-                conditionMet = cellValue === "" || cellValue === null || cellValue === undefined
+                conditionMet = strValue === "" || strValue === null || strValue === undefined
                 break
               case "isNotEmpty":
-                conditionMet = cellValue !== "" && cellValue !== null && cellValue !== undefined
+                conditionMet = strValue !== "" && strValue !== null && strValue !== undefined
                 break
             }
           } else {
@@ -401,12 +414,21 @@ function renderTable() {
                   break
                 case "between":
                   conditionMet = cellNumValue >= condValue && cellNumValue <= condValue2
+                  if (rowIdx === 0) {
+                    console.log(
+                      `[v0] Between check: ${cellNumValue} between ${condValue} and ${condValue2} = ${conditionMet}`,
+                    )
+                  }
                   break
               }
             }
           }
 
           if (conditionMet) {
+            if (rowIdx === 0) {
+              console.log(`[v0] Rule ${i} matched for value:`, cellValue)
+            }
+
             if (cf.cellBg) {
               td.style.backgroundColor = cf.cellBgColor
             }
@@ -443,74 +465,7 @@ function renderTable() {
               td.prepend(iconSpan)
             }
 
-            return
-          }
-        })
-      } else if (columnConfig && columnConfig.conditionalFormat && columnConfig.conditionalFormat.enabled) {
-        const cf = columnConfig.conditionalFormat
-        const condValue = Number.parseFloat(cf.value)
-        const cellNumValue = Number.parseFloat(numericValue)
-
-        if (!isNaN(cellNumValue) && !isNaN(condValue)) {
-          let conditionMet = false
-
-          switch (cf.operator) {
-            case ">=":
-              conditionMet = cellNumValue >= condValue
-              break
-            case "<=":
-              conditionMet = cellNumValue <= condValue
-              break
-            case "=":
-              conditionMet = cellNumValue === condValue
-              break
-            case ">":
-              conditionMet = cellNumValue > condValue
-              break
-            case "<":
-              conditionMet = cellNumValue < condValue
-              break
-            case "!=":
-              conditionMet = cellNumValue !== condValue
-              break
-          }
-
-          if (conditionMet) {
-            if (cf.cellBg) {
-              td.style.backgroundColor = cf.cellBgColor
-            }
-            if (cf.cellText) {
-              td.style.color = cf.cellTextColor
-            }
-
-            if (cf.rowBg) {
-              rowFormattingApplied = true
-              rowBgColor = cf.rowBgColor
-            }
-            if (cf.rowText) {
-              rowFormattingApplied = true
-              rowTextColor = cf.rowTextColor
-            }
-
-            if (cf.addIcon && cf.icon) {
-              const iconSpan = document.createElement("span")
-              iconSpan.style.marginRight = "6px"
-              iconSpan.style.color = cf.iconColor || "#000000"
-
-              const iconMap = {
-                arrow_upward: "↑",
-                arrow_downward: "↓",
-                arrow_forward: "→",
-                arrow_back: "←",
-                circle: "⬤",
-                circle_outline: "○",
-                square: "■",
-                square_outline: "□",
-              }
-
-              iconSpan.textContent = iconMap[cf.icon] || ""
-              td.prepend(iconSpan)
-            }
+            break
           }
         }
       }
@@ -738,27 +693,39 @@ function saveConfig() {
 
 function loadConfig() {
   const settings = tableau.extensions.settings.getAll()
-  const savedConfig = JSON.parse(settings.config || "{}")
+
+  console.log("[v0] Loading configuration from settings:", settings)
+
+  const columnsConfigStr = settings.columnsConfig || "{}"
+  let columnsConfig = {}
+  try {
+    columnsConfig = JSON.parse(columnsConfigStr)
+    console.log("[v0] Parsed columnsConfig:", columnsConfig)
+  } catch (error) {
+    console.error("[v0] Error parsing columnsConfig:", error)
+    columnsConfig = {}
+  }
 
   config = {
-    tableTitle: savedConfig.tableTitle || "",
-    showSearch: savedConfig.showSearch !== false,
-    showRowCount: savedConfig.showRowCount !== false,
-    showExportButtons: savedConfig.showExportButtons !== false,
-    showRefreshButton: savedConfig.showRefreshButton !== false,
-    showSettingsButton: savedConfig.showSettingsButton !== false,
-    columns: savedConfig.columns || {},
-    rowsPerPage: savedConfig.rowsPerPage || 100,
-    exportButtonText: savedConfig.exportButtonText || "Exportar",
-    exportButtonColor: savedConfig.exportButtonColor || "#2563eb",
-    exportButtonTextColor: savedConfig.exportButtonTextColor || "#ffffff",
-    exportEnableExcel: savedConfig.exportEnableExcel !== false,
-    exportEnableCSV: savedConfig.exportEnableCSV !== false,
-    exportEnablePDF: savedConfig.exportEnablePDF !== false,
-    exportFilename: savedConfig.exportFilename || "export",
+    tableTitle: settings.tableTitle || "",
+    showSearch: settings.showSearch !== "false",
+    showRowCount: settings.showRowCount !== "false",
+    showExportButtons: settings.showExportButtons !== "false",
+    showRefreshButton: settings.showRefreshButton !== "false",
+    showSettingsButton: settings.showSettingsButton !== "false",
+    columns: columnsConfig, // Use the parsed columnsConfig
+    rowsPerPage: Number.parseInt(settings.rowsPerPage) || 100,
+    exportButtonText: settings.exportButtonText || "Exportar",
+    exportButtonColor: settings.exportButtonColor || "#2563eb",
+    exportButtonTextColor: settings.exportButtonTextColor || "#ffffff",
+    exportEnableExcel: settings.exportEnableExcel !== "false",
+    exportEnableCSV: settings.exportEnableCSV !== "false",
+    exportEnablePDF: settings.exportEnablePDF !== "false",
+    exportFilename: settings.exportFilename || "export",
   }
 
   console.log("[v0] Configuración cargada, columnas:", Object.keys(config.columns).length)
+  console.log("[v0] Full config:", config)
 }
 
 function exportToExcel() {
