@@ -770,11 +770,10 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
   const columnConfig = config.columns[colName]
 
   if (rowIdx === 0 && columnConfig) {
-    console.log(`[v0] Checking conditional format for column [${colName}]`)
-    console.log(`[v0]   - columnConfig:`, columnConfig)
+    console.log(`[v0] 🎨 Checking conditional format for column [${colName}]`)
     console.log(`[v0]   - Has conditionalRules:`, !!columnConfig.conditionalRules)
     if (columnConfig.conditionalRules) {
-      console.log(`[v0]   - Rules:`, columnConfig.conditionalRules)
+      console.log(`[v0]   - Rules count:`, columnConfig.conditionalRules.length)
     }
   }
 
@@ -782,14 +781,30 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
     return
   }
 
-  for (let i = 0; i < columnConfig.conditionalRules.length; i++) {
-    const cf = columnConfig.conditionalRules[i]
+  const row = td.parentElement
+  const rowFormatApplied = row?.dataset?.rowFormatApplied === "true"
+
+  const sortedRules = [...columnConfig.conditionalRules].sort((a, b) => {
+    const priorityA = a.priority !== undefined ? a.priority : 999
+    const priorityB = b.priority !== undefined ? b.priority : 999
+    return priorityA - priorityB
+  })
+
+  if (rowIdx === 0 && sortedRules.length > 0) {
+    console.log(
+      `[v0]   - Rules sorted by priority:`,
+      sortedRules.map((r) => r.priority || 999),
+    )
+  }
+
+  for (let i = 0; i < sortedRules.length; i++) {
+    const cf = sortedRules[i]
     let conditionMet = false
 
     const isTextValue = typeof cellValue === "string" || col.dataType === "string"
 
     if (rowIdx === 0) {
-      console.log(`[v0]   - Evaluating rule ${i + 1}:`, cf)
+      console.log(`[v0]   - Evaluating rule ${i + 1} (priority: ${cf.priority || 999}):`, cf)
       console.log(`[v0]   - Cell value: "${cellValue}" (type: ${typeof cellValue})`)
     }
 
@@ -848,11 +863,6 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
             break
           case "between":
             conditionMet = cellNumValue >= condValue && cellNumValue <= condValue2
-            if (rowIdx === 0) {
-              console.log(
-                `[v0] Between check: ${cellNumValue} between ${condValue} and ${condValue2} = ${conditionMet}`,
-              )
-            }
             break
         }
       }
@@ -860,35 +870,38 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
 
     if (conditionMet) {
       if (rowIdx === 0) {
-        console.log(`[v0]   Rule ${i + 1} MATCHED!`)
+        console.log(`[v0]   ✅ Rule ${i + 1} MATCHED! (Priority: ${cf.priority || 999})`)
         console.log(`[v0]   - Applying format:`, cf)
       }
 
-      if (cf.cellBg && cf.cellBgColor) {
-        td.style.setProperty("background-color", cf.cellBgColor, "important")
-        if (rowIdx === 0) console.log(`[v0]   - Applied cell bg: ${cf.cellBgColor}`)
-      }
-
-      if (cf.cellText && cf.cellTextColor) {
-        td.style.setProperty("color", cf.cellTextColor, "important")
-        if (rowIdx === 0) console.log(`[v0]   - Applied cell text color: ${cf.cellTextColor}`)
-      }
-
       if (cf.rowBg || cf.rowText) {
-        const row = td.parentElement
-        if (row) {
+        if (row && !rowFormatApplied) {
           if (cf.rowBg && cf.rowBgColor) {
             Array.from(row.children).forEach((cell) => {
               cell.style.setProperty("background-color", cf.rowBgColor, "important")
             })
-            if (rowIdx === 0) console.log(`[v0]   - Applied row bg: ${cf.rowBgColor}`)
+            row.dataset.rowFormatApplied = "true"
+            if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied ROW bg: ${cf.rowBgColor}`)
           }
           if (cf.rowText && cf.rowTextColor) {
             Array.from(row.children).forEach((cell) => {
               cell.style.setProperty("color", cf.rowTextColor, "important")
             })
-            if (rowIdx === 0) console.log(`[v0]   - Applied row text color: ${cf.rowTextColor}`)
+            if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied ROW text color: ${cf.rowTextColor}`)
           }
+          return
+        }
+      }
+
+      if (!rowFormatApplied) {
+        if (cf.cellBg && cf.cellBgColor) {
+          td.style.setProperty("background-color", cf.cellBgColor, "important")
+          if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied CELL bg: ${cf.cellBgColor}`)
+        }
+
+        if (cf.cellText && cf.cellTextColor) {
+          td.style.setProperty("color", cf.cellTextColor, "important")
+          if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied CELL text color: ${cf.cellTextColor}`)
         }
       }
 
@@ -900,8 +913,8 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
         if (cf.iconColor) {
           iconSpan.style.color = cf.iconColor
         }
-        td.insertBefore(iconSpan, td.firstChild)
-        if (rowIdx === 0) console.log(`[v0]   - Applied icon: ${cf.icon}`)
+        td.prepend(iconSpan)
+        if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied icon: ${cf.icon}`)
       }
 
       break

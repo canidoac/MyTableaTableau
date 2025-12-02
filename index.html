@@ -28,7 +28,6 @@
     </style>
 </head>
 <body>
-    <!-- Disable right-click context menu -->
     <script>
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -45,19 +44,16 @@
     <div class="container">
         <header class="toolbar">
             <div class="toolbar-left">
-                <!-- Título visible en el toolbar -->
                 <h1 id="main-title" class="main-title">Mi Tabla</h1>
                 <select id="worksheet-selector" style="display:none;"></select>
             </div>
             <div class="controls">
                 <div class="search-box" id="search-box">
-                    <!-- Using Material Icon -->
                     <span class="material-icons" style="font-size: 18px;">search</span>
                     <input type="text" id="search-input" placeholder="Buscar...">
                 </div>
                 <div id="export-dropdown" class="dropdown">
                     <button id="export-btn" class="btn btn-primary">
-                        <!-- Using Material Icon -->
                         <span class="material-icons" style="font-size: 18px;">file_download</span>
                         <span id="export-btn-text">Exportar</span>
                     </button>
@@ -77,15 +73,12 @@
                     </div>
                 </div>
                 <button id="columns-btn" class="btn btn-secondary" title="Gestionar columnas">
-                    <!-- Using Material Icon -->
                     <span class="material-icons" style="font-size: 18px;">view_column</span>
                     Columnas
                 </button>
                 <button id="refresh-btn" class="btn btn-icon" title="Actualizar">
-                    <!-- Using Material Icon -->
                     <span class="material-icons" style="font-size: 20px;">refresh</span>
                 </button>
-                <!-- Using Material Icon for settings -->
                 <button id="settings-btn" class="btn btn-icon" title="Configuración">
                     <span class="material-icons" style="font-size: 20px;">settings</span>
                 </button>
@@ -113,7 +106,6 @@
                 
                 <div class="table-footer">
                     <div id="pagination" class="pagination"></div>
-                    <!-- Row count moved to footer with show/hide capability -->
                     <span id="row-count" class="row-count-footer"></span>
                 </div>
             </div>
@@ -271,8 +263,8 @@
                         </div>
                         <div class="info-item">
                             <strong>Versión:</strong>
-                            <!-- Updated version to v9.0.1 -->
-                            <span>v9.0.1</span>
+                            <!-- Updated version to v9.3 -->
+                            <span>v9.3</span>
                         </div>
                         <div class="info-item">
                             <strong>Estado:</strong>
@@ -280,7 +272,7 @@
                         </div>
                         <div class="info-item">
                             <strong>Descripción:</strong>
-                            <span>Extensión de tabla mejorada para Tableau con exportación, búsqueda, configuración avanzada de columnas y formato condicional</span>
+                            <span>Extensión de tabla mejorada para Tableau con exportación, búsqueda, configuración avanzada de columnas, formato condicional y gestión de prioridades</span>
                         </div>
                     </div>
                     
@@ -292,6 +284,7 @@
                             <li>✓ Configuración personalizada de columnas</li>
                             <li>✓ Nombres de visualización personalizables</li>
                             <li>✓ Formato condicional con iconos y colores</li>
+                            <li>✓ Gestión de prioridades de formatos condicionales</li>
                             <li>✓ Control de inclusión de columnas en exportaciones</li>
                             <li>✓ Ordenamiento por columnas</li>
                             <li>✓ Paginación configurable</li>

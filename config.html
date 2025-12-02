@@ -728,6 +728,127 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #a1a1a1;
       }
+
+      /* CHANGE: Added styles for priorities tab */
+      .priority-item {
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: move;
+        transition: all 0.2s;
+      }
+
+      .priority-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-color: #2563eb;
+      }
+
+      .priority-item.dragging {
+        opacity: 0.5;
+      }
+
+      .priority-number {
+        background: #2563eb;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+
+      .priority-drag-handle {
+        cursor: grab;
+        color: #9ca3af;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+
+      .priority-drag-handle:active {
+        cursor: grabbing;
+      }
+
+      .priority-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .priority-column-name {
+        font-weight: 600;
+        font-size: 13px;
+        color: #1f2937;
+        margin-bottom: 4px;
+      }
+
+      .priority-rule-details {
+        font-size: 11px;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .priority-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      .badge-cell {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      .badge-row {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .priority-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
+      .priority-btn {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        color: #4b5563;
+        transition: all 0.15s;
+      }
+
+      .priority-btn:hover {
+        background: #e5e7eb;
+        border-color: #9ca3af;
+      }
+
+      .priority-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
@@ -744,14 +865,19 @@
         </div>
       </header>
 
-      <nav class="tabs">
-        <button class="tab-btn active" onclick="switchTab('general')">General</button>
-        <button class="tab-btn" onclick="switchTab('data')">Data</button>
-        <button class="tab-btn" onclick="switchTab('export')">Export</button>
-        <!-- Added Design tab -->
-        <button class="tab-btn" onclick="switchTab('design')">Diseño</button>
-        <button class="tab-btn" onclick="switchTab('info')">Información</button>
-      </nav>
+      <!-- CHANGE: Changed nav structure for tabs -->
+      <div class="tabs-container">
+        <nav class="tabs">
+          <button class="tab-btn active" onclick="switchTab('general')">General</button>
+          <button class="tab-btn" onclick="switchTab('data')">Data</button>
+          <button class="tab-btn" onclick="switchTab('export')">Export</button>
+          <!-- Added Design tab -->
+          <button class="tab-btn" onclick="switchTab('design')">Diseño</button>
+          <!-- CHANGE: Added new Priorities tab for managing conditional format order -->
+          <button class="tab-btn" onclick="switchTab('priorities')">Prioridades</button>
+          <button class="tab-btn" onclick="switchTab('info')">Información</button>
+        </nav>
+      </div>
 
       <div class="tab-panels">
         <!-- General Tab -->
@@ -1075,6 +1201,45 @@
           </div>
         </div>
 
+        <!-- Added Priorities Tab -->
+        <div id="priorities-tab" class="tab-content">
+          <div class="content-section">
+            <h2>Prioridades de Formato Condicional</h2>
+            <p class="help-text" style="margin-bottom: 20px;">
+              Arrastra las reglas para reordenarlas. Las reglas en la parte superior tienen mayor prioridad.
+              Los formatos de FILA siempre tienen prioridad sobre formatos de CELDA en la misma posición.
+            </p>
+
+            <div class="priority-legend" style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 12px;">
+              <strong>Leyenda:</strong>
+              <span style="margin-left: 15px;">🟦 = Celda</span>
+              <span style="margin-left: 10px;">🟥 = Fila</span>
+              <span style="margin-left: 10px;">🎨 = Color de fondo</span>
+              <span style="margin-left: 10px;">📝 = Color de texto</span>
+            </div>
+
+            <div id="priorities-list-container" style="min-height: 200px;">
+              <div id="priorities-empty-state" class="empty-state">
+                No hay reglas de formato condicional configuradas aún.
+                <br><br>
+                Ve a la pestaña "Data" y selecciona una columna para agregar reglas.
+              </div>
+
+              <div id="priorities-list" style="display: none;">
+                <!-- Priority items will be generated here -->
+              </div>
+            </div>
+
+            <button onclick="savePriorities()" class="btn btn-success" style="margin-top: 20px;">
+              Guardar Orden de Prioridades
+            </button>
+
+            <div id="priorities-saved-message" class="config-saved-message" style="display: none;">
+              ✓ Prioridades guardadas correctamente
+            </div>
+          </div>
+        </div>
+
         <!-- Information Tab -->
         <div id="info-tab" class="tab-content">
           <div class="content-section">
@@ -1125,6 +1290,9 @@
       let currentSelectedColumn = null
       let columnsConfig = {}
       let conditionalRuleCounter = 0; // Moved counter here
+      
+      // CHANGE: Added priority management state
+      let draggingElement = null;
 
       if (typeof tableau === 'undefined') {
         console.error("[v0] Tableau Extensions API not loaded!")
@@ -1253,32 +1421,33 @@
         })
       }
 
+      // CHANGE: Modified switchTab to load priorities when switching to that tab
       function switchTab(tabName) {
-        console.log("[v0] Switching to tab:", tabName)
-        
+        // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(tab => {
-          tab.classList.remove('active')
-        })
+          tab.classList.remove('active');
+        });
         
+        // Remove active class from all tab buttons
         document.querySelectorAll('.tab-btn').forEach(btn => {
-          btn.classList.remove('active')
-        })
+          btn.classList.remove('active');
+        });
         
-        const selectedTab = document.getElementById(tabName + '-tab')
-        if (selectedTab) {
-          selectedTab.classList.add('active')
+        // Show selected tab
+        document.getElementById(tabName + '-tab').classList.add('active');
+        
+        // Add active class to clicked button
+        // The `event.target` is the button that was clicked.
+        // We need to ensure `event` is passed to this function or find the button differently.
+        // For simplicity, let's assume the function is called with an event object or we find the button.
+        const clickedButton = document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`);
+        if (clickedButton) {
+          clickedButton.classList.add('active');
         }
-        
-        const buttons = document.querySelectorAll('.tab-btn')
-        buttons.forEach(btn => {
-          if (btn.textContent.toLowerCase().includes(tabName)) {
-            btn.classList.add('active')
-          }
-        })
-        
-        if (tabName === 'data') {
-          console.log("[v0] Data tab activated, reloading columns...")
-          reloadColumns()
+
+        // Load priorities list when switching to priorities tab
+        if (tabName === 'priorities') {
+          loadPrioritiesList();
         }
       }
 
@@ -1372,6 +1541,7 @@
         showColumnConfig(colName);
       }
 
+      // START: Updated addConditionalRule function
       function addConditionalRule(ruleData = null) {
         const ruleId = `rule-${conditionalRuleCounter++}`;
         const container = document.getElementById("conditional-rules-container");
@@ -1428,11 +1598,15 @@
               <option value="cell">Celda</option>
               <option value="row">Fila</option>
             </select>
+            
+            <label style="margin-left: 12px;">Fondo</label>
             <input type="color" class="rule-bg-color" value="#ffeb3b" title="Color de fondo">
+            
             <input type="checkbox" class="rule-text-enabled" id="${ruleId}-text" title="Activar color de texto">
             <label for="${ruleId}-text" style="margin: 0;">Texto</label>
             <input type="color" class="rule-text-color" value="#000000" title="Color de texto">
-            <input type="checkbox" class="rule-icon-enabled" id="${ruleId}-icon" title="Activar ícono">
+            
+            <input type="checkbox" class="rule-icon-enabled" id="${ruleId}-icon" title="Activar ícono" style="margin-left: 12px;">
             <label for="${ruleId}-icon" style="margin: 0;">Ícono</label>
             <select class="rule-icon" style="min-width: 80px;">
               <option value="">Ninguno</option>
@@ -1448,72 +1622,64 @@
               <option value="✗">✗ X</option>
               <option value="⚠">⚠ Alerta</option>
               <option value="★">★ Estrella</option>
+              <option value="☆">☆ Estrella vacía</option>
+              <option value="●">● Punto</option>
+              <option value="▲">▲ Triángulo arriba</option>
+              <option value="▼">▼ Triángulo abajo</option>
+              <option value="◆">◆ Diamante</option>
+              <option value="♥">♥ Corazón</option>
+              <option value="🔴">🔴 Rojo</option>
+              <option value="🟢">🟢 Verde</option>
+              <option value="🟡">🟡 Amarillo</option>
+              <option value="⚫">⚫ Negro</option>
+              <option value="⚪">⚪ Blanco</option>
             </select>
-            <input type="color" class="rule-icon-color" value="#000000" title="Color de ícono">
+            <input type="color" class="rule-icon-color" value="#000000" title="Color del ícono">
           </div>
         `;
 
         container.appendChild(ruleDiv);
-        
+
         const operatorSelect = ruleDiv.querySelector(".rule-operator");
-        const valueInput = ruleDiv.querySelector(".rule-value");
         const value2Input = ruleDiv.querySelector(".rule-value2");
-        
         operatorSelect.addEventListener("change", () => {
-          if (operatorSelect.value === "between") {
-            value2Input.style.display = "block";
-          } else {
-            value2Input.style.display = "none";
-          }
-          
-          if (operatorSelect.value === "isEmpty" || operatorSelect.value === "isNotEmpty") {
-            valueInput.style.display = "none";
-          } else {
-            valueInput.style.display = "block";
-          }
+          value2Input.style.display = operatorSelect.value === "between" ? "block" : "none";
         });
-        
-        operatorSelect.dispatchEvent(new Event('change'));
 
         if (ruleData) {
-          operatorSelect.value = ruleData.operator;
-          valueInput.value = ruleData.value || "";
-          if (ruleData.value2) value2Input.value = ruleData.value2;
-          
-          if (ruleData.operator === "between") value2Input.style.display = "block";
-          if (ruleData.operator === "isEmpty" || ruleData.operator === "isNotEmpty") {
-            valueInput.style.display = "none";
+          ruleDiv.querySelector(".rule-operator").value = ruleData.operator || "";
+          ruleDiv.querySelector(".rule-value").value = ruleData.value || "";
+          if (ruleData.value2) {
+            ruleDiv.querySelector(".rule-value2").value = ruleData.value2;
+            ruleDiv.querySelector(".rule-value2").style.display = "block";
           }
           
-          // Determine paint target based on existing data
+          // Determine paint target from flags
           let paintTarget = "none";
-          if (ruleData.cellBg) paintTarget = "cell";
-          else if (ruleData.rowBg) paintTarget = "row";
-          
+          if (ruleData.cellBg || ruleData.cellText) {
+            paintTarget = "cell";
+          } else if (ruleData.rowBg || ruleData.rowText) {
+            paintTarget = "row";
+          }
           ruleDiv.querySelector(".rule-paint-target").value = paintTarget;
-          ruleDiv.querySelector(".rule-bg-color").value = ruleData.cellBgColor || ruleData.rowBgColor || "#ffeb3b";
-          ruleDiv.querySelector(".rule-text-enabled").checked = ruleData.cellText || ruleData.rowText || false;
-          ruleDiv.querySelector(".rule-text-color").value = ruleData.cellTextColor || ruleData.rowTextColor || "#000000";
-          ruleDiv.querySelector(".rule-icon-enabled").checked = ruleData.addIcon || false;
-          ruleDiv.querySelector(".rule-icon").value = ruleData.icon || "";
-          ruleDiv.querySelector(".rule-icon-color").value = ruleData.iconColor || "#000000";
-        }
-      }
-
-      function deleteConditionalRule(ruleId) {
-        const rule = document.getElementById(ruleId);
-        if (rule) {
-          rule.remove();
           
-          const container = document.getElementById("conditional-rules-container");
-          Array.from(container.children).forEach((child, index) => {
-            const header = child.querySelector(".rule-title");
-            if (header) {
-              header.textContent = `Regla ${index + 1}`;
-            }
-          });
+          if (ruleData.cellBgColor || ruleData.rowBgColor) {
+            ruleDiv.querySelector(".rule-bg-color").value = ruleData.cellBgColor || ruleData.rowBgColor;
+          }
+          
+          if (ruleData.cellText || ruleData.rowText) {
+            ruleDiv.querySelector(".rule-text-enabled").checked = true;
+            ruleDiv.querySelector(".rule-text-color").value = ruleData.cellTextColor || ruleData.rowTextColor || "#000000";
+          }
+          
+          if (ruleData.addIcon) {
+            ruleDiv.querySelector(".rule-icon-enabled").checked = true;
+            ruleDiv.querySelector(".rule-icon").value = ruleData.icon || "";
+            ruleDiv.querySelector(".rule-icon-color").value = ruleData.iconColor || "#000000";
+          }
         }
       }
+      // END: Updated addConditionalRule function
 
       function showColumnConfig(columnName) {
         console.log("[v0] Showing config for column:", columnName)
@@ -1952,6 +2118,201 @@
         } catch (error) {
           console.error("[v0] Error al inicializar:", error)
           alert("Error al inicializar: " + error.message)
+        }
+      }
+
+      // CHANGE: Added priority management functions
+      
+      function loadPrioritiesList() {
+        console.log('[v0] Loading priorities list...');
+        const container = document.getElementById('priorities-list');
+        const emptyState = document.getElementById('priorities-empty-state');
+        
+        // Get all conditional rules from all columns
+        const allRules = [];
+        Object.keys(columnsConfig).forEach(fieldName => {
+          const colConfig = columnsConfig[fieldName];
+          if (colConfig.conditionalRules && Array.isArray(colConfig.conditionalRules)) {
+            colConfig.conditionalRules.forEach((rule, index) => {
+              allRules.push({
+                columnName: colConfig.displayName || fieldName,
+                fieldName: fieldName,
+                ruleIndex: index,
+                rule: rule,
+                priority: rule.priority || 999
+              });
+            });
+          }
+        });
+
+        console.log('[v0] Found rules:', allRules);
+
+        if (allRules.length === 0) {
+          container.style.display = 'none';
+          emptyState.style.display = 'block';
+          return;
+        }
+
+        // Sort by priority
+        allRules.sort((a, b) => a.priority - b.priority);
+
+        // Generate HTML
+        container.innerHTML = allRules.map((item, index) => {
+          const rule = item.rule;
+          const paintType = rule.paintTarget === 'row' ? 'Fila' : rule.paintTarget === 'cell' ? 'Celda' : 'Ninguno';
+          const paintBadge = rule.paintTarget === 'row' ? 
+            '<span class="priority-badge badge-row">🟥 Fila</span>' : 
+            '<span class="priority-badge badge-cell">🟦 Celda</span>';
+          
+          let formatDetails = [];
+          if (rule.cellBg || rule.rowBg) formatDetails.push('🎨 Fondo');
+          if (rule.cellText || rule.rowText) formatDetails.push('📝 Texto');
+          if (rule.icon && rule.icon !== 'none' && rule.icon !== '') formatDetails.push('🔶 Icono');
+
+          return `
+            <div class="priority-item" draggable="true" data-field="${item.fieldName}" data-rule-index="${item.ruleIndex}">
+              <span class="priority-drag-handle">⋮⋮</span>
+              <div class="priority-number">${index + 1}</div>
+              <div class="priority-info">
+                <div class="priority-column-name">${item.columnName}</div>
+                <div class="priority-rule-details">
+                  ${paintBadge}
+                  <span>${rule.operator} "${rule.value}"</span>
+                  ${formatDetails.length > 0 ? '<span>→</span>' : ''}
+                  ${formatDetails.join(' ')}
+                </div>
+              </div>
+              <div class="priority-actions">
+                <button class="priority-btn" onclick="movePriorityUp(${index})" ${index === 0 ? 'disabled' : ''} title="Mover arriba">▲</button>
+                <button class="priority-btn" onclick="movePriorityDown(${index})" ${index === allRules.length - 1 ? 'disabled' : ''} title="Mover abajo">▼</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        container.style.display = 'block';
+        emptyState.style.display = 'none';
+
+        // Setup drag and drop
+        setupDragAndDrop();
+      }
+
+      function setupDragAndDrop() {
+        const items = document.querySelectorAll('.priority-item');
+        
+        items.forEach(item => {
+          item.addEventListener('dragstart', function() {
+            draggingElement = this;
+            this.classList.add('dragging');
+            // Optional: Set dataTransfer data if needed for more complex scenarios
+            // event.dataTransfer.setData('text/plain', this.id);
+          });
+
+          item.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            draggingElement = null;
+          });
+        });
+
+        const container = document.getElementById('priorities-list');
+        container.addEventListener('dragover', function(e) {
+          e.preventDefault(); // Necessary to allow dropping
+          if (draggingElement) {
+            const afterElement = getDragAfterElement(container, e.clientY);
+            if (afterElement == null) {
+              container.appendChild(draggingElement);
+            } else {
+              container.insertBefore(draggingElement, afterElement);
+            }
+            updatePriorityNumbers();
+          }
+        });
+      }
+
+      function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.priority-item:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+          } else {
+            return closest;
+          }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+      }
+
+      function updatePriorityNumbers() {
+        const items = document.querySelectorAll('.priority-item');
+        items.forEach((item, index) => {
+          const numberEl = item.querySelector('.priority-number');
+          if (numberEl) numberEl.textContent = index + 1;
+
+          const upBtn = item.querySelector('.priority-btn:first-child');
+          const downBtn = item.querySelector('.priority-btn:last-child');
+          if (upBtn) upBtn.disabled = index === 0;
+          if (downBtn) downBtn.disabled = index === items.length - 1;
+        });
+      }
+
+      function movePriorityUp(index) {
+        const container = document.getElementById('priorities-list');
+        const items = container.querySelectorAll('.priority-item');
+        if (index > 0) {
+          container.insertBefore(items[index], items[index - 1]);
+          updatePriorityNumbers();
+        }
+      }
+
+      function movePriorityDown(index) {
+        const container = document.getElementById('priorities-list');
+        const items = container.querySelectorAll('.priority-item');
+        if (index < items.length - 1) {
+          container.insertBefore(items[index + 1], items[index]);
+          updatePriorityNumbers();
+        }
+      }
+
+      async function savePriorities() {
+        console.log('[v0] Saving priorities...');
+        const items = document.querySelectorAll('.priority-item');
+        
+        // Update priority values in columnsConfig
+        items.forEach((item, priority) => {
+          const fieldName = item.dataset.field;
+          const ruleIndex = parseInt(item.dataset.ruleIndex);
+          
+          if (columnsConfig[fieldName] && columnsConfig[fieldName].conditionalRules) {
+            const rule = columnsConfig[fieldName].conditionalRules[ruleIndex];
+            if (rule) {
+              rule.priority = priority;
+              console.log(`[v0] Set priority ${priority} for ${fieldName} rule ${ruleIndex}`);
+            }
+          }
+        });
+
+        // Save to settings
+        tableau.extensions.settings.set('columnsConfig', JSON.stringify(columnsConfig));
+        await tableau.extensions.settings.saveAsync();
+
+        // Show confirmation
+        const message = document.getElementById('priorities-saved-message');
+        message.style.display = 'block';
+        setTimeout(() => {
+          message.style.display = 'none';
+        }, 3000);
+
+        console.log('[v0] Priorities saved successfully');
+      }
+
+      function deleteConditionalRule(ruleId) {
+        const ruleElement = document.getElementById(ruleId);
+        if (ruleElement) {
+          ruleElement.remove();
+          // Optionally, update the column config if you need to persist this deletion immediately
+          // For now, it will be saved when the main save button is clicked.
+          console.log(`[v0] Deleted rule element: ${ruleId}`);
         }
       }
     </script>

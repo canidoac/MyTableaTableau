@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <!-- Updated to v9.0.1 - Fixed concurrent save error with debounced event listeners -->
-  <dashboard-extension id="com.supertable.pro" extension-version="9.0.1">
+  <!-- Updated to v9.3 - Added priority management system for conditional formatting -->
+  <dashboard-extension id="com.supertable.pro" extension-version="9.3">
     <default-locale>es_ES</default-locale>
     <name resource-id="name"/>
-    <description>Super Table Pro - Tabla interactiva con formato condicional, búsqueda, ordenamiento y exportación mejorada</description>
+    <description>Super Table Pro - Tabla interactiva con formato condicional, búsqueda, ordenamiento, exportación mejorada y gestión de prioridades</description>
     <author name="Andres Canido" email="Andres.canido@mercadolibre.com" organization="Mercadolibre" website="https://github.com/canidoac/MyTableaTableau"/>
     <min-api-version>1.4</min-api-version>
     <source-location>
