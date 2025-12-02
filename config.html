@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SuperTables - Configuración</title>
-    <link rel="stylesheet" href="config.css" />
     <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="config.css" />
     <style>
       * {
         margin: 0;
@@ -1097,7 +1098,14 @@
           // Load columns from settings
           if (settings.dialogColumns) {
             try {
-              allColumns = JSON.parse(settings.dialogColumns)
+              const parsed = JSON.parse(settings.dialogColumns)
+              // Ensure it's an array
+              if (Array.isArray(parsed)) {
+                allColumns = parsed
+              } else {
+                console.warn("[v0] dialogColumns is not an array, resetting to empty array")
+                allColumns = []
+              }
               console.log("[v0] Loaded columns from settings:", allColumns)
             } catch (e) {
               console.error("[v0] Error parsing dialogColumns:", e)
@@ -1105,6 +1113,7 @@
             }
           } else {
             console.warn("[v0] No dialogColumns found in settings")
+            allColumns = []
           }
           
           // Load existing columnsConfig
@@ -1118,14 +1127,9 @@
             }
           }
           
-          // Load general settings
           loadSettings()
-          
-          // Render columns in Data tab
-          renderColumnList()
-          
-          // Setup all event listeners
           setupEventListeners()
+          renderColumnList()
           
           console.log("[v0] Initialization complete")
         }).catch(function(error) {
@@ -1140,17 +1144,17 @@
         
         // General tab
         document.getElementById("table-title").value = settings.tableTitle || ""
-        document.getElementById("show-search").checked = settings.showSearch !== "false"
-        document.getElementById("show-row-count").checked = settings.showRowCount !== "false"
+        document.getElementById("show-search").checked = settings.showSearch !== "false" && settings.showSearch !== false
+        document.getElementById("show-row-count").checked = settings.showRowCount !== "false" && settings.showRowCount !== false
         
         // Export tab
         document.getElementById("export-filename").value = settings.exportFilename || "datos"
         document.getElementById("export-button-text").value = settings.exportButtonText || "Exportar"
         document.getElementById("export-button-color").value = settings.exportButtonColor || "#2563eb"
         document.getElementById("export-button-text-color").value = settings.exportButtonTextColor || "#ffffff"
-        document.getElementById("export-enable-excel").checked = settings.exportEnableExcel !== "false"
-        document.getElementById("export-enable-csv").checked = settings.exportEnableCSV !== "false"
-        document.getElementById("export-enable-pdf").checked = settings.exportEnablePDF !== "false"
+        document.getElementById("export-enable-excel").checked = settings.exportEnableExcel !== "false" && settings.exportEnableExcel !== false
+        document.getElementById("export-enable-csv").checked = settings.exportEnableCSV !== "false" && settings.exportEnableCSV !== false
+        document.getElementById("export-enable-pdf").checked = settings.exportEnablePDF !== "false" && settings.exportEnablePDF !== false
         
         console.log("[v0] Settings loaded successfully")
       }
@@ -1273,8 +1277,8 @@
         dimensionsList.innerHTML = ""
         measuresList.innerHTML = ""
 
-        if (!allColumns || allColumns.length === 0) {
-          console.warn("[v0] No columns to display")
+        if (!allColumns || !Array.isArray(allColumns) || allColumns.length === 0) {
+          console.warn("[v0] No columns to display or allColumns is not an array")
           dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles</div>'
           measuresList.innerHTML = '<div class="empty-state">No hay medidas disponibles</div>'
           return
