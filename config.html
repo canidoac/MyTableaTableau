@@ -1108,6 +1108,11 @@
       })
 
       function setupEventListeners() {
+        document.getElementById("save-btn").addEventListener("click", saveSettings)
+        document.getElementById("cancel-btn").addEventListener("click", function() {
+          tableau.extensions.ui.closeDialog("cancelled")
+        })
+        
         // Tab navigation (handled by onclick in HTML)
         
         // Auto-save on input change
@@ -1200,19 +1205,24 @@
       }
 
       function renderColumnList() {
+        console.log("[v0] Rendering column list, allColumns:", allColumns)
         const dimensionsList = document.getElementById("dimensions-list")
         const measuresList = document.getElementById("measures-list")
-        const calculationsList = document.getElementById("calculations-list") // Assuming this might be used later
 
         dimensionsList.innerHTML = ""
         measuresList.innerHTML = ""
-        calculationsList.innerHTML = ""
 
         const settings = tableau.extensions.settings.getAll()
         const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
 
+        if (!allColumns || allColumns.length === 0) {
+          dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles.</div>'
+          measuresList.innerHTML = '<div class="empty-state">No hay medidas disponibles.</div>'
+          return
+        }
+
         allColumns.forEach((col) => {
-          const colName = col.fieldName || col.name
+          const colName = col.fieldName || col.name || col
           const columnData = columnsConfig[colName] || {}
 
           const item = document.createElement("div")
@@ -1224,20 +1234,20 @@
             selectColumn(colName, col)
           })
 
-          // Categorize columns (basic categorization)
-          if (col.isDimension) { // Assuming Tableau data types indicate dimensions
+          // Categorize columns
+          if (col.isDimension || col.aggregation === "NONE" || col.dataType === "string") {
             dimensionsList.appendChild(item)
-          } else { // Otherwise, consider it a measure or calculated field
+          } else {
             measuresList.appendChild(item)
           }
         })
 
         // Show empty states if lists are empty
-        if (dimensionsList.innerHTML === "") {
-          dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles.</div>';
+        if (dimensionsList.children.length === 0) {
+          dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles.</div>'
         }
-        if (measuresList.innerHTML === "") {
-          measuresList.innerHTML = '<div class="empty-state">No hay medidas disponibles.</div>';
+        if (measuresList.children.length === 0) {
+          measuresList.innerHTML = '<div class="empty-state">No hay medidas disponibles.</div>'
         }
       }
 
