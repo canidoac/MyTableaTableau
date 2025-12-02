@@ -1339,6 +1339,14 @@
         console.log("[v0] All event listeners set up")
       }
 
+      function filterColumns() {
+        const searchTerm = document.getElementById("column-search").value.toLowerCase()
+        document.querySelectorAll(".column-item").forEach((item) => {
+          const text = item.textContent.toLowerCase()
+          item.style.display = text.includes(searchTerm) ? "block" : "none"
+        })
+      }
+
       function switchTab(tabName) {
         console.log("[v0] Switching to tab:", tabName)
         

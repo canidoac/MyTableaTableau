@@ -50,6 +50,7 @@ function initializeExtension() {
       }
 
       setupEventListeners()
+      setupTableauEventListeners()
       applyGeneralSettings()
     })
     .catch((err) => {
@@ -315,9 +316,9 @@ function renderTable() {
 
   pageData.forEach((row, rowIdx) => {
     var tr = document.createElement("tr")
-    let rowFormattingApplied = false
-    let rowBgColor = null
-    let rowTextColor = null
+    const rowFormattingApplied = false
+    const rowBgColor = null
+    const rowTextColor = null
 
     visibleColumns.forEach((col) => {
       var td = document.createElement("td")
@@ -340,160 +341,7 @@ function renderTable() {
         numericValue = cellData
       }
 
-      const colName = col.fieldName || col.name
-      const columnConfig = config.columns[colName]
-
-      if (rowIdx === 0 && columnConfig) {
-        console.log(`[v0] 🔍 Checking column [${colName}]`)
-        console.log(`[v0]   - Has conditionalRules:`, !!columnConfig.conditionalRules)
-        console.log(`[v0]   - Is Array:`, Array.isArray(columnConfig.conditionalRules))
-        if (columnConfig.conditionalRules) {
-          console.log(`[v0]   - Rules count:`, columnConfig.conditionalRules.length)
-          console.log(`[v0]   - Rules:`, JSON.stringify(columnConfig.conditionalRules, null, 2))
-        }
-      }
-
-      if (columnConfig && columnConfig.conditionalRules && Array.isArray(columnConfig.conditionalRules)) {
-        for (let i = 0; i < columnConfig.conditionalRules.length; i++) {
-          const cf = columnConfig.conditionalRules[i]
-          let conditionMet = false
-
-          const isTextValue = typeof cellValue === "string" || col.dataType === "string"
-
-          if (rowIdx === 0) {
-            console.log(`[v0]   - Rule ${i + 1}: operator="${cf.operator}" value="${cf.value}"`)
-            console.log(`[v0]   - Cell value: "${cellValue}" (isText: ${isTextValue})`)
-          }
-
-          if (isTextValue) {
-            const strValue = String(cellValue)
-            switch (cf.operator) {
-              case "equals":
-                conditionMet = strValue === cf.value
-                break
-              case "notEquals":
-                conditionMet = strValue !== cf.value
-                break
-              case "contains":
-                conditionMet = strValue.includes(cf.value)
-                break
-              case "notContains":
-                conditionMet = !strValue.includes(cf.value)
-                break
-              case "startsWith":
-                conditionMet = strValue.startsWith(cf.value)
-                break
-              case "endsWith":
-                conditionMet = strValue.endsWith(cf.value)
-                break
-              case "isEmpty":
-                conditionMet = strValue === "" || strValue === null || strValue === undefined
-                break
-              case "isNotEmpty":
-                conditionMet = strValue !== "" && strValue !== null && strValue !== undefined
-                break
-            }
-          } else {
-            const cellNumValue = Number.parseFloat(numericValue)
-            const condValue = Number.parseFloat(cf.value)
-            const condValue2 = Number.parseFloat(cf.value2)
-
-            if (!isNaN(cellNumValue)) {
-              switch (cf.operator) {
-                case ">=":
-                  conditionMet = cellNumValue >= condValue
-                  break
-                case "<=":
-                  conditionMet = cellNumValue <= condValue
-                  break
-                case "=":
-                  conditionMet = cellNumValue === condValue
-                  break
-                case ">":
-                  conditionMet = cellNumValue > condValue
-                  break
-                case "<":
-                  conditionMet = cellNumValue < condValue
-                  break
-                case "!=":
-                  conditionMet = cellNumValue !== condValue
-                  break
-                case "between":
-                  conditionMet = cellNumValue >= condValue && cellNumValue <= condValue2
-                  if (rowIdx === 0) {
-                    console.log(
-                      `[v0] Between check: ${cellNumValue} between ${condValue} and ${condValue2} = ${conditionMet}`,
-                    )
-                  }
-                  break
-              }
-            }
-          }
-
-          if (conditionMet) {
-            if (rowIdx === 0) {
-              console.log(`[v0]   ✅ Rule ${i + 1} MATCHED!`)
-              console.log(`[v0]   - Applying cellBg: ${cf.cellBg} (${cf.cellBgColor})`)
-              console.log(`[v0]   - Applying cellText: ${cf.cellText} (${cf.cellTextColor})`)
-            }
-
-            if (cf.cellBg && cf.cellBgColor) {
-              td.style.backgroundColor = cf.cellBgColor
-              if (rowIdx === 0) console.log(`[v0]   - Cell BG applied: ${cf.cellBgColor}`)
-            }
-            if (cf.cellText && cf.cellTextColor) {
-              td.style.color = cf.cellTextColor
-              if (rowIdx === 0) console.log(`[v0]   - Cell text color applied: ${cf.cellTextColor}`)
-            }
-
-            if (cf.rowBg && cf.rowBgColor) {
-              rowFormattingApplied = true
-              rowBgColor = cf.rowBgColor
-            }
-            if (cf.rowText && cf.rowTextColor) {
-              rowFormattingApplied = true
-              rowTextColor = cf.rowTextColor
-            }
-
-            if (cf.addIcon && cf.icon) {
-              const iconSpan = document.createElement("span")
-              iconSpan.style.marginRight = "6px"
-              iconSpan.style.color = cf.iconColor || "#000000"
-
-              const iconMap = {
-                arrow_upward: "↑",
-                arrow_downward: "↓",
-                arrow_forward: "→",
-                arrow_back: "←",
-                circle: "⬤",
-                circle_outline: "○",
-                square: "■",
-                square_outline: "□",
-                check: "✓",
-                close: "✗",
-                star: "★",
-                star_outline: "☆",
-                favorite: "♥",
-                warning: "⚠",
-                error: "⚠",
-                info: "ℹ",
-                help: "?",
-                flag: "⚑",
-                bookmark: "🔖",
-                trending_up: "📈",
-                trending_down: "📉",
-              }
-
-              iconSpan.textContent = iconMap[cf.icon] || cf.icon
-              td.insertBefore(iconSpan, td.firstChild)
-            }
-
-            break
-          }
-        }
-      }
-
-      td.textContent = td.textContent || cellValue
+      applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx)
       tr.appendChild(td)
     })
 
@@ -880,6 +728,171 @@ function handleExport(format) {
     exportToCSV()
   } else if (format === "pdf" && config.exportEnablePDF) {
     alert("Exportación a PDF próximamente")
+  }
+}
+
+function setupTableauEventListeners() {
+  if (currentWorksheet) {
+    // Listen for filter changes
+    currentWorksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
+      console.log("[v0] Filter changed, reloading data...")
+      loadWorksheetData(currentWorksheet)
+    })
+
+    // Listen for mark selection changes
+    currentWorksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, (event) => {
+      console.log("[v0] Selection changed, reloading data...")
+      loadWorksheetData(currentWorksheet)
+    })
+
+    // Listen for summary data changes
+    currentWorksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, (event) => {
+      console.log("[v0] Data changed, reloading data...")
+      loadWorksheetData(currentWorksheet)
+    })
+
+    console.log("[v0] Tableau event listeners configured")
+  }
+}
+
+function applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx) {
+  const colName = col.fieldName || col.name
+  const columnConfig = config.columns[colName]
+
+  if (rowIdx === 0 && columnConfig) {
+    console.log(`[v0] 🎨 Checking conditional format for column [${colName}]`)
+    console.log(`[v0]   - columnConfig:`, columnConfig)
+    console.log(`[v0]   - Has conditionalRules:`, !!columnConfig.conditionalRules)
+    if (columnConfig.conditionalRules) {
+      console.log(`[v0]   - Rules:`, columnConfig.conditionalRules)
+    }
+  }
+
+  if (!columnConfig || !columnConfig.conditionalRules || !Array.isArray(columnConfig.conditionalRules)) {
+    return
+  }
+
+  for (let i = 0; i < columnConfig.conditionalRules.length; i++) {
+    const cf = columnConfig.conditionalRules[i]
+    let conditionMet = false
+
+    const isTextValue = typeof cellValue === "string" || col.dataType === "string"
+
+    if (rowIdx === 0) {
+      console.log(`[v0]   - Evaluating rule ${i + 1}:`, cf)
+      console.log(`[v0]   - Cell value: "${cellValue}" (type: ${typeof cellValue})`)
+    }
+
+    if (isTextValue) {
+      const strValue = String(cellValue)
+      switch (cf.operator) {
+        case "equals":
+          conditionMet = strValue === cf.value
+          break
+        case "notEquals":
+          conditionMet = strValue !== cf.value
+          break
+        case "contains":
+          conditionMet = strValue.includes(cf.value)
+          break
+        case "notContains":
+          conditionMet = !strValue.includes(cf.value)
+          break
+        case "startsWith":
+          conditionMet = strValue.startsWith(cf.value)
+          break
+        case "endsWith":
+          conditionMet = strValue.endsWith(cf.value)
+          break
+        case "isEmpty":
+          conditionMet = strValue === "" || strValue === null || strValue === undefined
+          break
+        case "isNotEmpty":
+          conditionMet = strValue !== "" && strValue !== null && strValue !== undefined
+          break
+      }
+    } else {
+      const cellNumValue = Number.parseFloat(numericValue)
+      const condValue = Number.parseFloat(cf.value)
+      const condValue2 = Number.parseFloat(cf.value2)
+
+      if (!isNaN(cellNumValue)) {
+        switch (cf.operator) {
+          case ">=":
+            conditionMet = cellNumValue >= condValue
+            break
+          case "<=":
+            conditionMet = cellNumValue <= condValue
+            break
+          case "=":
+            conditionMet = cellNumValue === condValue
+            break
+          case ">":
+            conditionMet = cellNumValue > condValue
+            break
+          case "<":
+            conditionMet = cellNumValue < condValue
+            break
+          case "!=":
+            conditionMet = cellNumValue !== condValue
+            break
+          case "between":
+            conditionMet = cellNumValue >= condValue && cellNumValue <= condValue2
+            if (rowIdx === 0) {
+              console.log(
+                `[v0] Between check: ${cellNumValue} between ${condValue} and ${condValue2} = ${conditionMet}`,
+              )
+            }
+            break
+        }
+      }
+    }
+
+    if (conditionMet) {
+      if (rowIdx === 0) {
+        console.log(`[v0]   ✅ Rule ${i + 1} MATCHED!`)
+        console.log(`[v0]   - Applying format:`, {
+          bgColor: cf.bgColor,
+          textColor: cf.textColor,
+          rowBgColor: cf.rowBgColor,
+          rowTextColor: cf.rowTextColor,
+        })
+      }
+
+      if (cf.bgColor) {
+        td.style.setProperty("background-color", cf.bgColor, "important")
+      }
+      if (cf.textColor) {
+        td.style.setProperty("color", cf.textColor, "important")
+      }
+
+      // Apply row formatting
+      if (cf.rowBgColor || cf.rowTextColor) {
+        const row = td.parentElement
+        if (row) {
+          if (cf.rowBgColor) {
+            row.style.setProperty("background-color", cf.rowBgColor, "important")
+          }
+          if (cf.rowTextColor) {
+            row.style.setProperty("color", cf.rowTextColor, "important")
+          }
+        }
+      }
+
+      // Apply icon if specified
+      if (cf.icon && cf.icon !== "ninguno") {
+        const iconSpan = document.createElement("span")
+        iconSpan.textContent = cf.icon
+        iconSpan.style.marginRight = "4px"
+        if (cf.iconColor) {
+          iconSpan.style.color = cf.iconColor
+        }
+        td.insertBefore(iconSpan, td.firstChild)
+      }
+
+      // Only apply the first matching rule
+      break
+    }
   }
 }
 
