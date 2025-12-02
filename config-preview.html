@@ -1,326 +1,1390 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Preview - Configuración Data Panel</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SuperTables - Configuración</title>
+    <link rel="stylesheet" href="config.css" />
+    <script src="https://extensions.tableau.com/versionone/tableau.extensions.1.latest.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #f8f9fa;
+        overflow-x: hidden;
+        color: #333;
+        /* Prevent URL bar from showing and disable context menu */
+        -webkit-user-select: none;
+        user-select: none;
+      }
 
-    .preview-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
+      /* Force fullscreen-like appearance */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+      }
 
-    .header {
-      padding: 20px;
-      border-bottom: 1px solid #e0e0e0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+      /* --- Header & Tabs --- */
+      .config-header {
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
 
-    .header h1 {
-      font-size: 20px;
-      font-weight: 600;
-    }
+      .config-header h1 {
+        font-size: 18px;
+        color: #1a1a1a;
+        font-weight: 600;
+      }
 
-    .header-buttons {
-      display: flex;
-      gap: 10px;
-    }
+      .header-actions {
+        display: flex;
+        gap: 10px;
+      }
 
-    .btn {
-      padding: 8px 16px;
-      border-radius: 4px;
-      border: none;
-      font-size: 14px;
-      cursor: pointer;
-      font-weight: 500;
-    }
+      .tabs-container {
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+        position: sticky;
+        top: 60px;
+        z-index: 99;
+      }
 
-    .btn-cancel {
-      background: #e0e0e0;
-      color: #333;
-    }
+      .tabs {
+        display: flex;
+        gap: 0;
+        padding: 0 30px;
+        overflow-x: auto;
+      }
 
-    .btn-save {
-      background: #1a73e8;
-      color: white;
-    }
+      .tab-btn {
+        padding: 15px 20px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-weight: 500;
+      }
 
-    .tabs {
-      display: flex;
-      border-bottom: 1px solid #e0e0e0;
-      padding: 0 20px;
-    }
+      .tab-btn:hover {
+        color: #1a1a1a;
+        background: #f8f9fa;
+      }
 
-    .tab {
-      padding: 12px 24px;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      font-weight: 500;
-      color: #666;
-    }
+      .tab-btn.active {
+        color: #0066cc;
+        border-bottom-color: #0066cc;
+        font-weight: 600;
+      }
 
-    .tab.active {
-      color: #1a73e8;
-      border-bottom-color: #1a73e8;
-    }
+      /* --- Main Layout --- */
+      .config-body {
+        display: flex;
+        min-height: calc(100vh - 120px); /* Adjust based on header/tab height */
+      }
 
-    .data-panel {
-      display: flex;
-      height: 500px;
-    }
+      .sidebar {
+        width: 280px;
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        padding: 20px;
+        overflow-y: auto;
+      }
 
-    .sidebar {
-      width: 250px;
-      border-right: 1px solid #e0e0e0;
-      padding: 20px;
-      overflow-y: auto;
-      background: #fafafa;
-    }
+      .sidebar h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+        margin-top: 20px;
+      }
 
-    .search-box {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
+      .sidebar h3:first-child {
+        margin-top: 0;
+      }
 
-    .column-section {
-      margin-bottom: 24px;
-    }
+      .sidebar-list {
+        list-style: none;
+      }
 
-    .section-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: #666;
-      margin-bottom: 12px;
-      letter-spacing: 0.5px;
-    }
+      .column-item {
+        padding: 10px 12px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+      }
 
-    .column-item {
-      padding: 10px 12px;
-      margin-bottom: 4px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
-      background: white;
-      border: 1px solid #e0e0e0;
-    }
+      .column-item:hover {
+        background: #f0f7ff;
+      }
 
-    .column-item:hover {
-      background: #f5f5f5;
-      border-color: #ccc;
-    }
+      .column-item.selected {
+        background: #f2dc49;
+        color: white;
+        font-weight: 600;
+      }
 
-    .column-item.selected {
-      background: #e91e63;
-      color: white;
-      border-color: #e91e63;
-    }
+      .content-area {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+      }
 
-    .column-icon {
-      width: 20px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-    }
+      /* --- Tab Content --- */
+      .tab-content {
+        display: none;
+      }
 
-    .config-panel {
-      flex: 1;
-      padding: 30px;
-      overflow-y: auto;
-    }
+      .tab-content.active {
+        display: block;
+      }
 
-    .config-empty {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: #999;
-      font-size: 14px;
-    }
+      .tab-sidebar {
+        display: none;
+      }
 
-    .config-content {
-      max-width: 600px;
-    }
+      .tab-sidebar.active {
+        display: block;
+      }
 
-    .form-group {
-      margin-bottom: 24px;
-    }
+      /* --- Content Sections --- */
+      .content-section {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
 
-    .form-label {
-      display: block;
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 8px;
-      color: #333;
-    }
+      .content-section h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #1a1a1a;
+      }
 
-    .form-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      font-size: 14px;
-      transition: border-color 0.2s;
-    }
+      .content-section .subtitle {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 25px;
+      }
 
-    .form-input:focus {
-      outline: none;
-      border-color: #1a73e8;
-    }
+      /* --- Forms --- */
+      .form-group {
+        margin-bottom: 25px;
+      }
 
-    .form-hint {
-      font-size: 12px;
-      color: #666;
-      margin-top: 6px;
-    }
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+      }
 
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
+      .form-group input[type='text'],
+      .form-group input[type='number'],
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+      }
 
-    .checkbox {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+      }
 
-    .empty-state {
-      text-align: center;
-      color: #999;
-      font-style: italic;
-      padding: 20px;
-      font-size: 13px;
-    }
-  </style>
-</head>
-<body>
-  <div class="preview-container">
-    <div class="header">
-      <h1>SuperTables - Configuración</h1>
-      <div class="header-buttons">
-        <button class="btn btn-cancel">Cancelar</button>
-        <button class="btn btn-save">Guardar y Cerrar</button>
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+      }
+
+      .checkbox-group input[type='checkbox'] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .checkbox-group label {
+        margin: 0;
+        font-weight: normal;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      /* --- Buttons --- */
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #0066cc;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #0052a3;
+      }
+
+      .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #d0d0d0;
+      }
+
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #218838;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      .btn-danger:hover {
+        background: #c82333;
+      }
+
+      /* --- Helpers & Misc --- */
+      .help-text {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+        line-height: 1.4;
+      }
+
+      .color-picker-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .color-preview {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        border: 2px solid #ddd;
+        cursor: pointer;
+      }
+
+      .color-picker-group input[type='color'] {
+        width: 60px;
+        height: 40px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .color-picker-group button {
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+
+      .section-divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 30px 0;
+      }
+
+      .info-box {
+        background: #f0f7ff;
+        border-left: 4px solid #0066cc;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 15px 0;
+      }
+
+      .info-box p {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.5;
+      }
+
+      .column-config-panel {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+
+      .column-config-panel h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+        color: #1a1a1a;
+      }
+
+      .radio-group {
+        display: flex;
+        gap: 20px;
+        margin: 10px 0;
+      }
+
+      .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: normal;
+      }
+
+      .radio-group input[type='radio'] {
+        cursor: pointer;
+      }
+
+      input[type='range'] {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: #ddd;
+        outline: none;
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #0066cc;
+        cursor: pointer;
+      }
+
+      input[type='range']::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #0066cc;
+        cursor: pointer;
+        border: none;
+      }
+
+      .search-box {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        margin-bottom: 15px;
+      }
+
+      .search-box:focus {
+        outline: none;
+        border-color: #0066cc;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-style: italic;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .status-badge {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: green;
+      }
+      .status-online {
+        background-color: #28a745; /* Green for online */
+      }
+      .status-offline {
+        background-color: #dc3545; /* Red for offline */
+      }
+
+      .features-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .features-list li {
+        margin-bottom: 5px;
+        color: #28a745;
+      }
+
+      /* --- Updates Specific Styles --- */
+      .config-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      .config-content {
+        flex: 1;
+        display: flex;
+        overflow: hidden; /* Prevent scrolling of the entire page */
+      }
+
+      .tabs {
+        position: sticky;
+        top: 60px; /* Adjust based on header height */
+        z-index: 99;
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .tab-panels {
+        flex: 1;
+        overflow-y: auto; /* Allow scrolling within tab panels */
+        padding: 30px;
+      }
+
+      .data-layout {
+        display: flex;
+        flex: 1; /* Take remaining space */
+        overflow: hidden; /* Prevent internal scrolling issues */
+      }
+
+      .column-sidebar {
+        width: 280px; /* Fixed width for sidebar */
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Prevent sidebar scrolling issues */
+      }
+
+      .column-sidebar .search-box {
+        padding: 15px 20px;
+        margin-bottom: 0; /* Remove bottom margin */
+        border: none;
+        border-bottom: 1px solid #e0e0e0; /* Separator */
+      }
+
+      .column-sidebar .search-box input {
+        border: 1px solid #ddd; /* Ensure input has border */
+      }
+
+      .column-list {
+        flex: 1; /* Take remaining space */
+        padding: 20px;
+        overflow-y: auto; /* Allow scrolling for the list of columns */
+      }
+
+      .column-section {
+        margin-bottom: 25px;
+      }
+
+      .column-section h3 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+      }
+
+      .column-item {
+        padding: 10px 12px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+        transition: background-color 0.2s ease;
+        background-color: transparent; /* Default */
+      }
+
+      .column-item:hover {
+        background-color: #f0f7ff;
+      }
+
+      .column-item.selected {
+        background-color: #f2dc49;
+        color: white;
+        font-weight: 600;
+      }
+
+      .column-config-panel {
+        flex: 1; /* Take remaining space */
+        background: white; /* Changed from #f8f9fa */
+        padding: 30px; /* Increased padding */
+        border-radius: 0; /* No border-radius */
+        margin-top: 0; /* Removed top margin */
+        box-shadow: none; /* Removed shadow */
+        overflow-y: auto; /* Allow scrolling */
+      }
+
+      .column-config-panel h2 {
+        margin-bottom: 20px; /* Increased margin */
+      }
+
+      .icon-btn {
+        padding: 8px 12px;
+        border: 2px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.2s;
+      }
+
+      .icon-btn:hover {
+        border-color: #2563eb;
+        background: #eff6ff;
+      }
+
+      .icon-btn.selected {
+        border-color: #2563eb;
+        background: #2563eb;
+        color: white;
+      }
+
+      /* Custom disabled input style */
+      input[disabled] {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+      }
+
+      /* Adjusting label for conditional formatting */
+      .form-group label strong {
+        font-size: 15px; /* Slightly larger for emphasis */
+      }
+      /* Form layout improvements */
+      .form-group input[type='color'] {
+        cursor: pointer;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+      }
+
+      .checkbox-group input[type='checkbox'] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .checkbox-group label {
+        cursor: pointer;
+        margin: 0;
+      }
+
+      /* Status badges */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .status-online {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .info-grid {
+        display: grid;
+        gap: 16px;
+        margin-top: 20px;
+      }
+
+      .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 6px;
+      }
+
+      .info-item strong {
+        color: #555;
+      }
+
+      /* Feature list */
+      .feature-list {
+        list-style: none;
+        margin-top: 16px;
+      }
+
+      .feature-list li {
+        padding: 8px 0;
+        padding-left: 24px;
+        position: relative;
+      }
+
+      .feature-list li:before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #28a745;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="config-container">
+      <header class="config-header">
+        <h1>SuperTables - Configuración</h1>
+        <div class="header-actions">
+          <button id="cancel-btn" class="btn btn-secondary">Cancelar</button>
+          <button id="save-btn" class="btn btn-primary">Guardar y Cerrar</button>
+        </div>
+      </header>
+
+      <div class="config-content">
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="general">General</button>
+          <button class="tab-btn" data-tab="data">Data</button>
+          <button class="tab-btn" data-tab="export">Export</button>
+          <button class="tab-btn" data-tab="info">Información</button>
+        </nav>
+
+        <div class="tab-panels">
+          <!-- General Tab -->
+          <div id="general-tab" class="tab-content active">
+            <div class="content-section">
+              <h2>Configuración General</h2>
+
+              <div class="form-group">
+                <label>Hoja de trabajo</label>
+                <input
+                  type="text"
+                  id="worksheet-name"
+                  placeholder="La hoja se selecciona desde la extensión"
+                  disabled
+                  style="background: #f5f5f5; cursor: not-allowed"
+                />
+                <p class="help-text">Selecciona la hoja de trabajo desde la cual se cargarán los datos</p>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <div class="form-group">
+                <label>Título de la tabla</label>
+                <input type="text" id="table-title" placeholder="Ej: Mi Tabla de Datos" />
+                <p class="help-text">Este título aparecerá en la parte superior de la tabla</p>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <h3>Opciones de visualización</h3>
+              <div class="checkbox-group">
+                <input type="checkbox" id="show-search" checked />
+                <label for="show-search">Mostrar buscador</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="show-row-count" checked />
+                <label for="show-row-count">Mostrar contador de filas</label>
+              </div>
+              <p class="help-text">Controla qué elementos se muestran en la interfaz</p>
+            </div>
+          </div>
+
+          <!-- Data Tab -->
+          <div id="data-tab" class="tab-content">
+            <div class="data-layout">
+              <aside class="column-sidebar">
+                <div class="search-box">
+                  <input type="text" id="column-search" placeholder="Buscar dimensión..." />
+                </div>
+
+                <div class="column-list">
+                  <div class="column-section">
+                    <h3>DIMENSIONES</h3>
+                    <div id="dimensions-list"></div>
+                  </div>
+
+                  <div class="column-section">
+                    <h3>MEDIDAS</h3>
+                    <div id="measures-list"></div>
+                  </div>
+
+                  <div class="column-section">
+                    <h3>CÁLCULOS</h3>
+                    <div id="calculations-list"></div>
+                  </div>
+                </div>
+              </aside>
+
+              <main class="column-config-panel">
+                <div id="no-column-selected" class="content-section">
+                  <h2>Configurar Columna</h2>
+                  <p class="help-text">Selecciona una columna del panel izquierdo para configurar sus propiedades</p>
+                </div>
+
+                <div id="column-config-content" style="display: none">
+                  <h2 id="config-column-title">Configurar Columna</h2>
+
+                  <div class="section-divider"></div>
+
+                  <div class="form-group">
+                    <label>Nombre de visualización</label>
+                    <input type="text" id="column-display-name" placeholder="Nombre personalizado para la columna" />
+                    <p class="help-text">Deja vacío para usar el nombre original</p>
+                  </div>
+
+                  <div class="section-divider"></div>
+
+                  <div class="form-group">
+                    <label>Visibilidad</label>
+                    <div class="checkbox-group">
+                      <input type="checkbox" id="column-visible" checked />
+                      <label for="column-visible">Mostrar esta columna en la tabla</label>
+                    </div>
+                  </div>
+
+                  <div class="section-divider"></div>
+
+                  <!-- Added export checkbox -->
+                  <div class="form-group">
+                    <label>Exportación</label>
+                    <div class="checkbox-group">
+                      <input type="checkbox" id="column-export" checked />
+                      <label for="column-export">Incluir esta columna en las exportaciones</label>
+                    </div>
+                  </div>
+
+                  <!-- Added conditional formatting section -->
+                  <div id="conditional-formatting-section" style="display: none">
+                    <div class="section-divider"></div>
+
+                    <div class="form-group">
+                      <label>
+                        <strong>Formato Condicional</strong>
+                        <span style="color: #666; font-size: 0.9em">(solo para medidas y cálculos)</span>
+                      </label>
+                      <div class="checkbox-group">
+                        <input type="checkbox" id="enable-conditional-format" />
+                        <label for="enable-conditional-format">Habilitar formato condicional</label>
+                      </div>
+                    </div>
+
+                    <div id="conditional-format-config" style="display: none">
+                      <div class="form-group">
+                        <label>Condición</label>
+                        <div style="display: flex; gap: 8px; align-items: center">
+                          <select id="condition-operator" style="width: 100px">
+                            <option value=">=">>=</option>
+                            <option value="<="><=</option>
+                            <option value="=">=</option>
+                            <option value=">">&gt;</option>
+                            <option value="<">&lt;</option>
+                            <option value="!=">!=</option>
+                          </select>
+                          <input type="number" id="condition-value" placeholder="Valor" style="flex: 1" />
+                        </div>
+                      </div>
+
+                      <div class="section-divider"></div>
+
+                      <h4>Aplicar Estilo</h4>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-cell-bg" />
+                          <label for="format-cell-bg">Color de fondo de celda</label>
+                        </div>
+                        <input
+                          type="color"
+                          id="format-cell-bg-color"
+                          value="#ffeb3b"
+                          style="margin-left: 24px; width: 60px; height: 32px"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-row-bg" />
+                          <label for="format-row-bg">Color de fondo de fila</label>
+                        </div>
+                        <input
+                          type="color"
+                          id="format-row-bg-color"
+                          value="#ffcdd2"
+                          style="margin-left: 24px; width: 60px; height: 32px"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-cell-text" />
+                          <label for="format-cell-text">Color de texto de celda</label>
+                        </div>
+                        <input
+                          type="color"
+                          id="format-cell-text-color"
+                          value="#d32f2f"
+                          style="margin-left: 24px; width: 60px; height: 32px"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-row-text" />
+                          <label for="format-row-text">Color de texto de fila</label>
+                        </div>
+                        <input
+                          type="color"
+                          id="format-row-text-color"
+                          value="#1976d2"
+                          style="margin-left: 24px; width: 60px; height: 32px"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="section-divider"></div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-add-icon" />
+                          <label for="format-add-icon">Agregar icono</label>
+                        </div>
+
+                        <div id="icon-selection" style="display: none; margin-left: 24px; margin-top: 8px">
+                          <label style="font-size: 0.9em; color: #666">Selecciona un icono:</label>
+                          <div
+                            style="
+                              display: grid;
+                              grid-template-columns: repeat(4, 1fr);
+                              gap: 8px;
+                              margin-top: 8px;
+                              max-width: 300px;
+                            "
+                          >
+                            <button type="button" class="icon-btn" data-icon="arrow_upward">↑</button>
+                            <button type="button" class="icon-btn" data-icon="arrow_downward">↓</button>
+                            <button type="button" class="icon-btn" data-icon="arrow_forward">→</button>
+                            <button type="button" class="icon-btn" data-icon="arrow_back">←</button>
+                            <button type="button" class="icon-btn" data-icon="circle">⬤</button>
+                            <button type="button" class="icon-btn" data-icon="circle_outline">○</button>
+                            <button type="button" class="icon-btn" data-icon="square">■</button>
+                            <button type="button" class="icon-btn" data-icon="square_outline">□</button>
+                          </div>
+                          <input type="hidden" id="selected-icon" />
+
+                          <div class="form-group" style="margin-top: 12px">
+                            <label style="font-size: 0.9em; color: #666">Color del icono:</label>
+                            <input type="color" id="icon-color" value="#000000" style="width: 60px; height: 32px" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </main>
+            </div>
+          </div>
+
+          <!-- Export Tab -->
+          <div id="export-tab" class="tab-content">
+            <div class="content-section">
+              <h2>Configuración de Exportación</h2>
+              <p class="subtitle">Configura las opciones de exportación disponibles para los usuarios</p>
+
+              <div class="form-group">
+                <label>Texto del botón de exportación</label>
+                <input type="text" id="export-button-text" placeholder="Ej: Exportar, Descargar" />
+                <p class="help-text">Personaliza el texto que aparece en el botón de exportación</p>
+              </div>
+
+              <!-- Added export filename field -->
+              <div class="form-group">
+                <label>Nombre del archivo exportado</label>
+                <input type="text" id="export-filename" placeholder="Ej: Reporte_Ventas" />
+                <p class="help-text">El nombre base para los archivos exportados (se agregará fecha y extensión automáticamente)</p>
+              </div>
+
+              <div class="form-group">
+                <label for="export-button-color">Color del botón:</label>
+                <input type="color" id="export-button-color" value="#2563eb" />
+                <p class="help-text">Selecciona el color de fondo del botón de exportación</p>
+              </div>
+
+              <div class="form-group">
+                <label for="export-button-text-color">Color del texto del botón:</label>
+                <input type="color" id="export-button-text-color" value="#ffffff" />
+                <p class="help-text">Selecciona el color del texto del botón de exportación</p>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <div class="form-group">
+                <label>Formatos de exportación disponibles</label>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="export-enable-excel" checked />
+                  <label for="export-enable-excel">Habilitar exportación a Excel (.xlsx)</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="export-enable-csv" checked />
+                  <label for="export-enable-csv">Habilitar exportación a CSV</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="export-enable-pdf" checked />
+                  <label for="export-enable-pdf">Habilitar exportación a PDF</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info Tab -->
+          <div id="info-tab" class="tab-content">
+            <div class="content-section">
+              <h2>Información de la Extensión</h2>
+              <p class="subtitle">SuperTables v7.1.0</p>
+
+              <div class="info-grid">
+                <div class="info-item">
+                  <strong>Estado:</strong>
+                  <span class="status-badge status-online">● Online</span>
+                </div>
+                <div class="info-item">
+                  <strong>Versión:</strong>
+                  <span>7.1.0</span>
+                </div>
+                <div class="info-item">
+                  <strong>Última actualización:</strong>
+                  <span>Diciembre 2024</span>
+                </div>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <h3>Características</h3>
+              <ul class="feature-list">
+                <li>Visualización de datos en tabla interactiva</li>
+                <li>Búsqueda y filtrado de datos</li>
+                <li>Ordenamiento por columnas</li>
+                <li>Exportación a Excel, CSV y PDF</li>
+                <li>Configuración personalizable de columnas</li>
+                <li>Formato condicional para medidas y cálculos</li>
+                <li>Nombres de visualización personalizados</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="tabs">
-      <div class="tab">General</div>
-      <div class="tab active">Data</div>
-    </div>
+    <script>
+      console.log("[v0] config.html cargado - v7.0.0")
 
-    <div class="data-panel">
-      <div class="sidebar">
-        <input type="text" class="search-box" placeholder="Buscar dimensión...">
-        
-        <div class="column-section">
-          <div class="section-title">DIMENSIONES</div>
-          <div class="column-item selected" data-column="username">
-            <span class="column-icon">📝</span>
-            <span>Username</span>
-          </div>
-          <div class="column-item" data-column="manager">
-            <span class="column-icon">📝</span>
-            <span>Manager_Username</span>
-          </div>
-          <div class="column-item" data-column="division">
-            <span class="column-icon">📝</span>
-            <span>Division_Nombre</span>
-          </div>
-        </div>
-
-        <div class="column-section">
-          <div class="section-title">MEDIDAS</div>
-          <div class="empty-state">No hay medidas.</div>
-        </div>
-
-        <div class="column-section">
-          <div class="section-title">CÁLCULOS</div>
-          <div class="empty-state">No hay cálculos.</div>
-        </div>
-      </div>
-
-      <div class="config-panel">
-        <div class="config-content">
-          <div class="form-group">
-            <label class="form-label">Nombre de visualización</label>
-            <input type="text" class="form-input" placeholder="Nombre personalizado para la columna" value="Username">
-            <div class="form-hint">Deja vacío para usar el nombre original</div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Visibilidad</label>
-            <label class="checkbox-group">
-              <input type="checkbox" class="checkbox" checked>
-              <span>Mostrar esta columna en la tabla</span>
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Simulación de interactividad
-    const columns = document.querySelectorAll('.column-item');
-    const configPanel = document.querySelector('.config-panel');
-    const displayNameInput = document.querySelector('.form-input');
-    const visibilityCheckbox = document.querySelector('.checkbox');
-
-    columns.forEach(col => {
-      col.addEventListener('click', () => {
-        // Remover selección anterior
-        columns.forEach(c => c.classList.remove('selected'));
-        // Seleccionar la nueva
-        col.classList.add('selected');
-        
-        // Actualizar el panel de configuración
-        const columnName = col.textContent.trim();
-        displayNameInput.value = columnName;
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
       });
-    });
 
-    // Búsqueda
-    const searchBox = document.querySelector('.search-box');
-    searchBox.addEventListener('input', (e) => {
-      const search = e.target.value.toLowerCase();
-      columns.forEach(col => {
-        const text = col.textContent.toLowerCase();
-        col.style.display = text.includes(search) ? 'flex' : 'none';
+      document.addEventListener('selectstart', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+        }
       });
-    });
 
-    console.log('[v0] Config preview loaded - Test the Data panel layout here!');
-  </script>
-</body>
+      let currentSelectedColumn = null
+      let allColumns = []
+
+      tableau.extensions.initializeDialogAsync().then(function (openPayload) {
+        console.log("[v0] Dialog inicializado")
+        const settings = tableau.extensions.settings.getAll()
+        console.log("[v0] Settings actuales:", settings)
+
+        // Load worksheet name
+        const worksheetName = settings.worksheetName || ""
+        document.getElementById("worksheet-name").value = worksheetName
+
+        // Load general settings
+        document.getElementById("table-title").value = settings.tableTitle || ""
+        document.getElementById("show-search").checked = settings.showSearch !== "false"
+        document.getElementById("show-row-count").checked = settings.showRowCount !== "false"
+
+        // Load export settings
+        document.getElementById("export-button-text").value = settings.exportButtonText || "Exportar"
+        document.getElementById("export-filename").value = settings.exportFilename || "export"
+        document.getElementById("export-button-color").value = settings.exportButtonColor || "#2563eb"
+        document.getElementById("export-button-text-color").value = settings.exportButtonTextColor || "#ffffff"
+        document.getElementById("export-enable-excel").checked = settings.exportEnableExcel !== "false"
+        document.getElementById("export-enable-csv").checked = settings.exportEnableCSV !== "false"
+        document.getElementById("export-enable-pdf").checked = settings.exportEnablePDF !== "false"
+
+        // Load columns
+        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+        allColumns = openPayload ? JSON.parse(openPayload) : []
+
+        renderColumnList()
+        setupEventListeners()
+      })
+
+      function setupEventListeners() {
+        // Tab navigation
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const targetTab = this.getAttribute("data-tab")
+            switchTab(targetTab)
+          })
+        })
+
+        // Save/Cancel
+        document.getElementById("save-btn").addEventListener("click", saveSettings)
+        document.getElementById("cancel-btn").addEventListener("click", () => tableau.extensions.ui.closeDialog(""))
+
+        // General settings auto-save
+        document.getElementById("table-title").addEventListener("input", autoSave)
+        document.getElementById("show-search").addEventListener("change", autoSave)
+        document.getElementById("show-row-count").addEventListener("change", autoSave)
+
+        // Export settings auto-save
+        document.getElementById("export-button-text").addEventListener("input", autoSave)
+        document.getElementById("export-filename").addEventListener("input", autoSave)
+        document.getElementById("export-button-color").addEventListener("change", autoSave)
+        document.getElementById("export-button-text-color").addEventListener("change", autoSave)
+        document.getElementById("export-enable-excel").addEventListener("change", autoSave)
+        document.getElementById("export-enable-csv").addEventListener("change", autoSave)
+        document.getElementById("export-enable-pdf").addEventListener("change", autoSave)
+
+        // Column search
+        document.getElementById("column-search").addEventListener("input", filterColumns)
+
+        // Conditional formatting checkboxes
+        document.getElementById("enable-conditional-format").addEventListener("change", function () {
+          document.getElementById("conditional-format-config").style.display = this.checked ? "block" : "none"
+          saveColumnConfig()
+        })
+
+        document.getElementById("format-cell-bg").addEventListener("change", function () {
+          document.getElementById("format-cell-bg-color").disabled = !this.checked
+          saveColumnConfig()
+        })
+
+        document.getElementById("format-row-bg").addEventListener("change", function () {
+          document.getElementById("format-row-bg-color").disabled = !this.checked
+          saveColumnConfig()
+        })
+
+        document.getElementById("format-cell-text").addEventListener("change", function () {
+          document.getElementById("format-cell-text-color").disabled = !this.checked
+          saveColumnConfig()
+        })
+
+        document.getElementById("format-row-text").addEventListener("change", function () {
+          document.getElementById("format-row-text-color").disabled = !this.checked
+          saveColumnConfig()
+        })
+
+        document.getElementById("format-add-icon").addEventListener("change", function () {
+          document.getElementById("icon-selection").style.display = this.checked ? "block" : "none"
+          saveColumnConfig()
+        })
+
+        // Color pickers for conditional formatting
+        document.getElementById("format-cell-bg-color").addEventListener("change", saveColumnConfig)
+        document.getElementById("format-row-bg-color").addEventListener("change", saveColumnConfig)
+        document.getElementById("format-cell-text-color").addEventListener("change", saveColumnConfig)
+        document.getElementById("format-row-text-color").addEventListener("change", saveColumnConfig)
+        document.getElementById("icon-color").addEventListener("change", saveColumnConfig)
+
+        // Condition inputs
+        document.getElementById("condition-operator").addEventListener("change", saveColumnConfig)
+        document.getElementById("condition-value").addEventListener("input", saveColumnConfig)
+
+        // Icon buttons
+        document.querySelectorAll(".icon-btn").forEach((btn) => {
+          btn.addEventListener("click", function (e) {
+            e.preventDefault()
+            document.querySelectorAll(".icon-btn").forEach((b) => b.classList.remove("selected"))
+            this.classList.add("selected")
+            document.getElementById("selected-icon").value = this.getAttribute("data-icon")
+            saveColumnConfig()
+          })
+        })
+
+        // Column config inputs
+        document.getElementById("column-display-name").addEventListener("input", saveColumnConfig)
+        document.getElementById("column-visible").addEventListener("change", saveColumnConfig)
+        document.getElementById("column-export").addEventListener("change", saveColumnConfig)
+      }
+
+      function switchTab(tabName) {
+        document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
+        document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
+
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
+        document.getElementById(`${tabName}-tab`).classList.add("active")
+      }
+
+      function renderColumnList() {
+        const dimensionsList = document.getElementById("dimensions-list")
+        const measuresList = document.getElementById("measures-list")
+        const calculationsList = document.getElementById("calculations-list")
+
+        dimensionsList.innerHTML = ""
+        measuresList.innerHTML = ""
+        calculationsList.innerHTML = ""
+
+        const settings = tableau.extensions.settings.getAll()
+        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+
+        allColumns.forEach((col) => {
+          const colName = col.fieldName || col.name
+          const columnData = columnsConfig[colName] || {}
+
+          const item = document.createElement("div")
+          item.className = "column-item"
+          item.textContent = colName
+          item.setAttribute("data-column", colName)
+
+          item.addEventListener("click", function () {
+            selectColumn(colName, col)
+          })
+
+          if (col.dataType === "string" || col.aggregation === "ATTR") {
+            dimensionsList.appendChild(item)
+          } else if (col.isCalculatedField) {
+            calculationsList.appendChild(item)
+          } else {
+            measuresList.appendChild(item)
+          }
+        })
+
+        // Show empty states if lists are empty
+        if (dimensionsList.innerHTML === "") {
+          dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones disponibles.</li>';
+        }
+        if (measuresList.innerHTML === "") {
+          measuresList.innerHTML = '<li class="empty-state">No hay medidas disponibles.</li>';
+        }
+        if (calculationsList.innerHTML === "") {
+          calculationsList.innerHTML = '<li class="empty-state">No hay cálculos disponibles.</li>';
+        }
+      }
+
+      function selectColumn(colName, columnInfo) {
+        currentSelectedColumn = colName
+
+        // Highlight selected column
+        document.querySelectorAll(".column-item").forEach((item) => item.classList.remove("selected"))
+        document.querySelector(`[data-column="${colName}"]`).classList.add("selected")
+
+        // Show config panel
+        document.getElementById("no-column-selected").style.display = "none"
+        document.getElementById("column-config-content").style.display = "block"
+
+        // Load column config
+        const settings = tableau.extensions.settings.getAll()
+        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+        const columnData = columnsConfig[colName] || {
+          visible: true,
+          includeInExport: true,
+        }
+
+        document.getElementById("config-column-title").textContent = `Configurar: ${colName}`
+        document.getElementById("column-display-name").value = columnData.displayName || ""
+        document.getElementById("column-visible").checked = columnData.visible !== false
+        document.getElementById("column-export").checked = columnData.includeInExport !== false
+
+        // Show conditional formatting only for measures and calculations
+        const isMeasureOrCalc = columnInfo.dataType !== "string" && columnInfo.aggregation !== "ATTR"
+        const conditionalSection = document.getElementById("conditional-formatting-section")
+        conditionalSection.style.display = isMeasureOrCalc ? "block" : "none"
+
+        if (isMeasureOrCalc && columnData.conditionalFormat) {
+          const cf = columnData.conditionalFormat
+          document.getElementById("enable-conditional-format").checked = cf.enabled || false
+          document.getElementById("conditional-format-config").style.display = cf.enabled ? "block" : "none"
+
+          document.getElementById("condition-operator").value = cf.operator || ">="
+          document.getElementById("condition-value").value = cf.value || ""
+
+          document.getElementById("format-cell-bg").checked = cf.cellBg || false
+          document.getElementById("format-cell-bg-color").value = cf.cellBgColor || "#ffeb3b"
+          document.getElementById("format-cell-bg-color").disabled = !cf.cellBg
+
+          document.getElementById("format-row-bg").checked = cf.rowBg || false
+          document.getElementById("format-row-bg-color").value = cf.rowBgColor || "#ffcdd2"
+          document.getElementById("format-row-bg-color").disabled = !cf.rowBg
+
+          document.getElementById("format-cell-text").checked = cf.cellText || false
+          document.getElementById("format-cell-text-color").value = cf.cellTextColor || "#d32f2f"
+          document.getElementById("format-cell-text-color").disabled = !cf.cellText
+
+          document.getElementById("format-row-text").checked = cf.rowText || false
+          document.getElementById("format-row-text-color").value = cf.rowTextColor || "#1976d2"
+          document.getElementById("format-row-text-color").disabled = !cf.rowText
+
+          document.getElementById("format-add-icon").checked = cf.addIcon || false
+          document.getElementById("icon-selection").style.display = cf.addIcon ? "block" : "none"
+          document.getElementById("selected-icon").value = cf.icon || ""
+          document.getElementById("icon-color").value = cf.iconColor || "#000000"
+
+          if (cf.icon) {
+            document.querySelectorAll(".icon-btn").forEach((btn) => {
+              if (btn.getAttribute("data-icon") === cf.icon) {
+                btn.classList.add("selected")
+              } else {
+                btn.classList.remove("selected")
+              }
+            })
+          }
+        } else {
+          // Reset conditional formatting
+          document.getElementById("enable-conditional-format").checked = false
+          document.getElementById("conditional-format-config").style.display = "none"
+        }
+      }
+
+      function saveColumnConfig() {
+        if (!currentSelectedColumn) return
+
+        const settings = tableau.extensions.settings.getAll()
+        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+
+        const columnData = columnsConfig[currentSelectedColumn] || {}
+
+        columnData.displayName = document.getElementById("column-display-name").value
+        columnData.visible = document.getElementById("column-visible").checked
+        columnData.includeInExport = document.getElementById("column-export").checked
+
+        // Save conditional formatting if enabled
+        const conditionalSection = document.getElementById("conditional-formatting-section")
+        if (conditionalSection.style.display !== "none") {
+          const enabledCF = document.getElementById("enable-conditional-format").checked
+
+          if (enabledCF) {
+            columnData.conditionalFormat = {
+              enabled: true,
+              operator: document.getElementById("condition-operator").value,
+              value: parseFloat(document.getElementById("condition-value").value) || 0,
+              cellBg: document.getElementById("format-cell-bg").checked,
+              cellBgColor: document.getElementById("format-cell-bg-color").value,
+              rowBg: document.getElementById("format-row-bg").checked,
+              rowBgColor: document.getElementById("format-row-bg-color").value,
+              cellText: document.getElementById("format-cell-text").checked,
+              cellTextColor: document.getElementById("format-cell-text-color").value,
+              rowText: document.getElementById("format-row-text").checked,
+              rowTextColor: document.getElementById("format-row-text-color").value,
+              addIcon: document.getElementById("format-add-icon").checked,
+              icon: document.getElementById("selected-icon").value,
+              iconColor: document.getElementById("icon-color").value,
+            }
+          } else {
+            delete columnData.conditionalFormat
+          }
+        }
+
+        columnsConfig[currentSelectedColumn] = columnData
+        tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig))
+        tableau.extensions.settings.saveAsync()
+      }
+
+      function autoSave() {
+        tableau.extensions.settings.set("tableTitle", document.getElementById("table-title").value)
+        tableau.extensions.settings.set(
+          "showSearch",
+          document.getElementById("show-search").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.set(
+          "showRowCount",
+          document.getElementById("show-row-count").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.set("exportButtonText", document.getElementById("export-button-text").value)
+        tableau.extensions.settings.set("exportFilename", document.getElementById("export-filename").value)
+        tableau.extensions.settings.set("exportButtonColor", document.getElementById("export-button-color").value)
+        tableau.extensions.settings.set(
+          "exportButtonTextColor",
+          document.getElementById("export-button-text-color").value,
+        )
+        tableau.extensions.settings.set(
+          "exportEnableExcel",
+          document.getElementById("export-enable-excel").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.set(
+          "exportEnableCSV",
+          document.getElementById("export-enable-csv").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.set(
+          "exportEnablePDF",
+          document.getElementById("export-enable-pdf").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.saveAsync()
+      }
+
+      function filterColumns() {
+        const searchTerm = document.getElementById("column-search").value.toLowerCase()
+        document.querySelectorAll(".column-item").forEach((item) => {
+          const text = item.textContent.toLowerCase()
+          item.style.display = text.includes(searchTerm) ? "block" : "none"
+        })
+      }
+
+      function saveSettings() {
+        autoSave()
+        tableau.extensions.ui.closeDialog("saved")
+      }
+    </script>
+  </body>
 </html>

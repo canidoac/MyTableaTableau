@@ -17,7 +17,19 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         background: #f8f9fa;
         overflow-x: hidden;
-        color: #333; /* Default text color */
+        color: #333;
+        /* Prevent URL bar from showing and disable context menu */
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      /* Force fullscreen-like appearance */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
       }
 
       /* --- Header & Tabs --- */
@@ -563,27 +575,24 @@
       }
 
       .icon-btn {
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        padding: 8px 12px;
+        border: 2px solid #ddd;
         background: white;
+        border-radius: 4px;
         cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
-        font-size: 1.2em; /* Larger icons */
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        font-size: 18px;
+        transition: all 0.2s;
       }
 
       .icon-btn:hover {
-        background: #f0f7ff;
-        border-color: #0066cc;
+        border-color: #2563eb;
+        background: #eff6ff;
       }
 
       .icon-btn.selected {
-        background: #0066cc;
+        border-color: #2563eb;
+        background: #2563eb;
         color: white;
-        border-color: #0066cc;
       }
 
       /* Custom disabled input style */
@@ -595,6 +604,84 @@
       /* Adjusting label for conditional formatting */
       .form-group label strong {
         font-size: 15px; /* Slightly larger for emphasis */
+      }
+      /* Form layout improvements */
+      .form-group input[type='color'] {
+        cursor: pointer;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+      }
+
+      .checkbox-group input[type='checkbox'] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .checkbox-group label {
+        cursor: pointer;
+        margin: 0;
+      }
+
+      /* Status badges */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .status-online {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .info-grid {
+        display: grid;
+        gap: 16px;
+        margin-top: 20px;
+      }
+
+      .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 6px;
+      }
+
+      .info-item strong {
+        color: #555;
+      }
+
+      /* Feature list */
+      .feature-list {
+        list-style: none;
+        margin-top: 16px;
+      }
+
+      .feature-list li {
+        padding: 8px 0;
+        padding-left: 24px;
+        position: relative;
+      }
+
+      .feature-list li:before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #28a745;
+        font-weight: bold;
       }
     </style>
   </head>
@@ -910,7 +997,7 @@
           <div id="info-tab" class="tab-content">
             <div class="content-section">
               <h2>Información de la Extensión</h2>
-              <p class="subtitle">SuperTables v7.0.0</p>
+              <p class="subtitle">SuperTables v7.1.0</p>
 
               <div class="info-grid">
                 <div class="info-item">
@@ -919,11 +1006,11 @@
                 </div>
                 <div class="info-item">
                   <strong>Versión:</strong>
-                  <span>7.0.0</span>
+                  <span>7.1.0</span>
                 </div>
                 <div class="info-item">
                   <strong>Última actualización:</strong>
-                  <span>Enero 2025</span>
+                  <span>Diciembre 2024</span>
                 </div>
               </div>
 
@@ -931,14 +1018,13 @@
 
               <h3>Características</h3>
               <ul class="feature-list">
-                <li>✓ Visualización avanzada de datos de Tableau</li>
-                <li>✓ Búsqueda y filtrado en tiempo real</li>
-                <li>✓ Exportación a Excel, CSV y PDF</li>
-                <li>✓ Configuración personalizable de columnas</li>
-                <li>✓ Formato condicional con iconos</li>
-                <li>✓ Ordenamiento de columnas</li>
-                <li>✓ Paginación automática</li>
-                <li>✓ Nombres de columna personalizables</li>
+                <li>Visualización de datos en tabla interactiva</li>
+                <li>Búsqueda y filtrado de datos</li>
+                <li>Ordenamiento por columnas</li>
+                <li>Exportación a Excel, CSV y PDF</li>
+                <li>Configuración personalizable de columnas</li>
+                <li>Formato condicional para medidas y cálculos</li>
+                <li>Nombres de visualización personalizados</li>
               </ul>
             </div>
           </div>
@@ -948,6 +1034,17 @@
 
     <script>
       console.log("[v0] config.html cargado - v7.0.0")
+
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+      });
+
+      document.addEventListener('selectstart', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+        }
+      });
 
       let currentSelectedColumn = null
       let allColumns = []

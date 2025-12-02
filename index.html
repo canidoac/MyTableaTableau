@@ -10,8 +10,38 @@
     
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.min.js"></script>
+    
+    <style>
+        /* Prevent URL bar from showing and disable context menu */
+        body {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+    </style>
 </head>
 <body>
+    <!-- Disable right-click context menu -->
+    <script>
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('selectstart', (e) => {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        });
+    </script>
+    
     <div class="container">
         <header class="toolbar">
             <div class="toolbar-left">
@@ -241,8 +271,8 @@
                         </div>
                         <div class="info-item">
                             <strong>Versión:</strong>
-                            <!-- Updated version to v7.0.0 -->
-                            <span>v7.0.0</span>
+                            <!-- Updated version to v7.1.0 -->
+                            <span>v7.1.0</span>
                         </div>
                         <div class="info-item">
                             <strong>Estado:</strong>

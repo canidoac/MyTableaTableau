@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <!-- Updated to v7.0.0 - Added conditional formatting, export filename customization, column export control -->
-  <dashboard-extension id="com.supertable.pro" extension-version="7.0.0">
+  <!-- Updated to v7.1.0 - Fixed config panel, disabled right-click and URL bar visibility -->
+  <dashboard-extension id="com.supertable.pro" extension-version="7.1.0">
     <default-locale>es_ES</default-locale>
     <name resource-id="name"/>
     <description>Super Table Pro - Tabla interactiva con formato condicional, búsqueda, ordenamiento y exportación mejorada</description>
