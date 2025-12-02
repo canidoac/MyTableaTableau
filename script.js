@@ -869,28 +869,31 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
         })
       }
 
-      if (cf.bgColor) {
-        td.style.setProperty("background-color", cf.bgColor, "important")
-      }
-      if (cf.textColor) {
-        td.style.setProperty("color", cf.textColor, "important")
+      if (cf.cellBg && cf.cellBgColor) {
+        td.style.setProperty("background-color", cf.cellBgColor, "important")
+        if (rowIdx === 0) console.log(`[v0]   - Applied cell bg: ${cf.cellBgColor}`)
       }
 
-      // Apply row formatting
-      if (cf.rowBgColor || cf.rowTextColor) {
+      if (cf.cellText && cf.cellTextColor) {
+        td.style.setProperty("color", cf.cellTextColor, "important")
+        if (rowIdx === 0) console.log(`[v0]   - Applied cell text: ${cf.cellTextColor}`)
+      }
+
+      if ((cf.rowBg && cf.rowBgColor) || (cf.rowText && cf.rowTextColor)) {
         const row = td.parentElement
         if (row) {
-          if (cf.rowBgColor) {
+          if (cf.rowBg && cf.rowBgColor) {
             row.style.setProperty("background-color", cf.rowBgColor, "important")
+            if (rowIdx === 0) console.log(`[v0]   - Applied row bg: ${cf.rowBgColor}`)
           }
-          if (cf.rowTextColor) {
+          if (cf.rowText && cf.rowTextColor) {
             row.style.setProperty("color", cf.rowTextColor, "important")
+            if (rowIdx === 0) console.log(`[v0]   - Applied row text: ${cf.rowTextColor}`)
           }
         }
       }
 
-      // Apply icon if specified
-      if (cf.icon && cf.icon !== "ninguno") {
+      if (cf.addIcon && cf.icon && cf.icon !== "ninguno") {
         const iconSpan = document.createElement("span")
         iconSpan.textContent = cf.icon
         iconSpan.style.marginRight = "4px"
@@ -898,17 +901,70 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
           iconSpan.style.color = cf.iconColor
         }
         td.insertBefore(iconSpan, td.firstChild)
+        if (rowIdx === 0) console.log(`[v0]   - Applied icon: ${cf.icon}`)
       }
 
-      // Only apply the first matching rule
       break
     }
   }
 }
 
 function applyGeneralSettings() {
-  // Placeholder for applyGeneralSettings function
-  console.log("[v0] Applying general settings")
+  console.log("[v0] Applying general settings:", config)
+
+  // Show/hide search box
+  const searchBox = document.getElementById("search-box")
+  if (searchBox) {
+    searchBox.style.display = config.showSearch ? "flex" : "none"
+  }
+
+  // Show/hide row count
+  const rowCount = document.getElementById("row-count")
+  if (rowCount) {
+    rowCount.style.display = config.showRowCount ? "inline" : "none"
+  }
+
+  // Show/hide export dropdown
+  const exportDropdown = document.getElementById("export-dropdown")
+  if (exportDropdown) {
+    exportDropdown.style.display = config.showExportButtons ? "block" : "none"
+  }
+
+  // Show/hide refresh button
+  const refreshBtn = document.getElementById("refresh-btn")
+  if (refreshBtn) {
+    refreshBtn.style.display = config.showRefreshButton ? "inline-flex" : "none"
+  }
+
+  // Show/hide settings button
+  const settingsBtn = document.getElementById("settings-btn")
+  if (settingsBtn) {
+    settingsBtn.style.display = config.showSettingsButton ? "inline-flex" : "none"
+  }
+
+  // Update table title
+  const mainTitle = document.getElementById("main-title")
+  if (mainTitle && config.tableTitle) {
+    mainTitle.textContent = config.tableTitle
+  }
+
+  // Update export button text and colors
+  const exportBtnText = document.getElementById("export-btn-text")
+  if (exportBtnText && config.exportButtonText) {
+    exportBtnText.textContent = config.exportButtonText
+  }
+
+  const exportBtn = document.getElementById("export-btn")
+  if (exportBtn) {
+    if (config.exportButtonColor) {
+      exportBtn.style.backgroundColor = config.exportButtonColor
+    }
+    if (config.exportButtonTextColor) {
+      exportBtn.style.color = config.exportButtonTextColor
+    }
+  }
+
+  console.log("[v0] ✓ General settings applied")
 }
 
 function applyDesignSettings() {
