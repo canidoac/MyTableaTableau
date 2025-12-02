@@ -727,31 +727,42 @@ function handleExport(format) {
 function setupTableauEventListeners() {
   console.log("[v0] Setting up Tableau event listeners")
 
-  const worksheet = tableau.extensions.worksheetContent.worksheet
+  let worksheet
+  if (tableau.extensions.dashboardContent) {
+    worksheet = currentWorksheet
+  } else if (tableau.extensions.worksheetContent) {
+    worksheet = tableau.extensions.worksheetContent.worksheet
+  }
+
   if (!worksheet) {
     console.log("[v0] No worksheet found for event listeners")
     return
   }
 
+  console.log("[v0] Setting up listeners for worksheet:", worksheet.name)
+
   // Listen for filter changes
   worksheet.addEventListener(tableau.TableauEventType.FilterChanged, async (event) => {
-    console.log("[v0] Filter changed event:", event)
-    await loadWorksheetData(currentWorksheet)
+    console.log("[v0] 🔄 Filter changed event:", event)
+    loadConfig()
+    await loadWorksheetData(worksheet)
   })
 
   // Listen for mark selection changes
   worksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, async (event) => {
-    console.log("[v0] Mark selection changed:", event)
-    await loadWorksheetData(currentWorksheet)
+    console.log("[v0] 🔄 Mark selection changed:", event)
+    loadConfig()
+    await loadWorksheetData(worksheet)
   })
 
   // Listen for data changes
   worksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, async (event) => {
-    console.log("[v0] Summary data changed:", event)
-    await loadWorksheetData(currentWorksheet)
+    console.log("[v0] 🔄 Summary data changed:", event)
+    loadConfig()
+    await loadWorksheetData(worksheet)
   })
 
-  console.log("[v0] Tableau event listeners setup complete")
+  console.log("[v0] ✅ Tableau event listeners setup complete")
 }
 
 function applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx) {
