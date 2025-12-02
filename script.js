@@ -343,21 +343,27 @@ function renderTable() {
       const colName = col.fieldName || col.name
       const columnConfig = config.columns[colName]
 
-      if (rowIdx === 0) {
-        console.log(`[v0] Checking column [${colName}] for conditional rules`)
-        console.log(`[v0] Column config:`, columnConfig)
+      if (rowIdx === 0 && columnConfig) {
+        console.log(`[v0] 🔍 Checking column [${colName}]`)
+        console.log(`[v0]   - Has conditionalRules:`, !!columnConfig.conditionalRules)
+        console.log(`[v0]   - Is Array:`, Array.isArray(columnConfig.conditionalRules))
+        if (columnConfig.conditionalRules) {
+          console.log(`[v0]   - Rules count:`, columnConfig.conditionalRules.length)
+          console.log(`[v0]   - Rules:`, JSON.stringify(columnConfig.conditionalRules, null, 2))
+        }
       }
 
       if (columnConfig && columnConfig.conditionalRules && Array.isArray(columnConfig.conditionalRules)) {
-        if (rowIdx === 0) {
-          console.log(`[v0] Found ${columnConfig.conditionalRules.length} conditional rules for [${colName}]`)
-        }
-
         for (let i = 0; i < columnConfig.conditionalRules.length; i++) {
           const cf = columnConfig.conditionalRules[i]
           let conditionMet = false
 
           const isTextValue = typeof cellValue === "string" || col.dataType === "string"
+
+          if (rowIdx === 0) {
+            console.log(`[v0]   - Rule ${i + 1}: operator="${cf.operator}" value="${cf.value}"`)
+            console.log(`[v0]   - Cell value: "${cellValue}" (isText: ${isTextValue})`)
+          }
 
           if (isTextValue) {
             const strValue = String(cellValue)
@@ -426,21 +432,25 @@ function renderTable() {
 
           if (conditionMet) {
             if (rowIdx === 0) {
-              console.log(`[v0] Rule ${i} matched for value:`, cellValue)
+              console.log(`[v0]   ✅ Rule ${i + 1} MATCHED!`)
+              console.log(`[v0]   - Applying cellBg: ${cf.cellBg} (${cf.cellBgColor})`)
+              console.log(`[v0]   - Applying cellText: ${cf.cellText} (${cf.cellTextColor})`)
             }
 
-            if (cf.cellBg) {
+            if (cf.cellBg && cf.cellBgColor) {
               td.style.backgroundColor = cf.cellBgColor
+              if (rowIdx === 0) console.log(`[v0]   - Cell BG applied: ${cf.cellBgColor}`)
             }
-            if (cf.cellText) {
+            if (cf.cellText && cf.cellTextColor) {
               td.style.color = cf.cellTextColor
+              if (rowIdx === 0) console.log(`[v0]   - Cell text color applied: ${cf.cellTextColor}`)
             }
 
-            if (cf.rowBg) {
+            if (cf.rowBg && cf.rowBgColor) {
               rowFormattingApplied = true
               rowBgColor = cf.rowBgColor
             }
-            if (cf.rowText) {
+            if (cf.rowText && cf.rowTextColor) {
               rowFormattingApplied = true
               rowTextColor = cf.rowTextColor
             }
@@ -459,10 +469,23 @@ function renderTable() {
                 circle_outline: "○",
                 square: "■",
                 square_outline: "□",
+                check: "✓",
+                close: "✗",
+                star: "★",
+                star_outline: "☆",
+                favorite: "♥",
+                warning: "⚠",
+                error: "⚠",
+                info: "ℹ",
+                help: "?",
+                flag: "⚑",
+                bookmark: "🔖",
+                trending_up: "📈",
+                trending_down: "📉",
               }
 
-              iconSpan.textContent = iconMap[cf.icon] || ""
-              td.prepend(iconSpan)
+              iconSpan.textContent = iconMap[cf.icon] || cf.icon
+              td.insertBefore(iconSpan, td.firstChild)
             }
 
             break
@@ -470,21 +493,13 @@ function renderTable() {
         }
       }
 
-      td.appendChild(document.createTextNode(cellValue))
+      td.textContent = td.textContent || cellValue
       tr.appendChild(td)
     })
 
     if (rowFormattingApplied) {
-      if (rowBgColor) {
-        tr.style.backgroundColor = rowBgColor
-      }
-      if (rowTextColor) {
-        tr.querySelectorAll("td").forEach((cell) => {
-          if (!cell.style.color) {
-            cell.style.color = rowTextColor
-          }
-        })
-      }
+      if (rowBgColor) tr.style.backgroundColor = rowBgColor
+      if (rowTextColor) tr.style.color = rowTextColor
     }
 
     tbody.appendChild(tr)
