@@ -359,11 +359,11 @@
 
       /* Compact conditional formatting rules */
       .conditional-rule {
-        background: #f9fafb;
+        background: #ffffff;
         border: 1px solid #e5e7eb;
         border-radius: 6px;
         padding: 12px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
       }
 
       .rule-header {
@@ -371,23 +371,25 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #f3f4f6;
       }
 
       .rule-title {
         font-weight: 600;
-        color: #374151;
         font-size: 13px;
+        color: #374151;
       }
 
       .delete-rule-btn {
+        padding: 4px 12px;
         background: #ef4444;
         color: white;
         border: none;
-        padding: 4px 10px;
         border-radius: 4px;
         cursor: pointer;
         font-size: 11px;
-        transition: background 0.2s;
+        font-weight: 500;
       }
 
       .delete-rule-btn:hover {
@@ -424,6 +426,51 @@
         border: 1px solid #d1d5db;
         border-radius: 4px;
         font-size: 12px;
+      }
+
+      .rule-condition-row {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .rule-formatting-row {
+        display: grid;
+        grid-template-columns: auto 1fr repeat(3, auto);
+        gap: 8px;
+        align-items: center;
+        padding: 8px;
+        background: #f9fafb;
+        border-radius: 4px;
+      }
+
+      .rule-formatting-row label {
+        font-size: 11px;
+        font-weight: 500;
+        color: #374151;
+      }
+
+      .rule-formatting-row select {
+        padding: 5px 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 11px;
+        min-width: 100px;
+      }
+
+      .rule-formatting-row input[type="color"] {
+        width: 36px;
+        height: 28px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .rule-formatting-row input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
       }
 
       /* Compact grid for formatting options */
@@ -1337,7 +1384,6 @@
         ruleDiv.className = "conditional-rule";
         ruleDiv.id = ruleId;
         
-        // Populate operators based on column type
         const operatorOptions = isDimension ? `
           <option value="equals">Es igual a</option>
           <option value="notEquals">No es igual a</option>
@@ -1363,7 +1409,7 @@
             <button class="delete-rule-btn" onclick="deleteConditionalRule('${ruleId}')">Eliminar</button>
           </div>
           
-          <div class="rule-condition-grid">
+          <div class="rule-condition-row">
             <div class="rule-input-group">
               <label>Operador</label>
               <select class="rule-operator">${operatorOptions}</select>
@@ -1371,72 +1417,55 @@
             <div class="rule-input-group">
               <label>Valor</label>
               <input type="${isDimension ? 'text' : 'number'}" class="rule-value" placeholder="Valor">
-            </div>
-            <div class="rule-input-group" style="display: none;">
-              <label>Valor 2</label>
-              <input type="number" class="rule-value2" placeholder="Valor 2">
+              <input type="number" class="rule-value2" placeholder="Valor 2" style="display:none; margin-top: 4px;">
             </div>
           </div>
           
-          <div class="rule-formatting-grid">
-            <div class="format-option">
-              <input type="checkbox" class="rule-cell-bg" id="${ruleId}-cell-bg">
-              <label for="${ruleId}-cell-bg">Fondo Celda</label>
-              <input type="color" class="rule-cell-bg-color" value="#ffeb3b">
-            </div>
-            
-            <div class="format-option">
-              <input type="checkbox" class="rule-cell-text" id="${ruleId}-cell-text">
-              <label for="${ruleId}-cell-text">Texto Celda</label>
-              <input type="color" class="rule-cell-text-color" value="#000000">
-            </div>
-            
-            <div class="format-option">
-              <input type="checkbox" class="rule-row-bg" id="${ruleId}-row-bg">
-              <label for="${ruleId}-row-bg">Fondo Fila</label>
-              <input type="color" class="rule-row-bg-color" value="#ffeb3b">
-            </div>
-            
-            <div class="format-option">
-              <input type="checkbox" class="rule-row-text" id="${ruleId}-row-text">
-              <label for="${ruleId}-row-text">Texto Fila</label>
-              <input type="color" class="rule-row-text-color" value="#000000">
-            </div>
-            
-            <div class="format-option">
-              <input type="checkbox" class="rule-add-icon" id="${ruleId}-icon">
-              <label for="${ruleId}-icon">Ícono</label>
-              <select class="rule-icon">
-                <option value="">Ninguno</option>
-                <option value="arrow_upward">↑ Arriba</option>
-                <option value="arrow_downward">↓ Abajo</option>
-                <option value="arrow_forward">→ Derecha</option>
-                <option value="arrow_back">← Izquierda</option>
-                <option value="circle">⬤ Círculo</option>
-                <option value="circle_outline">○ Vacío</option>
-                <option value="square">■ Cuadrado</option>
-                <option value="square_outline">□ Hueco</option>
-              </select>
-              <input type="color" class="rule-icon-color" value="#000000">
-            </div>
+          <div class="rule-formatting-row">
+            <label>Pintar</label>
+            <select class="rule-paint-target">
+              <option value="none">Ninguno</option>
+              <option value="cell">Celda</option>
+              <option value="row">Fila</option>
+            </select>
+            <input type="color" class="rule-bg-color" value="#ffeb3b" title="Color de fondo">
+            <input type="checkbox" class="rule-text-enabled" id="${ruleId}-text" title="Activar color de texto">
+            <label for="${ruleId}-text" style="margin: 0;">Texto</label>
+            <input type="color" class="rule-text-color" value="#000000" title="Color de texto">
+            <input type="checkbox" class="rule-icon-enabled" id="${ruleId}-icon" title="Activar ícono">
+            <label for="${ruleId}-icon" style="margin: 0;">Ícono</label>
+            <select class="rule-icon" style="min-width: 80px;">
+              <option value="">Ninguno</option>
+              <option value="↑">↑ Arriba</option>
+              <option value="↓">↓ Abajo</option>
+              <option value="→">→ Derecha</option>
+              <option value="←">← Izquierda</option>
+              <option value="⬤">⬤ Círculo</option>
+              <option value="○">○ Vacío</option>
+              <option value="■">■ Cuadrado</option>
+              <option value="□">□ Hueco</option>
+              <option value="✓">✓ Check</option>
+              <option value="✗">✗ X</option>
+              <option value="⚠">⚠ Alerta</option>
+              <option value="★">★ Estrella</option>
+            </select>
+            <input type="color" class="rule-icon-color" value="#000000" title="Color de ícono">
           </div>
         `;
-  
+
         container.appendChild(ruleDiv);
         
         const operatorSelect = ruleDiv.querySelector(".rule-operator");
         const valueInput = ruleDiv.querySelector(".rule-value");
         const value2Input = ruleDiv.querySelector(".rule-value2");
-        const value2Container = ruleDiv.querySelector(".rule-input-group:nth-child(3)"); // Select the third rule-input-group which is for value2
         
         operatorSelect.addEventListener("change", () => {
           if (operatorSelect.value === "between") {
-            value2Container.style.display = "flex"; // Show the value2 input group
+            value2Input.style.display = "block";
           } else {
-            value2Container.style.display = "none"; // Hide the value2 input group
+            value2Input.style.display = "none";
           }
           
-          // Toggle visibility of the single value input for isEmpty/isNotEmpty
           if (operatorSelect.value === "isEmpty" || operatorSelect.value === "isNotEmpty") {
             valueInput.style.display = "none";
           } else {
@@ -1444,28 +1473,28 @@
           }
         });
         
-        // Trigger change event to set initial display correctly
         operatorSelect.dispatchEvent(new Event('change'));
 
         if (ruleData) {
           operatorSelect.value = ruleData.operator;
-          valueInput.value = ruleData.value;
+          valueInput.value = ruleData.value || "";
           if (ruleData.value2) value2Input.value = ruleData.value2;
           
-          if (ruleData.operator === "between") value2Container.style.display = "flex";
+          if (ruleData.operator === "between") value2Input.style.display = "block";
           if (ruleData.operator === "isEmpty" || ruleData.operator === "isNotEmpty") {
             valueInput.style.display = "none";
           }
           
-          ruleDiv.querySelector(".rule-cell-bg").checked = ruleData.cellBg;
-          ruleDiv.querySelector(".rule-cell-bg-color").value = ruleData.cellBgColor || "#ffeb3b";
-          ruleDiv.querySelector(".rule-cell-text").checked = ruleData.cellText;
-          ruleDiv.querySelector(".rule-cell-text-color").value = ruleData.cellTextColor || "#000000";
-          ruleDiv.querySelector(".rule-row-bg").checked = ruleData.rowBg;
-          ruleDiv.querySelector(".rule-row-bg-color").value = ruleData.rowBgColor || "#ffeb3b";
-          ruleDiv.querySelector(".rule-row-text").checked = ruleData.rowText;
-          ruleDiv.querySelector(".rule-row-text-color").value = ruleData.rowTextColor || "#000000";
-          ruleDiv.querySelector(".rule-add-icon").checked = ruleData.addIcon;
+          // Determine paint target based on existing data
+          let paintTarget = "none";
+          if (ruleData.cellBg) paintTarget = "cell";
+          else if (ruleData.rowBg) paintTarget = "row";
+          
+          ruleDiv.querySelector(".rule-paint-target").value = paintTarget;
+          ruleDiv.querySelector(".rule-bg-color").value = ruleData.cellBgColor || ruleData.rowBgColor || "#ffeb3b";
+          ruleDiv.querySelector(".rule-text-enabled").checked = ruleData.cellText || ruleData.rowText || false;
+          ruleDiv.querySelector(".rule-text-color").value = ruleData.cellTextColor || ruleData.rowTextColor || "#000000";
+          ruleDiv.querySelector(".rule-icon-enabled").checked = ruleData.addIcon || false;
           ruleDiv.querySelector(".rule-icon").value = ruleData.icon || "";
           ruleDiv.querySelector(".rule-icon-color").value = ruleData.iconColor || "#000000";
         }
@@ -1522,101 +1551,96 @@
       }
 
       function saveColumnConfig() {
-        console.log("[v0] === GUARDANDO CONFIGURACIÓN DE COLUMNA ===");
-        console.log("[v0] Current selected column:", currentSelectedColumn);
+        console.log("[v0] Guardando configuración de columna...");
         
         if (!currentSelectedColumn) {
-          alert("No hay columna seleccionada");
+          console.warn("[v0] No column selected");
           return;
         }
 
-        const displayName = document.getElementById("column-display-name").value;
-        const visible = document.getElementById("column-visible").checked;
-        const includeInExport = document.getElementById("column-export").checked;
-        
         const rulesContainer = document.getElementById("conditional-rules-container");
         const conditionalRules = [];
         
-        rulesContainer.querySelectorAll(".conditional-rule").forEach((ruleDiv, index) => {
-          const operatorSelect = ruleDiv.querySelector(".rule-operator");
-          const operator = operatorSelect.value;
+        rulesContainer.querySelectorAll(".conditional-rule").forEach((ruleDiv) => {
+          const operator = ruleDiv.querySelector(".rule-operator").value;
           const value = ruleDiv.querySelector(".rule-value").value;
-          const value2Input = ruleDiv.querySelector(".rule-value2");
-          const value2 = value2Input.style.display !== "none" ? value2Input.value : undefined;
+          const value2 = ruleDiv.querySelector(".rule-value2").value;
+          const paintTarget = ruleDiv.querySelector(".rule-paint-target").value;
+          const bgColor = ruleDiv.querySelector(".rule-bg-color").value;
+          const textEnabled = ruleDiv.querySelector(".rule-text-enabled").checked;
+          const textColor = ruleDiv.querySelector(".rule-text-color").value;
+          const iconEnabled = ruleDiv.querySelector(".rule-icon-enabled").checked;
+          const icon = ruleDiv.querySelector(".rule-icon").value;
+          const iconColor = ruleDiv.querySelector(".rule-icon-color").value;
           
           const rule = {
             operator,
             value,
-            value2,
-            cellBg: ruleDiv.querySelector(".rule-cell-bg").checked,
-            cellBgColor: ruleDiv.querySelector(".rule-cell-bg-color").value,
-            cellText: ruleDiv.querySelector(".rule-cell-text").checked,
-            cellTextColor: ruleDiv.querySelector(".rule-cell-text-color").value,
-            rowBg: ruleDiv.querySelector(".rule-row-bg").checked,
-            rowBgColor: ruleDiv.querySelector(".rule-row-bg-color").value,
-            rowText: ruleDiv.querySelector(".rule-row-text").checked,
-            rowTextColor: ruleDiv.querySelector(".rule-row-text-color").value,
-            addIcon: ruleDiv.querySelector(".rule-add-icon").checked,
-            icon: ruleDiv.querySelector(".rule-icon").value,
-            iconColor: ruleDiv.querySelector(".rule-icon-color").value,
           };
           
-          console.log(`[v0] Rule ${index + 1}:`, JSON.stringify(rule, null, 2));
+          if (value2) rule.value2 = value2;
+          
+          // Set flags based on paint target
+          if (paintTarget === "cell") {
+            rule.cellBg = true;
+            rule.cellBgColor = bgColor;
+            if (textEnabled) {
+              rule.cellText = true;
+              rule.cellTextColor = textColor;
+            }
+          } else if (paintTarget === "row") {
+            rule.rowBg = true;
+            rule.rowBgColor = bgColor;
+            if (textEnabled) {
+              rule.rowText = true;
+              rule.rowTextColor = textColor;
+            }
+          }
+          
+          if (iconEnabled && icon) {
+            rule.addIcon = true;
+            rule.icon = icon;
+            rule.iconColor = iconColor;
+          }
+          
           conditionalRules.push(rule);
         });
-        
-        console.log("[v0] Total rules collected:", conditionalRules.length);
-        console.log("[v0] All conditional rules:", JSON.stringify(conditionalRules, null, 2));
-        
-        const columnsConfigStr = tableau.extensions.settings.get("columnsConfig") || "{}";
-        let columnsConfig = {};
-        try {
-          columnsConfig = JSON.parse(columnsConfigStr);
-          console.log("[v0] Current columnsConfig loaded:", Object.keys(columnsConfig).length, "columns");
-        } catch (e) {
-          console.error("[v0] Error parsing columnsConfig:", e);
-          columnsConfig = {};
-        }
-        
-        columnsConfig[currentSelectedColumn] = {
-          displayName,
-          visible,
-          includeInExport,
-          conditionalRules,
+
+        console.log("[v0] Conditional rules collected:", conditionalRules);
+
+        const columnData = {
+          displayName: document.getElementById("column-display-name").value,
+          visible: document.getElementById("column-visible").checked,
+          export: document.getElementById("column-export").checked,
+          conditionalRules: conditionalRules
         };
+
+        console.log("[v0] Guardando configuración de columna:", currentSelectedColumn, columnData);
+
+        // Get existing config
+        const existingConfigStr = tableau.extensions.settings.get("columnsConfig");
+        const columnsConfig = existingConfigStr ? JSON.parse(existingConfigStr) : {};
         
-        console.log("[v0] Updated column config for:", currentSelectedColumn);
-        console.log("[v0] Config:", JSON.stringify(columnsConfig[currentSelectedColumn], null, 2));
-        console.log("[v0] Total columns in config:", Object.keys(columnsConfig).length);
+        // Update column config
+        columnsConfig[currentSelectedColumn] = columnData;
         
-        const configStr = JSON.stringify(columnsConfig);
-        console.log("[v0] Saving columnsConfig string (length:", configStr.length, ")");
-        tableau.extensions.settings.set("columnsConfig", configStr);
+        console.log("[v0] Config actualizado:", columnsConfig);
+
+        // Save to settings
+        tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig));
         
+        // Save settings
         tableau.extensions.settings.saveAsync().then(() => {
-          console.log("[v0] ✓ ✓ ✓ Configuración guardada exitosamente en Tableau Settings");
+          console.log("[v0] Config guardado exitosamente");
           
-          const savedConfig = tableau.extensions.settings.get("columnsConfig");
-          console.log("[v0] Verification - saved config length:", savedConfig ? savedConfig.length : 0);
-          
-          try {
-            columnsConfig = JSON.parse(savedConfig || "{}");
-            console.log("[v0] columnsConfig reloaded in memory with", Object.keys(columnsConfig).length, "columns");
-          } catch (e) {
-            console.error("[v0] Error reloading columnsConfig:", e);
+          // Reload config in memory
+          const reloadedStr = tableau.extensions.settings.get("columnsConfig");
+          if (reloadedStr) {
+            Object.assign(columnsConfig, JSON.parse(reloadedStr));
           }
-          
-          // Show confirmation message
-          const message = document.getElementById("config-saved-message");
-          if (message) {
-            message.classList.add("show");
-            setTimeout(() => {
-              message.classList.remove("show");
-            }, 3000);
-          }
-        }).catch(err => {
-          console.error("[v0] ✗ ✗ ✗ Error guardando configuración:", err);
-          alert("Error al guardar la configuración: " + err.message);
+          console.log("[v0] Config recargado en memoria:", columnsConfig);
+        }).catch((error) => {
+          console.error("[v0] Error al guardar config:", error);
         });
       }
       

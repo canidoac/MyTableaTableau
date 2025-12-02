@@ -770,7 +770,7 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
   const columnConfig = config.columns[colName]
 
   if (rowIdx === 0 && columnConfig) {
-    console.log(`[v0] 🎨 Checking conditional format for column [${colName}]`)
+    console.log(`[v0] Checking conditional format for column [${colName}]`)
     console.log(`[v0]   - columnConfig:`, columnConfig)
     console.log(`[v0]   - Has conditionalRules:`, !!columnConfig.conditionalRules)
     if (columnConfig.conditionalRules) {
@@ -860,13 +860,8 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
 
     if (conditionMet) {
       if (rowIdx === 0) {
-        console.log(`[v0]   ✅ Rule ${i + 1} MATCHED!`)
-        console.log(`[v0]   - Applying format:`, {
-          bgColor: cf.bgColor,
-          textColor: cf.textColor,
-          rowBgColor: cf.rowBgColor,
-          rowTextColor: cf.rowTextColor,
-        })
+        console.log(`[v0]   Rule ${i + 1} MATCHED!`)
+        console.log(`[v0]   - Applying format:`, cf)
       }
 
       if (cf.cellBg && cf.cellBgColor) {
@@ -876,27 +871,32 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
 
       if (cf.cellText && cf.cellTextColor) {
         td.style.setProperty("color", cf.cellTextColor, "important")
-        if (rowIdx === 0) console.log(`[v0]   - Applied cell text: ${cf.cellTextColor}`)
+        if (rowIdx === 0) console.log(`[v0]   - Applied cell text color: ${cf.cellTextColor}`)
       }
 
-      if ((cf.rowBg && cf.rowBgColor) || (cf.rowText && cf.rowTextColor)) {
+      if (cf.rowBg || cf.rowText) {
         const row = td.parentElement
         if (row) {
           if (cf.rowBg && cf.rowBgColor) {
-            row.style.setProperty("background-color", cf.rowBgColor, "important")
+            Array.from(row.children).forEach((cell) => {
+              cell.style.setProperty("background-color", cf.rowBgColor, "important")
+            })
             if (rowIdx === 0) console.log(`[v0]   - Applied row bg: ${cf.rowBgColor}`)
           }
           if (cf.rowText && cf.rowTextColor) {
-            row.style.setProperty("color", cf.rowTextColor, "important")
-            if (rowIdx === 0) console.log(`[v0]   - Applied row text: ${cf.rowTextColor}`)
+            Array.from(row.children).forEach((cell) => {
+              cell.style.setProperty("color", cf.rowTextColor, "important")
+            })
+            if (rowIdx === 0) console.log(`[v0]   - Applied row text color: ${cf.rowTextColor}`)
           }
         }
       }
 
-      if (cf.addIcon && cf.icon && cf.icon !== "ninguno") {
+      if (cf.addIcon && cf.icon) {
         const iconSpan = document.createElement("span")
         iconSpan.textContent = cf.icon
-        iconSpan.style.marginRight = "4px"
+        iconSpan.style.marginRight = "6px"
+        iconSpan.style.fontWeight = "bold"
         if (cf.iconColor) {
           iconSpan.style.color = cf.iconColor
         }
