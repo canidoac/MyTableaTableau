@@ -805,13 +805,13 @@
 
             <div class="form-group">
               <label>Hoja de trabajo</label>
-              <input
-                type="text"
-                id="worksheet-name"
-                placeholder="La hoja se selecciona desde la extensión"
-                disabled
-                style="background: #f5f5f5; cursor: not-allowed"
-              />
+              <select
+                id="worksheet-select"
+                placeholder="Selecciona la hoja de trabajo"
+                style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"
+              >
+                <option value="">La hoja se selecciona desde la extensión</option>
+              </select>
               <p class="help-text">Selecciona la hoja de trabajo desde la cual se cargarán los datos</p>
             </div>
 
@@ -1076,6 +1076,12 @@
       let currentSelectedColumn = null
       let columnsConfig = {}
 
+      if (typeof tableau === 'undefined') {
+        console.error("[v0] Tableau Extensions API not loaded!")
+        alert("Error: La API de Tableau Extensions no se ha cargado correctamente.")
+        // Optionally, you might want to disable further execution or provide a fallback
+      }
+
       document.addEventListener("DOMContentLoaded", function() {
         console.log("[v0] DOM loaded, initializing Tableau Extensions...")
         
@@ -1085,6 +1091,8 @@
           // Load settings
           const settings = tableau.extensions.settings.getAll()
           console.log("[v0] Current settings:", settings)
+          
+          populateWorksheetSelector()
           
           // Load columns from settings
           if (settings.dialogColumns) {
@@ -1122,6 +1130,7 @@
           console.log("[v0] Initialization complete")
         }).catch(function(error) {
           console.error("[v0] Error initializing Tableau Extensions:", error)
+          alert("Error al inicializar: " + error.message)
         })
       })
 
@@ -1211,6 +1220,16 @@
           }
         })
         
+        // Add listener for worksheet selection
+        const worksheetSelect = document.getElementById("worksheet-select");
+        if (worksheetSelect) {
+          worksheetSelect.addEventListener("change", function() {
+            console.log("[v0] Worksheet selected:", this.value);
+            tableau.extensions.settings.set("worksheet", this.value);
+            // autoSave(); // Optionally save immediately
+          });
+        }
+
         console.log("[v0] All event listeners set up")
       }
 
@@ -1460,6 +1479,12 @@
       function saveAndClose() {
         console.log("[v0] SaveAndClose called")
         
+        if (typeof tableau === 'undefined' || !tableau.extensions) {
+          console.error("[v0] Tableau Extensions not initialized")
+          alert("Error: La extensión de Tableau no está inicializada correctamente.")
+          return
+        }
+        
         autoSave()
           .then(() => {
             console.log("[v0] Settings saved successfully, closing dialog")
@@ -1473,22 +1498,51 @@
 
       function closeDialog() {
         console.log("[v0] CloseDialog called without saving")
+        
+        if (typeof tableau === 'undefined' || !tableau.extensions) {
+          console.error("[v0] Tableau Extensions not initialized")
+          window.close()
+          return
+        }
+        
         tableau.extensions.ui.closeDialog("cancelled")
       }
 
-      function selectIcon(icon) {
-        console.log("[v0] Icon selected:", icon)
-        document.getElementById("selected-icon").value = icon
+      function populateWorksheetSelector() {
+        console.log("[v0] Populating worksheet selector...")
         
-        document.querySelectorAll(".icon-btn").forEach((btn) => {
-          if (btn.getAttribute("data-icon") === icon) {
-            btn.classList.add("selected")
-          } else {
-            btn.classList.remove("selected")
+        const worksheetSelect = document.getElementById("worksheet-select")
+        if (!worksheetSelect) {
+          console.error("[v0] Worksheet select element not found")
+          return
+        }
+        
+        // Get dashboard from parent window
+        if (typeof tableau !== 'undefined' && tableau.extensions && tableau.extensions.dashboardContent) {
+          const dashboard = tableau.extensions.dashboardContent.dashboard
+          const worksheets = dashboard.worksheets
+          
+          console.log("[v0] Found worksheets:", worksheets.map(w => w.name))
+          
+          // Clear existing options except placeholder
+          worksheetSelect.innerHTML = '<option value="">La hoja se selecciona desde la extensión</option>'
+          
+          // Add worksheet options
+          worksheets.forEach(ws => {
+            const option = document.createElement("option")
+            option.value = ws.name
+            option.textContent = ws.name
+            worksheetSelect.appendChild(option)
+          })
+          
+          // Set current selection
+          const currentWorksheet = tableau.extensions.settings.get("worksheet")
+          if (currentWorksheet) {
+            worksheetSelect.value = currentWorksheet
           }
-        })
-        
-        saveColumnConfig()
+        } else {
+          console.warn("[v0] Tableau dashboard content not available for worksheet selection.")
+        }
       }
     </script>
   </body>
