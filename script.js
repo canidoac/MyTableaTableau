@@ -778,7 +778,7 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
   }
 
   if (!columnConfig || !columnConfig.conditionalRules || !Array.isArray(columnConfig.conditionalRules)) {
-    return
+    return null
   }
 
   const row = td.parentElement
@@ -875,21 +875,13 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
       }
 
       if (cf.rowBg || cf.rowText) {
-        if (row && !rowFormatApplied) {
-          if (cf.rowBg && cf.rowBgColor) {
-            Array.from(row.children).forEach((cell) => {
-              cell.style.setProperty("background-color", cf.rowBgColor, "important")
-            })
-            row.dataset.rowFormatApplied = "true"
-            if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied ROW bg: ${cf.rowBgColor}`)
-          }
-          if (cf.rowText && cf.rowTextColor) {
-            Array.from(row.children).forEach((cell) => {
-              cell.style.setProperty("color", cf.rowTextColor, "important")
-            })
-            if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied ROW text color: ${cf.rowTextColor}`)
-          }
-          return
+        if (rowIdx === 0) {
+          console.log(`[v0]   - 🎨 ROW format detected - will apply to entire row`)
+        }
+        return {
+          type: "row",
+          bgColor: cf.rowBg && cf.rowBgColor ? cf.rowBgColor : null,
+          textColor: cf.rowText && cf.rowTextColor ? cf.rowTextColor : null,
         }
       }
 
@@ -903,23 +895,26 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
           td.style.setProperty("color", cf.cellTextColor, "important")
           if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied CELL text color: ${cf.cellTextColor}`)
         }
-      }
 
-      if (cf.addIcon && cf.icon) {
-        const iconSpan = document.createElement("span")
-        iconSpan.textContent = cf.icon
-        iconSpan.style.marginRight = "6px"
-        iconSpan.style.fontWeight = "bold"
-        if (cf.iconColor) {
-          iconSpan.style.color = cf.iconColor
+        if (cf.icon && cf.iconType) {
+          var iconSpan = document.createElement("span")
+          iconSpan.textContent = cf.iconType
+          iconSpan.className =
+            "icon-" + (cf.iconType === "✓" ? "positive" : cf.iconType === "✗" ? "negative" : "neutral")
+          td.insertBefore(iconSpan, td.firstChild)
+          if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied icon: ${cf.iconType}`)
         }
-        td.prepend(iconSpan)
-        if (rowIdx === 0) console.log(`[v0]   - 🎨 Applied icon: ${cf.icon}`)
+      } else {
+        if (rowIdx === 0) {
+          console.log(`[v0]   - ⚠️ Skipping cell format - row format already applied`)
+        }
       }
 
-      break
+      return null
     }
   }
+
+  return null
 }
 
 function applyGeneralSettings() {
