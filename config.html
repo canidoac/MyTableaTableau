@@ -1680,7 +1680,7 @@
         const rulesContainer = document.getElementById("conditional-rules-container");
         const conditionalRules = [];
         
-        rulesContainer.querySelectorAll(".conditional-rule").forEach((ruleDiv) => {
+        rulesContainer.querySelectorAll(".conditional-rule").forEach((ruleDiv, index) => {
           const operator = ruleDiv.querySelector(".rule-operator").value;
           const value = ruleDiv.querySelector(".rule-value").value;
           const value2 = ruleDiv.querySelector(".rule-value2").value;
@@ -1702,36 +1702,62 @@
             iconColor: ruleDiv.querySelector(".rule-icon-color").value,
           };
           
+          console.log(`[v0] Rule ${index + 1}:`, JSON.stringify(rule, null, 2));
           conditionalRules.push(rule);
         });
         
-        console.log("[v0] Collected conditional rules:", conditionalRules);
+        console.log("[v0] Total rules collected:", conditionalRules.length);
+        console.log("[v0] All conditional rules:", JSON.stringify(conditionalRules, null, 2));
         
         const columnsConfigStr = tableau.extensions.settings.get("columnsConfig") || "{}";
-        let columnsConfig = JSON.parse(columnsConfigStr);
+        let columnsConfig = {};
+        try {
+          columnsConfig = JSON.parse(columnsConfigStr);
+          console.log("[v0] Current columnsConfig loaded:", Object.keys(columnsConfig).length, "columns");
+        } catch (e) {
+          console.error("[v0] Error parsing columnsConfig:", e);
+          columnsConfig = {};
+        }
         
         columnsConfig[currentSelectedColumn] = {
           displayName,
           visible,
           includeInExport,
-          conditionalRules, // Guardar array de reglas
+          conditionalRules,
         };
         
-        console.log("[v0] Saving columnsConfig:", columnsConfig);
-        tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig));
+        console.log("[v0] Updated column config for:", currentSelectedColumn);
+        console.log("[v0] Config:", JSON.stringify(columnsConfig[currentSelectedColumn], null, 2));
+        console.log("[v0] Total columns in config:", Object.keys(columnsConfig).length);
+        
+        const configStr = JSON.stringify(columnsConfig);
+        console.log("[v0] Saving columnsConfig string (length:", configStr.length, ")");
+        tableau.extensions.settings.set("columnsConfig", configStr);
         
         tableau.extensions.settings.saveAsync().then(() => {
-          console.log("[v0] ✓ Configuración guardada exitosamente");
+          console.log("[v0] ✓ ✓ ✓ Configuración guardada exitosamente en Tableau Settings");
+          
+          const savedConfig = tableau.extensions.settings.get("columnsConfig");
+          console.log("[v0] Verification - saved config length:", savedConfig ? savedConfig.length : 0);
+          
+          try {
+            columnsConfig = JSON.parse(savedConfig || "{}");
+            console.log("[v0] columnsConfig reloaded in memory with", Object.keys(columnsConfig).length, "columns");
+          } catch (e) {
+            console.error("[v0] Error reloading columnsConfig:", e);
+          }
           
           // Show confirmation message
           const message = document.getElementById("config-saved-message");
-          message.style.display = "block";
-          setTimeout(() => {
-            message.style.display = "none";
-          }, 3000);
-        }).catch((error) => {
-          console.error("[v0] ✗ Error al guardar:", error);
-          alert("Error al guardar la configuración: " + error);
+          if (message) {
+            message.style.display = "block";
+            setTimeout(() => {
+              message.style.display = "none";
+            }, 3000);
+          }
+        }).catch(err => {
+          console.error("[v0] ✗ ✗ ✗ Error guardando configuración:", err);
+          alert("Error al guardar la configuración: " + err.message);
         });
       }
       
@@ -1746,63 +1772,90 @@
       }
 
       function autoSave() {
-        console.log("[v0] AutoSave called")
+        console.log("[v0] === AUTOSAVE INICIADO ===")
         
         try {
           // General settings
-          tableau.extensions.settings.set("tableTitle", document.getElementById("table-title").value || "")
-          tableau.extensions.settings.set("showSearch", document.getElementById("show-search").checked ? "true" : "false")
-          tableau.extensions.settings.set("showRowCount", document.getElementById("show-row-count").checked ? "true" : "false")
+          const tableTitle = document.getElementById("table-title").value || "";
+          const showSearch = document.getElementById("show-search").checked;
+          const showRowCount = document.getElementById("show-row-count").checked;
+          
+          console.log("[v0] General Settings:");
+          console.log("[v0]   - Table Title:", tableTitle);
+          console.log("[v0]   - Show Search:", showSearch);
+          console.log("[v0]   - Show Row Count:", showRowCount);
+          
+          tableau.extensions.settings.set("tableTitle", tableTitle);
+          tableau.extensions.settings.set("showSearch", showSearch ? "true" : "false");
+          tableau.extensions.settings.set("showRowCount", showRowCount ? "true" : "false");
           
           // Export settings
-          tableau.extensions.settings.set("exportButtonText", document.getElementById("export-button-text").value || "Exportar")
-          tableau.extensions.settings.set("exportFilename", document.getElementById("export-filename").value || "datos")
-          tableau.extensions.settings.set("exportButtonColor", document.getElementById("export-button-color").value || "#2563eb")
-          tableau.extensions.settings.set("exportButtonTextColor", document.getElementById("export-button-text-color").value || "#ffffff")
-          tableau.extensions.settings.set("exportEnableExcel", document.getElementById("export-enable-excel").checked ? "true" : "false")
-          tableau.extensions.settings.set("exportEnableCSV", document.getElementById("export-enable-csv").checked ? "true" : "false")
-          tableau.extensions.settings.set("exportEnablePDF", document.getElementById("export-enable-pdf").checked ? "true" : "false")
+          const exportButtonText = document.getElementById("export-button-text").value || "Exportar";
+          const exportFilename = document.getElementById("export-filename").value || "datos";
+          const exportButtonColor = document.getElementById("export-button-color").value || "#2563eb";
+          const exportButtonTextColor = document.getElementById("export-button-text-color").value || "#ffffff";
+          const exportEnableExcel = document.getElementById("export-enable-excel").checked;
+          const exportEnableCSV = document.getElementById("export-enable-csv").checked;
+          const exportEnablePDF = document.getElementById("export-enable-pdf").checked;
           
-          // Save columns configuration
-          if (columnsConfig && Object.keys(columnsConfig).length > 0) {
-            tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig))
-            console.log("[v0] Saved columnsConfig:", columnsConfig)
+          console.log("[v0] Export Settings:");
+          console.log("[v0]   - Button Text:", exportButtonText);
+          console.log("[v0]   - Filename:", exportFilename);
+          console.log("[v0]   - Excel enabled:", exportEnableExcel);
+          
+          tableau.extensions.settings.set("exportButtonText", exportButtonText);
+          tableau.extensions.settings.set("exportFilename", exportFilename);
+          tableau.extensions.settings.set("exportButtonColor", exportButtonColor);
+          tableau.extensions.settings.set("exportButtonTextColor", exportButtonTextColor);
+          tableau.extensions.settings.set("exportEnableExcel", exportEnableExcel ? "true" : "false");
+          tableau.extensions.settings.set("exportEnableCSV", exportEnableCSV ? "true" : "false");
+          tableau.extensions.settings.set("exportEnablePDF", exportEnablePDF ? "true" : "false");
+          
+          const currentColumnsConfig = tableau.extensions.settings.get("columnsConfig");
+          console.log("[v0] Current columnsConfig in settings:");
+          if (currentColumnsConfig) {
+            try {
+              const parsed = JSON.parse(currentColumnsConfig);
+              console.log("[v0]   - Columns:", Object.keys(parsed).length);
+              Object.keys(parsed).forEach(colName => {
+                if (parsed[colName].conditionalRules && parsed[colName].conditionalRules.length > 0) {
+                  console.log(`[v0]   - ${colName}: ${parsed[colName].conditionalRules.length} rules`);
+                }
+              });
+            } catch (e) {
+              console.error("[v0] Error parsing columnsConfig:", e);
+            }
+          } else {
+            console.log("[v0]   - No columnsConfig found");
           }
           
-          console.log("[v0] All settings saved to tableau.extensions.settings")
-          return tableau.extensions.settings.saveAsync()
+          console.log("[v0] All settings prepared, calling saveAsync...")
+          return tableau.extensions.settings.saveAsync().then(() => {
+            console.log("[v0] ✓ ✓ ✓ SaveAsync completed successfully");
+          });
         } catch (error) {
-          console.error("[v0] Error in autoSave:", error)
-          return Promise.reject(error)
+          console.error("[v0] ✗ ✗ ✗ Error in autoSave:", error);
+          return Promise.reject(error);
         }
       }
 
-      function filterColumns() {
-        const searchTerm = document.getElementById("column-search").value.toLowerCase()
-        console.log("[v0] Filtering columns with term:", searchTerm)
-        
-        document.querySelectorAll(".column-item").forEach((item) => {
-          const text = item.textContent.toLowerCase()
-          item.style.display = text.includes(searchTerm) ? "block" : "none"
-        })
-      }
-
       function saveAndClose() {
-        console.log("[v0] SaveAndClose called")
+        console.log("[v0] === SAVE AND CLOSE INICIADO ===")
         
         if (typeof tableau === 'undefined' || !tableau.extensions) {
-          console.error("[v0] Tableau Extensions not initialized")
+          console.error("[v0] ✗ Tableau Extensions not initialized")
           alert("Error: La extensión de Tableau no está inicializada correctamente.")
           return
         }
         
         autoSave()
           .then(() => {
-            console.log("[v0] Settings saved successfully, closing dialog")
+            console.log("[v0] ✓ Settings saved successfully")
+            console.log("[v0] Closing dialog with payload: 'saved'")
             tableau.extensions.ui.closeDialog("saved")
           })
           .catch((error) => {
-            console.error("[v0] Error saving settings:", error)
+            console.error("[v0] ✗ Error saving settings:", error)
             alert("Error al guardar la configuración: " + error.message)
           })
       }
