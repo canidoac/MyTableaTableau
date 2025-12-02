@@ -84,9 +84,6 @@
         border-bottom: 2px solid #e0e0e0;
         padding: 0 30px;
         flex-shrink: 0;
-        position: sticky;
-        top: 0;
-        z-index: 100;
       }
 
       .tab-btn {
@@ -790,167 +787,165 @@
         </div>
       </header>
 
-      <div class="config-content">
-        <!-- Horizontal tabs -->
-        <nav class="tabs">
-          <button class="tab-btn active" data-tab="general">General</button>
-          <button class="tab-btn" data-tab="data">Data</button>
-          <button class="tab-btn" data-tab="export">Export</button>
-          <button class="tab-btn" data-tab="info">Información</button>
-        </nav>
+      <!-- Simplified tabs structure -->
+      <nav class="tabs">
+        <button class="tab-btn active" onclick="switchTab('general')">General</button>
+        <button class="tab-btn" onclick="switchTab('data')">Data</button>
+        <button class="tab-btn" onclick="switchTab('export')">Export</button>
+        <button class="tab-btn" onclick="switchTab('info')">Información</button>
+      </nav>
 
-        <div class="tab-panels">
-          <!-- General Tab -->
-          <div id="general-tab" class="tab-content active">
-            <div class="content-section">
-              <h2>Configuración General</h2>
+      <div class="tab-panels">
+        <!-- General Tab -->
+        <div id="general-tab" class="tab-content active">
+          <div class="content-section">
+            <h2>Configuración General</h2>
 
-              <div class="form-group">
-                <label>Hoja de trabajo</label>
-                <input
-                  type="text"
-                  id="worksheet-name"
-                  placeholder="La hoja se selecciona desde la extensión"
-                  disabled
-                  style="background: #f5f5f5; cursor: not-allowed"
-                />
-                <p class="help-text">Selecciona la hoja de trabajo desde la cual se cargarán los datos</p>
+            <div class="form-group">
+              <label>Hoja de trabajo</label>
+              <input
+                type="text"
+                id="worksheet-name"
+                placeholder="La hoja se selecciona desde la extensión"
+                disabled
+                style="background: #f5f5f5; cursor: not-allowed"
+              />
+              <p class="help-text">Selecciona la hoja de trabajo desde la cual se cargarán los datos</p>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="form-group">
+              <label>Título de la tabla</label>
+              <input type="text" id="table-title" placeholder="Ej: Mi Tabla de Datos" />
+              <p class="help-text">Este título aparecerá en la parte superior de la tabla</p>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Opciones de visualización</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="show-search" checked />
+              <label for="show-search">Mostrar buscador</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="show-row-count" checked />
+              <label for="show-row-count">Mostrar contador de filas</label>
+            </div>
+            <p class="help-text">Controla qué elementos se muestran en la interfaz</p>
+          </div>
+        </div>
+
+        <!-- Data Tab -->
+        <div id="data-tab" class="tab-content">
+          <div class="data-layout">
+            <aside class="column-sidebar">
+              <h3>DIMENSIONES</h3>
+              <div class="column-list">
+                <div class="column-section">
+                  <div id="dimensions-list"></div>
+                </div>
+                <h3 style="margin-top: 20px; font-size: 12px; text-transform: uppercase; color: #666; padding: 0 8px;">MEDIDAS</h3>
+                <div class="column-section">
+                  <div id="measures-list"></div>
+                </div>
               </div>
+            </aside>
 
-              <div class="section-divider"></div>
-
-              <div class="form-group">
-                <label>Título de la tabla</label>
-                <input type="text" id="table-title" placeholder="Ej: Mi Tabla de Datos" />
-                <p class="help-text">Este título aparecerá en la parte superior de la tabla</p>
+            <div class="column-config">
+              <div id="column-config-panel" class="empty-state">
+                Selecciona una columna para configurar
               </div>
+            </div>
+          </div>
+        </div>
 
-              <div class="section-divider"></div>
+        <!-- Export Tab -->
+        <div id="export-tab" class="tab-content">
+          <div class="content-section">
+            <h2>Configuración de Exportación</h2>
 
-              <h3>Opciones de visualización</h3>
+            <div class="form-group">
+              <label>Nombre base del archivo</label>
+              <input type="text" id="export-filename" placeholder="mi-tabla" />
+              <p class="help-text">Se agregará la fecha automáticamente al exportar</p>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="form-group">
+              <label>Texto del botón</label>
+              <input type="text" id="export-button-text" placeholder="Exportar" />
+              <p class="help-text">Personaliza el texto que aparece en el botón de exportación</p>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Colores del botón</h3>
+            <div class="form-group">
+              <label>Color de fondo</label>
+              <div class="color-preview">
+                <input type="color" id="export-button-color" value="#2563eb" />
+                <span id="export-color-value">#2563eb</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Color del texto</label>
+              <div class="color-preview">
+                <input type="color" id="export-button-text-color" value="#ffffff" />
+                <span id="export-text-color-value">#ffffff</span>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h3>Formatos de exportación disponibles</h3>
+            <div class="export-options">
               <div class="checkbox-group">
-                <input type="checkbox" id="show-search" checked />
-                <label for="show-search">Mostrar buscador</label>
+                <input type="checkbox" id="enable-excel" checked />
+                <label for="enable-excel">Habilitar exportación a Excel (.xlsx)</label>
               </div>
               <div class="checkbox-group">
-                <input type="checkbox" id="show-row-count" checked />
-                <label for="show-row-count">Mostrar contador de filas</label>
+                <input type="checkbox" id="enable-csv" checked />
+                <label for="enable-csv">Habilitar exportación a CSV (.csv)</label>
               </div>
-              <p class="help-text">Controla qué elementos se muestran en la interfaz</p>
+              <div class="checkbox-group">
+                <input type="checkbox" id="enable-pdf" />
+                <label for="enable-pdf">Habilitar exportación a PDF (.pdf)</label>
+              </div>
             </div>
+            <p class="help-text">Selecciona qué formatos estarán disponibles para los usuarios</p>
           </div>
+        </div>
 
-          <!-- Data Tab -->
-          <div id="data-tab" class="tab-content">
-            <div class="data-layout">
-              <aside class="column-sidebar">
-                <h3>DIMENSIONES</h3>
-                <div class="column-list">
-                  <div class="column-section">
-                    <div id="dimensions-list"></div>
-                  </div>
-                  <h3 style="margin-top: 20px; font-size: 12px; text-transform: uppercase; color: #666; padding: 0 8px;">MEDIDAS</h3>
-                  <div class="column-section">
-                    <div id="measures-list"></div>
-                  </div>
-                </div>
-              </aside>
-
-              <div class="column-config">
-                <div id="column-config-panel" class="empty-state">
-                  Selecciona una columna para configurar
-                </div>
+        <!-- Información Tab -->
+        <div id="info-tab" class="tab-content">
+          <div class="content-section">
+            <h2>Información de la Extensión</h2>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Versión:</strong> 7.2.0
+              </div>
+              <div class="info-item">
+                <strong>Estado:</strong> <span class="status-online">● Online</span>
+              </div>
+              <div class="info-item">
+                <strong>Tipo:</strong> Dashboard Extension
               </div>
             </div>
-          </div>
 
-          <!-- Export Tab -->
-          <div id="export-tab" class="tab-content">
-            <div class="content-section">
-              <h2>Configuración de Exportación</h2>
-
-              <div class="form-group">
-                <label>Nombre base del archivo</label>
-                <input type="text" id="export-filename" placeholder="mi-tabla" />
-                <p class="help-text">Se agregará la fecha automáticamente al exportar</p>
-              </div>
-
-              <div class="section-divider"></div>
-
-              <div class="form-group">
-                <label>Texto del botón</label>
-                <input type="text" id="export-button-text" placeholder="Exportar" />
-                <p class="help-text">Personaliza el texto que aparece en el botón de exportación</p>
-              </div>
-
-              <div class="section-divider"></div>
-
-              <h3>Colores del botón</h3>
-              <div class="form-group">
-                <label>Color de fondo</label>
-                <div class="color-preview">
-                  <input type="color" id="export-button-color" value="#2563eb" />
-                  <span id="export-color-value">#2563eb</span>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label>Color del texto</label>
-                <div class="color-preview">
-                  <input type="color" id="export-button-text-color" value="#ffffff" />
-                  <span id="export-text-color-value">#ffffff</span>
-                </div>
-              </div>
-
-              <div class="section-divider"></div>
-
-              <h3>Formatos de exportación disponibles</h3>
-              <div class="export-options">
-                <div class="checkbox-group">
-                  <input type="checkbox" id="enable-excel" checked />
-                  <label for="enable-excel">Habilitar exportación a Excel (.xlsx)</label>
-                </div>
-                <div class="checkbox-group">
-                  <input type="checkbox" id="enable-csv" checked />
-                  <label for="enable-csv">Habilitar exportación a CSV (.csv)</label>
-                </div>
-                <div class="checkbox-group">
-                  <input type="checkbox" id="enable-pdf" />
-                  <label for="enable-pdf">Habilitar exportación a PDF (.pdf)</label>
-                </div>
-              </div>
-              <p class="help-text">Selecciona qué formatos estarán disponibles para los usuarios</p>
-            </div>
-          </div>
-
-          <!-- Información Tab -->
-          <div id="info-tab" class="tab-content">
-            <div class="content-section">
-              <h2>Información de la Extensión</h2>
-              
-              <div class="info-grid">
-                <div class="info-item">
-                  <strong>Versión:</strong> 7.2.0
-                </div>
-                <div class="info-item">
-                  <strong>Estado:</strong> <span class="status-online">● Online</span>
-                </div>
-                <div class="info-item">
-                  <strong>Tipo:</strong> Dashboard Extension
-                </div>
-              </div>
-
-              <h3>Características</h3>
-              <ul class="feature-list">
-                <li>Visualización de datos en tabla interactiva</li>
-                <li>Búsqueda y filtrado de datos</li>
-                <li>Exportación a múltiples formatos (Excel, CSV, PDF)</li>
-                <li>Personalización de columnas y estilos</li>
-                <li>Formato condicional para medidas</li>
-                <li>Paginación de datos</li>
-                <li>Configuración persistente</li>
-              </ul>
-            </div>
+            <h3>Características</h3>
+            <ul class="feature-list">
+              <li>Visualización de datos en tabla interactiva</li>
+              <li>Búsqueda y filtrado de datos</li>
+              <li>Exportación a múltiples formatos (Excel, CSV, PDF)</li>
+              <li>Personalización de columnas y estilos</li>
+              <li>Formato condicional para medidas</li>
+              <li>Paginación de datos</li>
+              <li>Configuración persistente</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -1094,16 +1089,24 @@
       }
 
       function switchTab(tabName) {
-        // Remove active class from all tabs and contents
-        document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
-        document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
+        // Remove active class from all tabs and buttons
+        document.querySelectorAll('.tab-content').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
 
-        // Add active class to selected tab and content
-        const tabButton = document.querySelector(`[data-tab="${tabName}"]`)
-        const tabContent = document.getElementById(`${tabName}-tab`)
+        // Add active class to selected tab and button
+        const selectedTab = document.getElementById(tabName + '-tab');
+        const selectedBtn = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
         
-        if (tabButton) tabButton.classList.add("active")
-        if (tabContent) tabContent.classList.add("active")
+        if (selectedTab) {
+          selectedTab.classList.add('active');
+        }
+        if (selectedBtn) {
+          selectedBtn.classList.add('active');
+        }
       }
 
       function renderColumnList() {
