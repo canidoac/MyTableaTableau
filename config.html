@@ -701,6 +701,8 @@
         <button class="tab-btn active" onclick="switchTab('general')">General</button>
         <button class="tab-btn" onclick="switchTab('data')">Data</button>
         <button class="tab-btn" onclick="switchTab('export')">Export</button>
+        <!-- Added Design tab -->
+        <button class="tab-btn" onclick="switchTab('design')">Diseño</button>
         <button class="tab-btn" onclick="switchTab('info')">Información</button>
       </nav>
 
@@ -880,6 +882,152 @@
           </div>
         </div>
 
+        <!-- Added Design Tab -->
+        <div id="design-tab" class="tab-content">
+          <div class="content-section">
+            <h2>Diseño de la Tabla</h2>
+            <p class="help-text" style="margin-bottom: 20px;">Personaliza la apariencia visual de tu tabla</p>
+
+            <div class="section-header expanded" onclick="toggleSection(this)">
+              <h3>Encabezados</h3>
+              <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content expanded" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+              <div class="form-group">
+                <label>Fuente</label>
+                <select id="design-header-font" style="width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="'Helvetica Neue', Helvetica, sans-serif">Helvetica</option>
+                  <option value="'Segoe UI', Tahoma, sans-serif">Segoe UI</option>
+                  <option value="'Roboto', sans-serif">Roboto</option>
+                  <option value="'Open Sans', sans-serif">Open Sans</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="'Times New Roman', serif">Times New Roman</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Tamaño de fuente</label>
+                <select id="design-header-font-size" style="width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <option value="11px">11px</option>
+                  <option value="12px">12px</option>
+                  <option value="13px">13px</option>
+                  <option value="14px" selected>14px</option>
+                  <option value="15px">15px</option>
+                  <option value="16px">16px</option>
+                  <option value="18px">18px</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Color de fondo</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="color" id="design-header-bg" value="#f3f4f6" style="width: 50px; height: 32px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <span id="design-header-bg-value" style="font-size: 12px; color: #6b7280;">#f3f4f6</span>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label>Color de texto</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="color" id="design-header-text" value="#111827" style="width: 50px; height: 32px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <span id="design-header-text-value" style="font-size: 12px; color: #6b7280;">#111827</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-header expanded" onclick="toggleSection(this)">
+              <h3>Cuerpo de la tabla</h3>
+              <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content expanded" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+              <div class="form-group">
+                <label>Fuente</label>
+                <select id="design-body-font" style="width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="'Helvetica Neue', Helvetica, sans-serif">Helvetica</option>
+                  <option value="'Segoe UI', Tahoma, sans-serif">Segoe UI</option>
+                  <option value="'Roboto', sans-serif">Roboto</option>
+                  <option value="'Open Sans', sans-serif">Open Sans</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="'Times New Roman', serif">Times New Roman</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Tamaño de fuente</label>
+                <select id="design-body-font-size" style="width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <option value="11px">11px</option>
+                  <option value="12px">12px</option>
+                  <option value="13px" selected>13px</option>
+                  <option value="14px">14px</option>
+                  <option value="15px">15px</option>
+                  <option value="16px">16px</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Color de texto</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="color" id="design-body-text" value="#374151" style="width: 50px; height: 32px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <span id="design-body-text-value" style="font-size: 12px; color: #6b7280;">#374151</span>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label>Fondo fila par</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="color" id="design-row-even" value="#ffffff" style="width: 50px; height: 32px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <span id="design-row-even-value" style="font-size: 12px; color: #6b7280;">#ffffff</span>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label>Fondo fila impar</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="color" id="design-row-odd" value="#f9fafb" style="width: 50px; height: 32px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <span id="design-row-odd-value" style="font-size: 12px; color: #6b7280;">#f9fafb</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-header expanded" onclick="toggleSection(this)">
+              <h3>Bordes</h3>
+              <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content expanded" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+              <div class="form-group">
+                <label>Color de borde</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="color" id="design-border-color" value="#e5e7eb" style="width: 50px; height: 32px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <span id="design-border-color-value" style="font-size: 12px; color: #6b7280;">#e5e7eb</span>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label>Grosor de borde</label>
+                <select id="design-border-width" style="width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                  <option value="0px">Sin borde</option>
+                  <option value="1px" selected>1px</option>
+                  <option value="2px">2px</option>
+                  <option value="3px">3px</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <button type="button" onclick="resetDesign()" style="padding: 8px 16px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                Restaurar valores por defecto
+              </button>
+              <button type="button" onclick="saveDesignSettings()" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Aplicar cambios
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Information Tab -->
         <div id="info-tab" class="tab-content">
           <div class="content-section">
@@ -989,56 +1137,7 @@
       document.addEventListener("DOMContentLoaded", function() {
         console.log("[v0] DOM loaded, initializing Tableau Extensions...")
         
-        tableau.extensions.initializeDialogAsync().then(function() {
-          console.log("[v0] Tableau Extensions initialized successfully")
-          
-          // Load settings
-          const settings = tableau.extensions.settings.getAll()
-          console.log("[v0] Current settings:", settings)
-          
-          populateWorksheetSelector()
-          
-          // Load columns from settings
-          if (settings.dialogColumns) {
-            try {
-              const parsed = JSON.parse(settings.dialogColumns)
-              // Ensure it's an array
-              if (Array.isArray(parsed)) {
-                allColumns = parsed
-              } else {
-                console.warn("[v0] dialogColumns is not an array, resetting to empty array")
-                allColumns = []
-              }
-              console.log("[v0] Loaded columns from settings:", allColumns)
-            } catch (e) {
-              console.error("[v0] Error parsing dialogColumns:", e)
-              allColumns = []
-            }
-          } else {
-            console.warn("[v0] No dialogColumns found in settings")
-            allColumns = []
-          }
-          
-          // Load existing columnsConfig
-          if (settings.columnsConfig) {
-            try {
-              columnsConfig = JSON.parse(settings.columnsConfig)
-              console.log("[v0] Loaded columnsConfig:", columnsConfig)
-            } catch (e) {
-              console.error("[v0] Error parsing columnsConfig:", e)
-              columnsConfig = {}
-            }
-          }
-          
-          loadSettings()
-          setupEventListeners()
-          renderColumnList()
-          
-          console.log("[v0] Initialization complete")
-        }).catch(function(error) {
-          console.error("[v0] Error initializing Tableau Extensions:", error)
-          alert("Error al inicializar: " + error.message)
-        })
+        initializeDialog(); // Changed from tableau.extensions.initializeDialogAsync()
       })
 
       function loadSettings() {
@@ -1682,6 +1781,153 @@
             sectionToggle.textContent = '▼'; // Expanded state
         } else {
             sectionToggle.textContent = '▶'; // Collapsed state
+        }
+      }
+
+      function saveDesignSettings() {
+        console.log('[v0] Saving design settings')
+        
+        const settings = {
+          headerBackgroundColor: document.getElementById('design-header-bg').value,
+          headerTextColor: document.getElementById('design-header-text').value,
+          headerFont: document.getElementById('design-header-font').value,
+          headerFontSize: document.getElementById('design-header-font-size').value,
+          bodyFont: document.getElementById('design-body-font').value,
+          bodyFontSize: document.getElementById('design-body-font-size').value,
+          bodyTextColor: document.getElementById('design-body-text').value,
+          rowEvenColor: document.getElementById('design-row-even').value,
+          rowOddColor: document.getElementById('design-row-odd').value,
+          borderColor: document.getElementById('design-border-color').value,
+          borderWidth: document.getElementById('design-border-width').value
+        }
+        
+        Object.entries(settings).forEach(([key, value]) => {
+          tableau.extensions.settings.set(key, value)
+        })
+        
+        tableau.extensions.settings.saveAsync().then(() => {
+          alert('Configuración de diseño guardada correctamente')
+          console.log('[v0] Design settings saved')
+        })
+      }
+      
+      function resetDesign() {
+        document.getElementById('design-header-bg').value = '#f3f4f6'
+        document.getElementById('design-header-text').value = '#111827'
+        document.getElementById('design-header-font').value = 'Arial, sans-serif'
+        document.getElementById('design-header-font-size').value = '14px'
+        document.getElementById('design-body-font').value = 'Arial, sans-serif'
+        document.getElementById('design-body-font-size').value = '13px'
+        document.getElementById('design-body-text').value = '#374151'
+        document.getElementById('design-row-even').value = '#ffffff'
+        document.getElementById('design-row-odd').value = '#f9fafb'
+        document.getElementById('design-border-color').value = '#e5e7eb'
+        document.getElementById('design-border-width').value = '1px'
+        
+        updateColorDisplays()
+      }
+      
+      function updateColorDisplays() {
+        document.getElementById('design-header-bg-value').textContent = document.getElementById('design-header-bg').value
+        document.getElementById('design-header-text-value').textContent = document.getElementById('design-header-text').value
+        document.getElementById('design-body-text-value').textContent = document.getElementById('design-body-text').value
+        document.getElementById('design-row-even-value').textContent = document.getElementById('design-row-even').value
+        document.getElementById('design-row-odd-value').textContent = document.getElementById('design-row-odd').value
+        document.getElementById('design-border-color-value').textContent = document.getElementById('design-border-color').value
+      }
+      
+      function loadDesignSettings() {
+        const settings = tableau.extensions.settings.getAll()
+        
+        if (settings.headerBackgroundColor) document.getElementById('design-header-bg').value = settings.headerBackgroundColor
+        if (settings.headerTextColor) document.getElementById('design-header-text').value = settings.headerTextColor
+        if (settings.headerFont) document.getElementById('design-header-font').value = settings.headerFont
+        if (settings.headerFontSize) document.getElementById('design-header-font-size').value = settings.headerFontSize
+        if (settings.bodyFont) document.getElementById('design-body-font').value = settings.bodyFont
+        if (settings.bodyFontSize) document.getElementById('design-body-font-size').value = settings.bodyFontSize
+        if (settings.bodyTextColor) document.getElementById('design-body-text').value = settings.bodyTextColor
+        if (settings.rowEvenColor) document.getElementById('design-row-even').value = settings.rowEvenColor
+        if (settings.rowOddColor) document.getElementById('design-row-odd').value = settings.rowOddColor
+        if (settings.borderColor) document.getElementById('design-border-color').value = settings.borderColor
+        if (settings.borderWidth) document.getElementById('design-border-width').value = settings.borderWidth
+        
+        updateColorDisplays()
+      }
+      
+      // Add event listeners for color pickers
+      document.addEventListener('DOMContentLoaded', () => {
+        const colorInputs = [
+          'design-header-bg',
+          'design-header-text',
+          'design-body-text',
+          'design-row-even',
+          'design-row-odd',
+          'design-border-color'
+        ]
+        
+        colorInputs.forEach(id => {
+          const input = document.getElementById(id)
+          if (input) {
+            input.addEventListener('input', updateColorDisplays)
+          }
+        })
+      })
+
+      // This function should be called once the DOM is ready and Tableau Extensions are initialized.
+      // It replaces the direct call to initializeDialogAsync inside DOMContentLoaded.
+      async function initializeDialog() {
+        console.log("[v0] Inicializando diálogo de configuración")
+        try {
+          await tableau.extensions.initializeDialogAsync()
+          console.log("[v0] Diálogo inicializado")
+
+          const settings = tableau.extensions.settings.getAll()
+          console.log("[v0] Settings actuales:", settings)
+          
+          populateWorksheetSelector()
+          
+          // Load columns from settings
+          if (settings.dialogColumns) {
+            try {
+              const parsed = JSON.parse(settings.dialogColumns)
+              // Ensure it's an array
+              if (Array.isArray(parsed)) {
+                allColumns = parsed
+              } else {
+                console.warn("[v0] dialogColumns is not an array, resetting to empty array")
+                allColumns = []
+              }
+              console.log("[v0] Loaded columns from settings:", allColumns)
+            } catch (e) {
+              console.error("[v0] Error parsing dialogColumns:", e)
+              allColumns = []
+            }
+          } else {
+            console.warn("[v0] No dialogColumns found in settings")
+            allColumns = []
+          }
+          
+          // Load existing columnsConfig
+          if (settings.columnsConfig) {
+            try {
+              columnsConfig = JSON.parse(settings.columnsConfig)
+              console.log("[v0] Loaded columnsConfig:", columnsConfig)
+            } catch (e) {
+              console.error("[v0] Error parsing columnsConfig:", e)
+              columnsConfig = {}
+            }
+          }
+          
+          loadSettings()
+          setupEventListeners()
+          renderColumnList()
+          
+          loadDesignSettings()
+
+          console.log("[v0] Inicialización completada")
+        } catch (error) {
+          console.error("[v0] Error al inicializar:", error)
+          alert("Error al inicializar: " + error.message)
         }
       }
     </script>

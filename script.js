@@ -280,6 +280,8 @@ function renderTable() {
 
   if (!fullData || !fullData.columns || !visibleData) {
     console.log("[v0] ✗ No hay datos para renderizar")
+    console.log("[v0] fullData:", fullData)
+    console.log("[v0] visibleData:", visibleData)
     hideLoading()
     return
   }
@@ -294,6 +296,7 @@ function renderTable() {
   })
 
   console.log("[v0] Columnas visibles:", visibleColumns.length)
+  console.log("[v0] Datos visibles:", visibleData.length)
 
   if (visibleColumns.length === 0) {
     showError("No hay columnas visibles. Configura al menos una columna como visible.")
@@ -391,6 +394,10 @@ function renderTable() {
 
   updatePagination()
   updateTableInfo()
+
+  setTimeout(() => {
+    applyDesignSettings()
+  }, 100)
 }
 
 function updatePagination() {
@@ -716,39 +723,33 @@ function handleExport(format) {
 }
 
 function setupTableauEventListeners() {
-  if (currentWorksheet) {
-    // Listen for filter changes
-    let filterTimeout
-    currentWorksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
-      console.log("[v0] Filter changed, reloading data in 300ms...")
-      clearTimeout(filterTimeout)
-      filterTimeout = setTimeout(() => {
-        loadWorksheetData(currentWorksheet)
-      }, 300)
-    })
+  console.log("[v0] Setting up Tableau event listeners")
 
-    // Listen for mark selection changes
-    let selectionTimeout
-    currentWorksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, (event) => {
-      console.log("[v0] Selection changed, reloading data in 300ms...")
-      clearTimeout(selectionTimeout)
-      selectionTimeout = setTimeout(() => {
-        loadWorksheetData(currentWorksheet)
-      }, 300)
-    })
-
-    // Listen for summary data changes
-    let dataTimeout
-    currentWorksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, (event) => {
-      console.log("[v0] Data changed, reloading data in 300ms...")
-      clearTimeout(dataTimeout)
-      dataTimeout = setTimeout(() => {
-        loadWorksheetData(currentWorksheet)
-      }, 300)
-    })
-
-    console.log("[v0] Tableau event listeners configured")
+  const worksheet = tableau.extensions.worksheetContent.worksheet
+  if (!worksheet) {
+    console.log("[v0] No worksheet found for event listeners")
+    return
   }
+
+  // Listen for filter changes
+  worksheet.addEventListener(tableau.TableauEventType.FilterChanged, async (event) => {
+    console.log("[v0] Filter changed event:", event)
+    await loadWorksheetData(currentWorksheet)
+  })
+
+  // Listen for mark selection changes
+  worksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, async (event) => {
+    console.log("[v0] Mark selection changed:", event)
+    await loadWorksheetData(currentWorksheet)
+  })
+
+  // Listen for data changes
+  worksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, async (event) => {
+    console.log("[v0] Summary data changed:", event)
+    await loadWorksheetData(currentWorksheet)
+  })
+
+  console.log("[v0] Tableau event listeners setup complete")
 }
 
 function applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx) {
@@ -895,6 +896,58 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
 function applyGeneralSettings() {
   // Placeholder for applyGeneralSettings function
   console.log("[v0] Applying general settings")
+}
+
+function applyDesignSettings() {
+  const settings = tableau.extensions.settings.getAll()
+  
+  // Apply header colors
+  const headerBg = settings.headerBackgroundColor || '#f3f4f6'
+  const headerText = settings.headerTextColor || '#111827'
+  const headerFont = settings.headerFont || 'Arial, sans-serif'
+  const headerFontSize = settings.headerFontSize || '14px'
+  
+  const headers = document.querySelectorAll('#table-header th')
+  headers.forEach(th => {
+    th.style.backgroundColor = headerBg
+    th.style.color = headerText
+    th.style.fontFamily = headerFont
+    th.style.fontSize = headerFontSize
+  })
+  
+  // Apply body colors
+  const bodyFont = settings.bodyFont || 'Arial, sans-serif'
+  const bodyFontSize = settings.bodyFontSize || '13px'
+  const bodyTextColor = settings.bodyTextColor || '#374151'
+  const rowEvenBg = settings.rowEvenColor || '#ffffff'
+  const rowOddBg = settings.rowOddColor || '#f9fafb'
+  
+  const rows = document.querySelectorAll('#table-body tr')
+  rows.forEach((tr, index) => {
+    const cells = tr.querySelectorAll('td')
+    cells.forEach(td => {
+      td.style.fontFamily = bodyFont
+      td.style.fontSize = bodyFontSize
+      td.style.color = bodyTextColor
+    })
+    
+    // Apply row background if no conditional formatting applied
+    if (!tr.style.backgroundColor) {
+      tr.style.backgroundColor = index % 2 === 0 ? rowEvenBg : rowOddBg
+    }
+  })
+  
+  // Apply border styling
+  const borderColor = settings.borderColor || '#e5e7eb'
+  const borderWidth = settings.borderWidth || '1px'
+  
+  const table = document.querySelector('.data-table')
+  if (table) {
+    table.style.setProperty('--border-color', borderColor)
+    table.style.setProperty('--border-width', borderWidth)
+  }
+  
+  console.log('[v0] Design settings applied')
 }
 
 if (document.readyState === "loading") {
