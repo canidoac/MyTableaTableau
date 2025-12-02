@@ -843,7 +843,13 @@
         <div id="data-tab" class="tab-content">
           <div class="data-layout">
             <aside class="column-sidebar">
-              <input type="text" id="column-search" class="search-box" placeholder="Buscar columna..." />
+              <!-- Added reload button next to search -->
+              <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <input type="text" id="column-search" class="search-box" placeholder="Buscar columna..." style="flex: 1;" />
+                <button onclick="reloadColumns()" style="padding: 8px 12px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 14px;" title="Recargar columnas">
+                  ↻ Recargar
+                </button>
+              </div>
               <h3>DIMENSIONES</h3>
               <div class="column-list">
                 <div class="column-section">
@@ -980,6 +986,10 @@
                   <button type="button" onclick="saveColumnConfig()" style="margin-top: 16px; padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     Guardar Configuración
                   </button>
+                  <!-- Added confirmation message for saved config -->
+                  <div id="config-saved-message" style="display: none; margin-top: 12px; padding: 8px 12px; background: #10b981; color: white; border-radius: 4px; font-size: 14px;">
+                    ✓ Configuración guardada
+                  </div>
                 </div>
               </div>
             </div>
@@ -1332,12 +1342,18 @@
           selectedTab.classList.add('active')
         }
         
-        // Mark button as active
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-          if (btn.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+        // Add active class to clicked button
+        const buttons = document.querySelectorAll('.tab-btn')
+        buttons.forEach(btn => {
+          if (btn.textContent.toLowerCase().includes(tabName)) {
             btn.classList.add('active')
           }
         })
+        
+        if (tabName === 'data') {
+          console.log("[v0] Data tab activated, reloading columns...")
+          reloadColumns()
+        }
       }
 
       function renderColumnList() {
@@ -1543,6 +1559,28 @@
 
         columnsConfig[currentSelectedColumn] = columnData
         console.log("[v0] Column config saved:", columnsConfig)
+        
+        showConfigSavedMessage()
+      }
+      
+      function showConfigSavedMessage() {
+        const message = document.getElementById("config-saved-message")
+        if (message) {
+          message.style.display = "block"
+          setTimeout(() => {
+            message.style.display = "none"
+          }, 3000)
+        }
+      }
+      
+      function reloadColumns() {
+        console.log("[v0] Reloading columns...")
+        const worksheetSelector = document.getElementById("worksheet-select")
+        if (worksheetSelector && worksheetSelector.value) {
+          loadColumnsFromWorksheet(worksheetSelector.value)
+        } else {
+          console.log("[v0] No worksheet selected, cannot reload columns")
+        }
       }
 
       function autoSave() {
