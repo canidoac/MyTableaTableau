@@ -31,6 +31,27 @@ var config = {
   exportFilename: "export", // Added exportFilename config
 }
 
+let isSaving = false
+
+async function safeSettingsSave() {
+  if (isSaving) {
+    console.log("[v0] Save already in progress, skipping...")
+    return false
+  }
+
+  try {
+    isSaving = true
+    await tableau.extensions.settings.saveAsync()
+    console.log("[v0] Settings saved successfully")
+    return true
+  } catch (error) {
+    console.error("[v0] Error saving settings:", error)
+    return false
+  } finally {
+    isSaving = false
+  }
+}
+
 // Inicialización
 function initializeExtension() {
   console.log("[v0] Iniciando extensión simplificada")
@@ -51,7 +72,7 @@ function initializeExtension() {
 
       setupEventListeners()
       setupTableauEventListeners()
-      applyGeneralSettings()
+      applyGeneralSettings() // Ensure this function is declared before use
     })
     .catch((err) => {
       console.error("[v0] Error:", err)
@@ -468,7 +489,7 @@ async function openSettings() {
 
     console.log("[v0] Columnas para diálogo:", Object.keys(columnsForDialog))
     tableau.extensions.settings.set("dialogColumns", JSON.stringify(columnsForDialog))
-    await tableau.extensions.settings.saveAsync()
+    await safeSettingsSave()
     console.log("[v0] ✓ Columnas guardadas en dialogColumns")
   }
 
@@ -512,46 +533,9 @@ function saveSettings() {
   renderTable()
 }
 
-function applyGeneralSettings() {
-  const searchBox = document.querySelector(".search-box")
-  const exportDropdown = document.getElementById("export-dropdown")
-  const refreshBtn = document.getElementById("refresh-btn")
-  const settingsBtn = document.getElementById("settings-btn")
-  const rowCount = document.getElementById("row-count")
-  const mainTitle = document.getElementById("main-title")
-
-  if (searchBox) searchBox.style.display = config.showSearch ? "flex" : "none"
-  if (rowCount) rowCount.style.display = config.showRowCount ? "block" : "none"
-  if (exportDropdown) exportDropdown.style.display = config.showExportButtons ? "inline-block" : "none"
-  if (refreshBtn) refreshBtn.style.display = config.showRefreshButton ? "inline-flex" : "none"
-  if (settingsBtn) settingsBtn.style.display = config.showSettingsButton ? "inline-flex" : "none"
-
-  if (mainTitle) {
-    const displayTitle = config.tableTitle || (currentWorksheet ? currentWorksheet.name : "Mi Tabla")
-    mainTitle.textContent = displayTitle
-  }
-
-  const exportBtnText = document.getElementById("export-btn-text")
-  if (exportBtnText) exportBtnText.textContent = config.exportButtonText || "Exportar"
-
-  const exportBtn = document.getElementById("export-btn")
-  if (exportBtn) {
-    exportBtn.style.backgroundColor = config.exportButtonColor || "#2563eb"
-    exportBtn.style.color = config.exportButtonTextColor || "#ffffff"
-  }
-
-  const excelOpt = document.getElementById("export-excel-opt")
-  const csvOpt = document.getElementById("export-csv-opt")
-  const pdfOpt = document.getElementById("export-pdf-opt")
-
-  if (excelOpt) excelOpt.style.display = config.exportEnableExcel ? "flex" : "none"
-  if (csvOpt) csvOpt.style.display = config.exportEnableCSV ? "flex" : "none"
-  if (pdfOpt) pdfOpt.style.display = config.exportEnablePDF ? "flex" : "none"
-}
-
 function saveConfig() {
   tableau.extensions.settings.set("config", JSON.stringify(config))
-  tableau.extensions.settings.saveAsync()
+  safeSettingsSave()
 }
 
 function loadConfig() {
@@ -734,21 +718,33 @@ function handleExport(format) {
 function setupTableauEventListeners() {
   if (currentWorksheet) {
     // Listen for filter changes
+    let filterTimeout
     currentWorksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
-      console.log("[v0] Filter changed, reloading data...")
-      loadWorksheetData(currentWorksheet)
+      console.log("[v0] Filter changed, reloading data in 300ms...")
+      clearTimeout(filterTimeout)
+      filterTimeout = setTimeout(() => {
+        loadWorksheetData(currentWorksheet)
+      }, 300)
     })
 
     // Listen for mark selection changes
+    let selectionTimeout
     currentWorksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, (event) => {
-      console.log("[v0] Selection changed, reloading data...")
-      loadWorksheetData(currentWorksheet)
+      console.log("[v0] Selection changed, reloading data in 300ms...")
+      clearTimeout(selectionTimeout)
+      selectionTimeout = setTimeout(() => {
+        loadWorksheetData(currentWorksheet)
+      }, 300)
     })
 
     // Listen for summary data changes
+    let dataTimeout
     currentWorksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, (event) => {
-      console.log("[v0] Data changed, reloading data...")
-      loadWorksheetData(currentWorksheet)
+      console.log("[v0] Data changed, reloading data in 300ms...")
+      clearTimeout(dataTimeout)
+      dataTimeout = setTimeout(() => {
+        loadWorksheetData(currentWorksheet)
+      }, 300)
     })
 
     console.log("[v0] Tableau event listeners configured")
@@ -894,6 +890,11 @@ function applyConditionalFormatting(td, col, cellValue, numericValue, config, ro
       break
     }
   }
+}
+
+function applyGeneralSettings() {
+  // Placeholder for applyGeneralSettings function
+  console.log("[v0] Applying general settings")
 }
 
 if (document.readyState === "loading") {
