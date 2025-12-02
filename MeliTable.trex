@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <!-- Updated to v6.8.0 - Added Información tab, fixed checkboxes for search and row count visibility -->
-  <dashboard-extension id="com.supertable.pro" extension-version="6.8.0">
+  <!-- Updated to v7.0.0 - Added conditional formatting, export filename customization, column export control -->
+  <dashboard-extension id="com.supertable.pro" extension-version="7.0.0">
     <default-locale>es_ES</default-locale>
     <name resource-id="name"/>
-    <description>Super Table Pro - Tabla interactiva con formato, búsqueda, ordenamiento y exportación mejorada</description>
+    <description>Super Table Pro - Tabla interactiva con formato condicional, búsqueda, ordenamiento y exportación mejorada</description>
     <author name="Andres Canido" email="Andres.canido@mercadolibre.com" organization="Mercadolibre" website="https://github.com/canidoac/MyTableaTableau"/>
     <min-api-version>1.4</min-api-version>
     <source-location>

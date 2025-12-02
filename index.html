@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperTables Pro</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Added Google Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.min.js"></script>
@@ -19,62 +21,44 @@
             </div>
             <div class="controls">
                 <div class="search-box" id="search-box">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
+                    <!-- Using Material Icon -->
+                    <span class="material-icons" style="font-size: 18px;">search</span>
                     <input type="text" id="search-input" placeholder="Buscar...">
                 </div>
                 <div id="export-dropdown" class="dropdown">
                     <button id="export-btn" class="btn btn-primary">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                        </svg>
+                        <!-- Using Material Icon -->
+                        <span class="material-icons" style="font-size: 18px;">file_download</span>
                         <span id="export-btn-text">Exportar</span>
                     </button>
                     <div id="export-dropdown-menu" class="dropdown-menu" style="display: none;">
                         <button class="dropdown-item" id="export-excel-opt" data-format="excel">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
+                            <span class="material-icons" style="font-size: 16px;">description</span>
                             Excel
                         </button>
                         <button class="dropdown-item" id="export-csv-opt" data-format="csv">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                            </svg>
+                            <span class="material-icons" style="font-size: 16px;">table_chart</span>
                             CSV
                         </button>
                         <button class="dropdown-item" id="export-pdf-opt" data-format="pdf">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
+                            <span class="material-icons" style="font-size: 16px;">picture_as_pdf</span>
                             PDF
                         </button>
                     </div>
                 </div>
                 <button id="columns-btn" class="btn btn-secondary" title="Gestionar columnas">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
+                    <!-- Using Material Icon -->
+                    <span class="material-icons" style="font-size: 18px;">view_column</span>
                     Columnas
                 </button>
                 <button id="refresh-btn" class="btn btn-icon" title="Actualizar">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="23 4 23 10 17 10"></polyline>
-                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                    </svg>
+                    <!-- Using Material Icon -->
+                    <span class="material-icons" style="font-size: 20px;">refresh</span>
                 </button>
-                <button id="settings-btn" class="btn btn-icon" title="Configuración">⚙️</button>
+                <!-- Using Material Icon for settings -->
+                <button id="settings-btn" class="btn btn-icon" title="Configuración">
+                    <span class="material-icons" style="font-size: 20px;">settings</span>
+                </button>
             </div>
         </header>
         
@@ -99,7 +83,8 @@
                 
                 <div class="table-footer">
                     <div id="pagination" class="pagination"></div>
-                    <span id="row-count" class="row-count-footer" style="display: none;"></span>
+                    <!-- Row count moved to footer with show/hide capability -->
+                    <span id="row-count" class="row-count-footer"></span>
                 </div>
             </div>
         </main>
@@ -256,7 +241,8 @@
                         </div>
                         <div class="info-item">
                             <strong>Versión:</strong>
-                            <span>v6.8.0</span>
+                            <!-- Updated version to v7.0.0 -->
+                            <span>v7.0.0</span>
                         </div>
                         <div class="info-item">
                             <strong>Estado:</strong>
@@ -264,17 +250,19 @@
                         </div>
                         <div class="info-item">
                             <strong>Descripción:</strong>
-                            <span>Extensión de tabla mejorada para Tableau con exportación, búsqueda y configuración avanzada de columnas</span>
+                            <span>Extensión de tabla mejorada para Tableau con exportación, búsqueda, configuración avanzada de columnas y formato condicional</span>
                         </div>
                     </div>
                     
                     <div class="info-section">
                         <h4>Características:</h4>
                         <ul class="features-list">
-                            <li>✓ Exportación a Excel, CSV y PDF</li>
+                            <li>✓ Exportación a Excel, CSV y PDF con nombres personalizables</li>
                             <li>✓ Búsqueda y filtrado en tiempo real</li>
                             <li>✓ Configuración personalizada de columnas</li>
                             <li>✓ Nombres de visualización personalizables</li>
+                            <li>✓ Formato condicional con iconos y colores</li>
+                            <li>✓ Control de inclusión de columnas en exportaciones</li>
                             <li>✓ Ordenamiento por columnas</li>
                             <li>✓ Paginación configurable</li>
                         </ul>

@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Configuración - Super Table Pro</title>
-    <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.min.js"></script>
+    <title>SuperTables - Configuración</title>
+    <link rel="stylesheet" href="config.css" />
+    <script src="https://extensions.tableau.com/versionone/tableau.extensions.1.latest.min.js"></script>
     <style>
       * {
         margin: 0;
@@ -16,8 +17,10 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         background: #f8f9fa;
         overflow-x: hidden;
+        color: #333; /* Default text color */
       }
 
+      /* --- Header & Tabs --- */
       .config-header {
         background: white;
         border-bottom: 1px solid #e0e0e0;
@@ -80,9 +83,10 @@
         font-weight: 600;
       }
 
+      /* --- Main Layout --- */
       .config-body {
         display: flex;
-        min-height: calc(100vh - 120px);
+        min-height: calc(100vh - 120px); /* Adjust based on header/tab height */
       }
 
       .sidebar {
@@ -140,6 +144,7 @@
         overflow-y: auto;
       }
 
+      /* --- Tab Content --- */
       .tab-content {
         display: none;
       }
@@ -156,6 +161,7 @@
         display: block;
       }
 
+      /* --- Content Sections --- */
       .content-section {
         background: white;
         padding: 25px;
@@ -176,6 +182,7 @@
         margin-bottom: 25px;
       }
 
+      /* --- Forms --- */
       .form-group {
         margin-bottom: 25px;
       }
@@ -228,6 +235,7 @@
         font-size: 14px;
       }
 
+      /* --- Buttons --- */
       button {
         padding: 10px 20px;
         border: none;
@@ -276,6 +284,7 @@
         background: #c82333;
       }
 
+      /* --- Helpers & Misc --- */
       .help-text {
         font-size: 12px;
         color: #666;
@@ -429,6 +438,12 @@
         border-radius: 50%;
         background-color: green;
       }
+      .status-online {
+        background-color: #28a745; /* Green for online */
+      }
+      .status-offline {
+        background-color: #dc3545; /* Red for offline */
+      }
 
       .features-list {
         list-style: none;
@@ -439,81 +454,197 @@
         margin-bottom: 5px;
         color: #28a745;
       }
+
+      /* --- Updates Specific Styles --- */
+      .config-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      .config-content {
+        flex: 1;
+        display: flex;
+        overflow: hidden; /* Prevent scrolling of the entire page */
+      }
+
+      .tabs {
+        position: sticky;
+        top: 60px; /* Adjust based on header height */
+        z-index: 99;
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .tab-panels {
+        flex: 1;
+        overflow-y: auto; /* Allow scrolling within tab panels */
+        padding: 30px;
+      }
+
+      .data-layout {
+        display: flex;
+        flex: 1; /* Take remaining space */
+        overflow: hidden; /* Prevent internal scrolling issues */
+      }
+
+      .column-sidebar {
+        width: 280px; /* Fixed width for sidebar */
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Prevent sidebar scrolling issues */
+      }
+
+      .column-sidebar .search-box {
+        padding: 15px 20px;
+        margin-bottom: 0; /* Remove bottom margin */
+        border: none;
+        border-bottom: 1px solid #e0e0e0; /* Separator */
+      }
+
+      .column-sidebar .search-box input {
+        border: 1px solid #ddd; /* Ensure input has border */
+      }
+
+      .column-list {
+        flex: 1; /* Take remaining space */
+        padding: 20px;
+        overflow-y: auto; /* Allow scrolling for the list of columns */
+      }
+
+      .column-section {
+        margin-bottom: 25px;
+      }
+
+      .column-section h3 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+      }
+
+      .column-item {
+        padding: 10px 12px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+        transition: background-color 0.2s ease;
+        background-color: transparent; /* Default */
+      }
+
+      .column-item:hover {
+        background-color: #f0f7ff;
+      }
+
+      .column-item.selected {
+        background-color: #f2dc49;
+        color: white;
+        font-weight: 600;
+      }
+
+      .column-config-panel {
+        flex: 1; /* Take remaining space */
+        background: white; /* Changed from #f8f9fa */
+        padding: 30px; /* Increased padding */
+        border-radius: 0; /* No border-radius */
+        margin-top: 0; /* Removed top margin */
+        box-shadow: none; /* Removed shadow */
+        overflow-y: auto; /* Allow scrolling */
+      }
+
+      .column-config-panel h2 {
+        margin-bottom: 20px; /* Increased margin */
+      }
+
+      .icon-btn {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+        font-size: 1.2em; /* Larger icons */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .icon-btn:hover {
+        background: #f0f7ff;
+        border-color: #0066cc;
+      }
+
+      .icon-btn.selected {
+        background: #0066cc;
+        color: white;
+        border-color: #0066cc;
+      }
+
+      /* Custom disabled input style */
+      input[disabled] {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+      }
+
+      /* Adjusting label for conditional formatting */
+      .form-group label strong {
+        font-size: 15px; /* Slightly larger for emphasis */
+      }
     </style>
   </head>
   <body>
-    <div class="config-header">
-      <h1>SuperTables - Configuración</h1>
-      <div class="header-actions">
-        <button class="btn-secondary" onclick="closeDialog()">Cancelar</button>
-        <button class="btn-primary" onclick="saveAndClose()">Guardar y Cerrar</button>
-      </div>
-    </div>
-
-    <div class="tabs-container">
-      <div class="tabs">
-        <!-- Added Export tab -->
-        <button class="tab-btn active" data-tab="general" onclick="switchTab('general')">General</button>
-        <button class="tab-btn" data-tab="data" onclick="switchTab('data')">Data</button>
-        <button class="tab-btn" data-tab="export" onclick="switchTab('export')">Export</button>
-        <button class="tab-btn" data-tab="info" onclick="switchTab('info')">Información</button>
-      </div>
-    </div>
-
-    <div class="config-body">
-      <!-- SIDEBAR FIJA (solo visible en pestaña Data) -->
-      <div class="sidebar">
-        <div id="data-sidebar" class="tab-sidebar tab-content">
-          <input type="text" class="search-box" id="column-search" placeholder="Buscar dimensión..." />
-          <h3>DIMENSIONES</h3>
-          <ul class="sidebar-list" id="dimensions-list">
-            <li class="empty-state">No hay dimensiones. Arrastra campos desde el panel de Datos.</li>
-          </ul>
-          <h3>MEDIDAS</h3>
-          <ul class="sidebar-list" id="measures-list">
-            <li class="empty-state">No hay medidas. Arrastra campos desde el panel de Datos.</li>
-          </ul>
-          <h3>CÁLCULOS</h3>
-          <ul class="sidebar-list" id="calculations-list">
-            <li class="empty-state">No hay cálculos. Arrastra campos desde el panel de Datos.</li>
-          </ul>
+    <div class="config-container">
+      <header class="config-header">
+        <h1>SuperTables - Configuración</h1>
+        <div class="header-actions">
+          <button id="cancel-btn" class="btn btn-secondary">Cancelar</button>
+          <button id="save-btn" class="btn btn-primary">Guardar y Cerrar</button>
         </div>
-      </div>
+      </header>
 
-      <!-- ÁREA DE CONTENIDO DERECHA -->
-      <div class="content-area">
-        <!-- TAB: GENERAL -->
-        <div id="general-tab" class="tab-content active">
-          <div class="content-section">
-            <h2>Configuración General</h2>
+      <div class="config-content">
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="general">General</button>
+          <button class="tab-btn" data-tab="data">Data</button>
+          <button class="tab-btn" data-tab="export">Export</button>
+          <button class="tab-btn" data-tab="info">Información</button>
+        </nav>
 
-            <!-- Added worksheet selector to General tab -->
-            <div class="form-group">
-              <label>Hoja de trabajo</label>
-              <select id="worksheet-selector-config" class="form-input">
-                <option>Cargando hojas...</option>
-              </select>
-              <p class="help-text">Selecciona la hoja de trabajo desde la cual se cargarán los datos</p>
-            </div>
+        <div class="tab-panels">
+          <!-- General Tab -->
+          <div id="general-tab" class="tab-content active">
+            <div class="content-section">
+              <h2>Configuración General</h2>
 
-            <div class="form-group">
-              <label>Título de la tabla</label>
-              <input type="text" id="table-title" placeholder="Ingrese un título para la tabla" />
-              <p class="help-text">Este título aparecerá en la parte superior de la tabla</p>
-            </div>
+              <div class="form-group">
+                <label>Hoja de trabajo</label>
+                <input
+                  type="text"
+                  id="worksheet-name"
+                  placeholder="La hoja se selecciona desde la extensión"
+                  disabled
+                  style="background: #f5f5f5; cursor: not-allowed"
+                />
+                <p class="help-text">Selecciona la hoja de trabajo desde la cual se cargarán los datos</p>
+              </div>
 
-            <div class="section-divider"></div>
+              <div class="section-divider"></div>
 
-            <div class="form-group">
-              <label>Filas por página</label>
-              <input type="number" id="rows-per-page" value="10" min="5" max="100" />
-              <p class="help-text">Número de filas a mostrar por página (5-100)</p>
-            </div>
+              <div class="form-group">
+                <label>Título de la tabla</label>
+                <input type="text" id="table-title" placeholder="Ej: Mi Tabla de Datos" />
+                <p class="help-text">Este título aparecerá en la parte superior de la tabla</p>
+              </div>
 
-            <div class="section-divider"></div>
+              <div class="section-divider"></div>
 
-            <div class="form-group">
-              <label>Opciones de visualización</label>
+              <h3>Opciones de visualización</h3>
               <div class="checkbox-group">
                 <input type="checkbox" id="show-search" checked />
                 <label for="show-search">Mostrar buscador</label>
@@ -525,117 +656,289 @@
               <p class="help-text">Controla qué elementos se muestran en la interfaz</p>
             </div>
           </div>
-        </div>
 
-        <!-- TAB: DATA -->
-        <div id="data-tab" class="tab-content">
-          <div id="no-column-selected" class="content-section">
-            <h2>Configurar Columna</h2>
-            <p class="help-text">Selecciona una columna del panel izquierdo para configurar sus propiedades</p>
+          <!-- Data Tab -->
+          <div id="data-tab" class="tab-content">
+            <div class="data-layout">
+              <aside class="column-sidebar">
+                <div class="search-box">
+                  <input type="text" id="column-search" placeholder="Buscar dimensión..." />
+                </div>
+
+                <div class="column-list">
+                  <div class="column-section">
+                    <h3>DIMENSIONES</h3>
+                    <div id="dimensions-list"></div>
+                  </div>
+
+                  <div class="column-section">
+                    <h3>MEDIDAS</h3>
+                    <div id="measures-list"></div>
+                  </div>
+
+                  <div class="column-section">
+                    <h3>CÁLCULOS</h3>
+                    <div id="calculations-list"></div>
+                  </div>
+                </div>
+              </aside>
+
+              <main class="column-config-panel">
+                <div id="no-column-selected" class="content-section">
+                  <h2>Configurar Columna</h2>
+                  <p class="help-text">Selecciona una columna del panel izquierdo para configurar sus propiedades</p>
+                </div>
+
+                <div id="column-config-content" style="display: none">
+                  <h2 id="config-column-title">Configurar Columna</h2>
+
+                  <div class="section-divider"></div>
+
+                  <div class="form-group">
+                    <label>Nombre de visualización</label>
+                    <input type="text" id="column-display-name" placeholder="Nombre personalizado para la columna" />
+                    <p class="help-text">Deja vacío para usar el nombre original</p>
+                  </div>
+
+                  <div class="section-divider"></div>
+
+                  <div class="form-group">
+                    <label>Visibilidad</label>
+                    <div class="checkbox-group">
+                      <input type="checkbox" id="column-visible" checked />
+                      <label for="column-visible">Mostrar esta columna en la tabla</label>
+                    </div>
+                  </div>
+
+                  <div class="section-divider"></div>
+
+                  <!-- Added export checkbox -->
+                  <div class="form-group">
+                    <label>Exportación</label>
+                    <div class="checkbox-group">
+                      <input type="checkbox" id="column-export" checked />
+                      <label for="column-export">Incluir esta columna en las exportaciones</label>
+                    </div>
+                  </div>
+
+                  <!-- Added conditional formatting section -->
+                  <div id="conditional-formatting-section" style="display: none">
+                    <div class="section-divider"></div>
+
+                    <div class="form-group">
+                      <label>
+                        <strong>Formato Condicional</strong>
+                        <span style="color: #666; font-size: 0.9em">(solo para medidas y cálculos)</span>
+                      </label>
+                      <div class="checkbox-group">
+                        <input type="checkbox" id="enable-conditional-format" />
+                        <label for="enable-conditional-format">Habilitar formato condicional</label>
+                      </div>
+                    </div>
+
+                    <div id="conditional-format-config" style="display: none">
+                      <div class="form-group">
+                        <label>Condición</label>
+                        <div style="display: flex; gap: 8px; align-items: center">
+                          <select id="condition-operator" style="width: 100px">
+                            <option value=">=">>=</option>
+                            <option value="<="><=</option>
+                            <option value="=">=</option>
+                            <option value=">">&gt;</option>
+                            <option value="<">&lt;</option>
+                            <option value="!=">!=</option>
+                          </select>
+                          <input type="number" id="condition-value" placeholder="Valor" style="flex: 1" />
+                        </div>
+                      </div>
+
+                      <div class="section-divider"></div>
+
+                      <h4>Aplicar Estilo</h4>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-cell-bg" />
+                          <label for="format-cell-bg">Color de fondo de celda</label>
+                        </div>
+                        <input
+                          type="color"
+                          id="format-cell-bg-color"
+                          value="#ffeb3b"
+                          style="margin-left: 24px; width: 60px; height: 32px"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-row-bg" />
+                          <label for="format-row-bg">Color de fondo de fila</label>
+                        </div>
+                        <input
+                          type="color"
+                          id="format-row-bg-color"
+                          value="#ffcdd2"
+                          style="margin-left: 24px; width: 60px; height: 32px"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-cell-text" />
+                          <label for="format-cell-text">Color de texto de celda</label>
+                        </div>
+                        <input
+                          type="color"
+                          id="format-cell-text-color"
+                          value="#d32f2f"
+                          style="margin-left: 24px; width: 60px; height: 32px"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-row-text" />
+                          <label for="format-row-text">Color de texto de fila</label>
+                        </div>
+                        <input
+                          type="color"
+                          id="format-row-text-color"
+                          value="#1976d2"
+                          style="margin-left: 24px; width: 60px; height: 32px"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="section-divider"></div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <input type="checkbox" id="format-add-icon" />
+                          <label for="format-add-icon">Agregar icono</label>
+                        </div>
+
+                        <div id="icon-selection" style="display: none; margin-left: 24px; margin-top: 8px">
+                          <label style="font-size: 0.9em; color: #666">Selecciona un icono:</label>
+                          <div
+                            style="
+                              display: grid;
+                              grid-template-columns: repeat(4, 1fr);
+                              gap: 8px;
+                              margin-top: 8px;
+                              max-width: 300px;
+                            "
+                          >
+                            <button type="button" class="icon-btn" data-icon="arrow_upward">↑</button>
+                            <button type="button" class="icon-btn" data-icon="arrow_downward">↓</button>
+                            <button type="button" class="icon-btn" data-icon="arrow_forward">→</button>
+                            <button type="button" class="icon-btn" data-icon="arrow_back">←</button>
+                            <button type="button" class="icon-btn" data-icon="circle">⬤</button>
+                            <button type="button" class="icon-btn" data-icon="circle_outline">○</button>
+                            <button type="button" class="icon-btn" data-icon="square">■</button>
+                            <button type="button" class="icon-btn" data-icon="square_outline">□</button>
+                          </div>
+                          <input type="hidden" id="selected-icon" />
+
+                          <div class="form-group" style="margin-top: 12px">
+                            <label style="font-size: 0.9em; color: #666">Color del icono:</label>
+                            <input type="color" id="icon-color" value="#000000" style="width: 60px; height: 32px" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </main>
+            </div>
           </div>
 
-          <div id="column-config-content" style="display: none">
-            <h2 id="config-column-title">Configurar Columna</h2>
+          <!-- Export Tab -->
+          <div id="export-tab" class="tab-content">
+            <div class="content-section">
+              <h2>Configuración de Exportación</h2>
+              <p class="subtitle">Configura las opciones de exportación disponibles para los usuarios</p>
 
-            <div class="section-divider"></div>
+              <div class="form-group">
+                <label>Texto del botón de exportación</label>
+                <input type="text" id="export-button-text" placeholder="Ej: Exportar, Descargar" />
+                <p class="help-text">Personaliza el texto que aparece en el botón de exportación</p>
+              </div>
 
-            <div class="form-group">
-              <label>Nombre de visualización</label>
-              <input type="text" id="column-display-name" placeholder="Nombre personalizado para la columna" />
-              <p class="help-text">Deja vacío para usar el nombre original</p>
-            </div>
+              <!-- Added export filename field -->
+              <div class="form-group">
+                <label>Nombre del archivo exportado</label>
+                <input type="text" id="export-filename" placeholder="Ej: Reporte_Ventas" />
+                <p class="help-text">El nombre base para los archivos exportados (se agregará fecha y extensión automáticamente)</p>
+              </div>
 
-            <div class="section-divider"></div>
+              <div class="form-group">
+                <label for="export-button-color">Color del botón:</label>
+                <input type="color" id="export-button-color" value="#2563eb" />
+                <p class="help-text">Selecciona el color de fondo del botón de exportación</p>
+              </div>
 
-            <div class="form-group">
-              <label>Visibilidad</label>
-              <div class="checkbox-group">
-                <input type="checkbox" id="column-visible" checked />
-                <label for="column-visible">Mostrar esta columna en la tabla</label>
+              <div class="form-group">
+                <label for="export-button-text-color">Color del texto del botón:</label>
+                <input type="color" id="export-button-text-color" value="#ffffff" />
+                <p class="help-text">Selecciona el color del texto del botón de exportación</p>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <div class="form-group">
+                <label>Formatos de exportación disponibles</label>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="export-enable-excel" checked />
+                  <label for="export-enable-excel">Habilitar exportación a Excel (.xlsx)</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="export-enable-csv" checked />
+                  <label for="export-enable-csv">Habilitar exportación a CSV</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="export-enable-pdf" checked />
+                  <label for="export-enable-pdf">Habilitar exportación a PDF</label>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Added Export tab -->
-        <div id="export-tab" class="tab-content">
-          <div class="content-section">
-            <h2>Configuración de Exportación</h2>
-            <p class="subtitle">Configura las opciones de exportación disponibles para los usuarios</p>
 
-            <div class="form-group">
-              <label>Texto del botón de exportación</label>
-              <input type="text" id="export-button-text" placeholder="Ej: Exportar, Descargar" />
-              <p class="help-text">Personaliza el texto que aparece en el botón de exportación</p>
-            </div>
+          <!-- Info Tab -->
+          <div id="info-tab" class="tab-content">
+            <div class="content-section">
+              <h2>Información de la Extensión</h2>
+              <p class="subtitle">SuperTables v7.0.0</p>
 
-            <div class="form-group">
-              <label>Color del botón:</label>
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="color" id="export-button-color" value="#0066cc" class="color-input">
-                <input type="text" id="export-button-color-text" value="#0066cc" class="form-input" style="width: 100px;" placeholder="#0066cc">
+              <div class="info-grid">
+                <div class="info-item">
+                  <strong>Estado:</strong>
+                  <span class="status-badge status-online">● Online</span>
+                </div>
+                <div class="info-item">
+                  <strong>Versión:</strong>
+                  <span>7.0.0</span>
+                </div>
+                <div class="info-item">
+                  <strong>Última actualización:</strong>
+                  <span>Enero 2025</span>
+                </div>
               </div>
-              <p class="help-text">Selecciona el color del botón de exportación</p>
-            </div>
 
-            <div class="section-divider"></div>
+              <div class="section-divider"></div>
 
-            <div class="form-group">
-              <label>Formatos de exportación disponibles</label>
-              <div class="checkbox-group">
-                <input type="checkbox" id="export-enable-excel" checked />
-                <label for="export-enable-excel">Habilitar exportación a Excel (.xlsx)</label>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="export-enable-csv" checked />
-                <label for="export-enable-csv">Habilitar exportación a CSV</label>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="export-enable-pdf" checked />
-                <label for="export-enable-pdf">Habilitar exportación a PDF</label>
-              </div>
-              <p class="help-text">Selecciona qué formatos de exportación estarán disponibles para los usuarios</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Added Info tab -->
-        <div id="info-tab" class="tab-content">
-          <div class="content-section">
-            <h2>Información de la Extensión</h2>
-            
-            <div class="info-grid">
-              <div class="info-item">
-                <strong>Nombre:</strong>
-                <span>SuperTables Pro - MeliTable</span>
-              </div>
-              <div class="info-item">
-                <strong>Versión:</strong>
-                <span>v6.8.0</span>
-              </div>
-              <div class="info-item">
-                <strong>Estado:</strong>
-                <span class="status-badge">● Online</span>
-              </div>
-              <div class="info-item">
-                <strong>Descripción:</strong>
-                <span>Extensión de tabla mejorada para Tableau con exportación, búsqueda y configuración avanzada de columnas</span>
-              </div>
-            </div>
-
-            <div class="section-divider"></div>
-
-            <div class="info-section">
               <h3>Características</h3>
-              <ul class="features-list">
-                <li>✓ Exportación a Excel, CSV y PDF</li>
+              <ul class="feature-list">
+                <li>✓ Visualización avanzada de datos de Tableau</li>
                 <li>✓ Búsqueda y filtrado en tiempo real</li>
-                <li>✓ Configuración personalizada de columnas</li>
-                <li>✓ Nombres de visualización personalizables</li>
-                <li>✓ Ordenamiento por columnas</li>
-                <li>✓ Paginación configurable</li>
-                <li>✓ Selector de hojas de trabajo</li>
-                <li>✓ Botón de exportación personalizable</li>
+                <li>✓ Exportación a Excel, CSV y PDF</li>
+                <li>✓ Configuración personalizable de columnas</li>
+                <li>✓ Formato condicional con iconos</li>
+                <li>✓ Ordenamiento de columnas</li>
+                <li>✓ Paginación automática</li>
+                <li>✓ Nombres de columna personalizables</li>
               </ul>
             </div>
           </div>
@@ -644,273 +947,346 @@
     </div>
 
     <script>
-      let config = {
-        title: '',
-        rowsPerPage: 10,
-        showSearch: true,
-        showRowCount: true,
-        columns: {},
-        exportButtonText: 'Exportar',
-        exportButtonColor: '#0066cc',
-        exportEnableExcel: true,
-        exportEnableCSV: true,
-        exportEnablePDF: true,
-      };
+      console.log("[v0] config.html cargado - v7.0.0")
 
-      let currentSelectedColumn = null;
+      let currentSelectedColumn = null
+      let allColumns = []
 
-      tableau.extensions.initializeDialogAsync().then(() => {
-        console.log('[v0] === CONFIG DIALOG INITIALIZED ===');
-        loadConfig();
-        populateColumnLists();
-        loadWorksheetList();
-      });
+      tableau.extensions.initializeDialogAsync().then(function (openPayload) {
+        console.log("[v0] Dialog inicializado")
+        const settings = tableau.extensions.settings.getAll()
+        console.log("[v0] Settings actuales:", settings)
 
-      function loadConfig() {
-        const settings = tableau.extensions.settings.getAll();
+        // Load worksheet name
+        const worksheetName = settings.worksheetName || ""
+        document.getElementById("worksheet-name").value = worksheetName
 
-        console.log('[v0] All settings keys:', Object.keys(settings));
-        console.log('[v0] dialogColumns raw:', settings.dialogColumns);
+        // Load general settings
+        document.getElementById("table-title").value = settings.tableTitle || ""
+        document.getElementById("show-search").checked = settings.showSearch !== "false"
+        document.getElementById("show-row-count").checked = settings.showRowCount !== "false"
 
-        const savedConfig = settings.config ? JSON.parse(settings.config) : {};
-        const dialogColumns = settings.dialogColumns ? JSON.parse(settings.dialogColumns) : {};
+        // Load export settings
+        document.getElementById("export-button-text").value = settings.exportButtonText || "Exportar"
+        document.getElementById("export-filename").value = settings.exportFilename || "export"
+        document.getElementById("export-button-color").value = settings.exportButtonColor || "#2563eb"
+        document.getElementById("export-button-text-color").value = settings.exportButtonTextColor || "#ffffff"
+        document.getElementById("export-enable-excel").checked = settings.exportEnableExcel !== "false"
+        document.getElementById("export-enable-csv").checked = settings.exportEnableCSV !== "false"
+        document.getElementById("export-enable-pdf").checked = settings.exportEnablePDF !== "false"
 
-        config = {
-          title: savedConfig.tableTitle || '',
-          rowsPerPage: savedConfig.rowsPerPage || 10,
-          showSearch: savedConfig.showSearch !== 'false',
-          showRowCount: savedConfig.showRowCount !== 'false',
-          columns: dialogColumns, // Objeto
-          exportButtonText: savedConfig.exportButtonText || 'Exportar',
-          exportButtonColor: savedConfig.exportButtonColor || '#0066cc',
-          exportEnableExcel: savedConfig.exportEnableExcel !== false,
-          exportEnableCSV: savedConfig.exportEnableCSV !== false,
-          exportEnablePDF: savedConfig.exportEnablePDF !== false,
-        };
+        // Load columns
+        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+        allColumns = openPayload ? JSON.parse(openPayload) : []
 
-        console.log('[v0] Config loaded:');
-        console.log('[v0]   - title:', config.title);
-        console.log('[v0]   - rowsPerPage:', config.rowsPerPage);
-        console.log('[v0]   - showSearch:', config.showSearch);
-        console.log('[v0]   - showRowCount:', config.showRowCount);
-        console.log('[v0]   - columns keys:', Object.keys(config.columns));
+        renderColumnList()
+        setupEventListeners()
+      })
 
-        document.getElementById('table-title').value = config.title;
-        document.getElementById('rows-per-page').value = config.rowsPerPage;
-        document.getElementById('show-search').checked = config.showSearch;
-        document.getElementById('show-row-count').checked = config.showRowCount;
-        document.getElementById('export-button-text').value = config.exportButtonText;
-        document.getElementById('export-button-color').value = config.exportButtonColor;
-        document.getElementById('export-button-color-text').value = config.exportButtonColor;
-        document.getElementById('export-enable-excel').checked = config.exportEnableExcel;
-        document.getElementById('export-enable-csv').checked = config.exportEnableCSV;
-        document.getElementById('export-enable-pdf').checked = config.exportEnablePDF;
-      }
-      
-      function loadWorksheetList() {
-        const worksheetSelector = document.getElementById('worksheet-selector-config');
-        worksheetSelector.innerHTML = '<option>Selecciona una hoja...</option>';
-        
-        // This is a placeholder - in real implementation, we'd get worksheets from Tableau
-        // For now, just show a message
-        worksheetSelector.innerHTML = '<option>La hoja se selecciona desde la extensión</option>';
-        worksheetSelector.disabled = true;
-      }
+      function setupEventListeners() {
+        // Tab navigation
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const targetTab = this.getAttribute("data-tab")
+            switchTab(targetTab)
+          })
+        })
 
-      function populateColumnLists() {
-        console.log('[v0] Populating column lists...');
-        console.log('[v0] Config columns:', config.columns);
+        // Save/Cancel
+        document.getElementById("save-btn").addEventListener("click", saveSettings)
+        document.getElementById("cancel-btn").addEventListener("click", () => tableau.extensions.ui.closeDialog(""))
 
-        const dimensionsList = document.getElementById('dimensions-list');
-        const measuresList = document.getElementById('measures-list');
-        const calculationsList = document.getElementById('calculations-list');
+        // General settings auto-save
+        document.getElementById("table-title").addEventListener("input", autoSave)
+        document.getElementById("show-search").addEventListener("change", autoSave)
+        document.getElementById("show-row-count").addEventListener("change", autoSave)
 
-        dimensionsList.innerHTML = '';
-        measuresList.innerHTML = '';
-        calculationsList.innerHTML = '';
+        // Export settings auto-save
+        document.getElementById("export-button-text").addEventListener("input", autoSave)
+        document.getElementById("export-filename").addEventListener("input", autoSave)
+        document.getElementById("export-button-color").addEventListener("change", autoSave)
+        document.getElementById("export-button-text-color").addEventListener("change", autoSave)
+        document.getElementById("export-enable-excel").addEventListener("change", autoSave)
+        document.getElementById("export-enable-csv").addEventListener("change", autoSave)
+        document.getElementById("export-enable-pdf").addEventListener("change", autoSave)
 
-        if (!config.columns || typeof config.columns !== 'object') {
-          console.log('[v0] No columns to populate');
-          dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones.</li>';
-          measuresList.innerHTML = '<li class="empty-state">No hay medidas.</li>';
-          calculationsList.innerHTML = '<li class="empty-state">No hay cálculos.</li>';
-          return;
-        }
+        // Column search
+        document.getElementById("column-search").addEventListener("input", filterColumns)
 
-        const columnsArray = Object.entries(config.columns).map(([name, col]) => ({
-          name,
-          ...col
-        }));
+        // Conditional formatting checkboxes
+        document.getElementById("enable-conditional-format").addEventListener("change", function () {
+          document.getElementById("conditional-format-config").style.display = this.checked ? "block" : "none"
+          saveColumnConfig()
+        })
 
-        const dimensions = columnsArray.filter(
-          col => col.dataType === 'string' || col.dataType === 'date' || col.dataType === 'date-time'
-        );
-        const measures = columnsArray.filter(col => col.dataType === 'float' || col.dataType === 'int');
-        const calculations = columnsArray.filter(col => !dimensions.includes(col) && !measures.includes(col));
+        document.getElementById("format-cell-bg").addEventListener("change", function () {
+          document.getElementById("format-cell-bg-color").disabled = !this.checked
+          saveColumnConfig()
+        })
 
-        if (dimensions.length === 0) {
-          dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones.</li>';
-        } else {
-          dimensions.forEach(col => {
-            const li = document.createElement('li');
-            li.className = 'column-item';
-            li.textContent = col.name;
-            li.dataset.columnName = col.name;
-            li.onclick = () => selectColumn(col.name);
-            dimensionsList.appendChild(li);
-          });
-        }
+        document.getElementById("format-row-bg").addEventListener("change", function () {
+          document.getElementById("format-row-bg-color").disabled = !this.checked
+          saveColumnConfig()
+        })
 
-        if (measures.length === 0) {
-          measuresList.innerHTML = '<li class="empty-state">No hay medidas.</li>';
-        } else {
-          measures.forEach(col => {
-            const li = document.createElement('li');
-            li.className = 'column-item';
-            li.textContent = col.name;
-            li.dataset.columnName = col.name;
-            li.onclick = () => selectColumn(col.name);
-            measuresList.appendChild(li);
-          });
-        }
+        document.getElementById("format-cell-text").addEventListener("change", function () {
+          document.getElementById("format-cell-text-color").disabled = !this.checked
+          saveColumnConfig()
+        })
 
-        if (calculations.length === 0) {
-          calculationsList.innerHTML = '<li class="empty-state">No hay cálculos.</li>';
-        } else {
-          calculations.forEach(col => {
-            const li = document.createElement('li');
-            li.className = 'column-item';
-            li.textContent = col.name;
-            li.dataset.columnName = col.name;
-            li.onclick = () => selectColumn(col.name);
-            calculationsList.appendChild(li);
-          });
-        }
+        document.getElementById("format-row-text").addEventListener("change", function () {
+          document.getElementById("format-row-text-color").disabled = !this.checked
+          saveColumnConfig()
+        })
 
-        console.log(
-          '[v0] Populated lists - Dims:',
-          dimensions.length,
-          'Measures:',
-          measures.length,
-          'Calcs:',
-          calculations.length
-        );
-      }
+        document.getElementById("format-add-icon").addEventListener("change", function () {
+          document.getElementById("icon-selection").style.display = this.checked ? "block" : "none"
+          saveColumnConfig()
+        })
 
-      function selectColumn(columnName) {
-        console.log('[v0] Selecting column:', columnName);
+        // Color pickers for conditional formatting
+        document.getElementById("format-cell-bg-color").addEventListener("change", saveColumnConfig)
+        document.getElementById("format-row-bg-color").addEventListener("change", saveColumnConfig)
+        document.getElementById("format-cell-text-color").addEventListener("change", saveColumnConfig)
+        document.getElementById("format-row-text-color").addEventListener("change", saveColumnConfig)
+        document.getElementById("icon-color").addEventListener("change", saveColumnConfig)
 
-        if (currentSelectedColumn) {
-          saveColumnConfig();
-        }
+        // Condition inputs
+        document.getElementById("condition-operator").addEventListener("change", saveColumnConfig)
+        document.getElementById("condition-value").addEventListener("input", saveColumnConfig)
 
-        currentSelectedColumn = columnName;
+        // Icon buttons
+        document.querySelectorAll(".icon-btn").forEach((btn) => {
+          btn.addEventListener("click", function (e) {
+            e.preventDefault()
+            document.querySelectorAll(".icon-btn").forEach((b) => b.classList.remove("selected"))
+            this.classList.add("selected")
+            document.getElementById("selected-icon").value = this.getAttribute("data-icon")
+            saveColumnConfig()
+          })
+        })
 
-        document.querySelectorAll('.column-item').forEach(item => {
-          item.classList.remove('selected');
-        });
-
-        document.querySelectorAll(`[data-column-name="${columnName}"]`).forEach(item => {
-          item.classList.add('selected');
-        });
-
-        loadColumnConfig();
-      }
-
-      function loadColumnConfig() {
-        const columnName = currentSelectedColumn;
-
-        if (!columnName) {
-          document.getElementById('column-config-content').style.display = 'none';
-          document.getElementById('no-column-selected').style.display = 'block';
-          return;
-        }
-
-        document.getElementById('column-config-content').style.display = 'block';
-        document.getElementById('no-column-selected').style.display = 'none';
-
-        const column = config.columns[columnName] || { name: columnName, visible: true };
-
-        document.getElementById('config-column-title').textContent = `Configurar: ${columnName}`;
-        document.getElementById('column-display-name').value = column.displayName || '';
-        document.getElementById('column-visible').checked = column.visible !== false;
-
-        console.log('[v0] Loaded config for column:', columnName, column);
-      }
-
-      function saveColumnConfig() {
-        const columnName = currentSelectedColumn;
-        if (!columnName) return;
-
-        const displayName = document.getElementById('column-display-name').value.trim();
-        const visible = document.getElementById('column-visible').checked;
-
-        config.columns[columnName] = {
-          ...config.columns[columnName],
-          name: columnName,
-          displayName: displayName,
-          visible: visible
-        };
-
-        console.log('[v0] Saved column config for:', columnName, config.columns[columnName]);
+        // Column config inputs
+        document.getElementById("column-display-name").addEventListener("input", saveColumnConfig)
+        document.getElementById("column-visible").addEventListener("change", saveColumnConfig)
+        document.getElementById("column-export").addEventListener("change", saveColumnConfig)
       }
 
       function switchTab(tabName) {
-        // Remove active class from all tabs
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
+        document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
 
-        // Add active class to selected tab
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-        document.getElementById(`${tabName}-tab`).classList.add('active');
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
+        document.getElementById(`${tabName}-tab`).classList.add("active")
+      }
 
-        const dataSidebar = document.getElementById('data-sidebar');
-        if (dataSidebar) {
-          if (tabName === 'data') {
-            dataSidebar.classList.add('active');
+      function renderColumnList() {
+        const dimensionsList = document.getElementById("dimensions-list")
+        const measuresList = document.getElementById("measures-list")
+        const calculationsList = document.getElementById("calculations-list")
+
+        dimensionsList.innerHTML = ""
+        measuresList.innerHTML = ""
+        calculationsList.innerHTML = ""
+
+        const settings = tableau.extensions.settings.getAll()
+        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+
+        allColumns.forEach((col) => {
+          const colName = col.fieldName || col.name
+          const columnData = columnsConfig[colName] || {}
+
+          const item = document.createElement("div")
+          item.className = "column-item"
+          item.textContent = colName
+          item.setAttribute("data-column", colName)
+
+          item.addEventListener("click", function () {
+            selectColumn(colName, col)
+          })
+
+          if (col.dataType === "string" || col.aggregation === "ATTR") {
+            dimensionsList.appendChild(item)
+          } else if (col.isCalculatedField) {
+            calculationsList.appendChild(item)
           } else {
-            dataSidebar.classList.remove('active');
+            measuresList.appendChild(item)
           }
+        })
+
+        // Show empty states if lists are empty
+        if (dimensionsList.innerHTML === "") {
+          dimensionsList.innerHTML = '<li class="empty-state">No hay dimensiones disponibles.</li>';
+        }
+        if (measuresList.innerHTML === "") {
+          measuresList.innerHTML = '<li class="empty-state">No hay medidas disponibles.</li>';
+        }
+        if (calculationsList.innerHTML === "") {
+          calculationsList.innerHTML = '<li class="empty-state">No hay cálculos disponibles.</li>';
         }
       }
 
-      function saveAndClose() {
-        console.log('[v0] === SAVING AND CLOSING ===');
-        saveColumnConfig();
+      function selectColumn(colName, columnInfo) {
+        currentSelectedColumn = colName
 
-        config.title = document.getElementById('table-title').value;
-        config.rowsPerPage = parseInt(document.getElementById('rows-per-page').value) || 10;
-        config.showSearch = document.getElementById('show-search').checked;
-        config.showRowCount = document.getElementById('show-row-count').checked;
-        config.exportButtonText = document.getElementById('export-button-text').value || 'Exportar';
-        config.exportButtonColor = document.getElementById('export-button-color').value || '#0066cc';
-        config.exportEnableExcel = document.getElementById('export-enable-excel').checked;
-        config.exportEnableCSV = document.getElementById('export-enable-csv').checked;
-        config.exportEnablePDF = document.getElementById('export-enable-pdf').checked;
+        // Highlight selected column
+        document.querySelectorAll(".column-item").forEach((item) => item.classList.remove("selected"))
+        document.querySelector(`[data-column="${colName}"]`).classList.add("selected")
 
-        const savedConfig = {
-          tableTitle: config.title,
-          rowsPerPage: config.rowsPerPage,
-          showSearch: config.showSearch.toString(),
-          showRowCount: config.showRowCount.toString(),
-          columns: config.columns,
-          exportButtonText: config.exportButtonText,
-          exportButtonColor: config.exportButtonColor,
-          exportEnableExcel: config.exportEnableExcel,
-          exportEnableCSV: config.exportEnableCSV,
-          exportEnablePDF: config.exportEnablePDF,
-        };
+        // Show config panel
+        document.getElementById("no-column-selected").style.display = "none"
+        document.getElementById("column-config-content").style.display = "block"
 
-        tableau.extensions.settings.set('config', JSON.stringify(savedConfig));
+        // Load column config
+        const settings = tableau.extensions.settings.getAll()
+        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+        const columnData = columnsConfig[colName] || {
+          visible: true,
+          includeInExport: true,
+        }
 
-        tableau.extensions.settings.saveAsync().then(() => {
-          console.log('[v0] ✓ Settings saved successfully');
-          tableau.extensions.ui.closeDialog('saved');
-        });
+        document.getElementById("config-column-title").textContent = `Configurar: ${colName}`
+        document.getElementById("column-display-name").value = columnData.displayName || ""
+        document.getElementById("column-visible").checked = columnData.visible !== false
+        document.getElementById("column-export").checked = columnData.includeInExport !== false
+
+        // Show conditional formatting only for measures and calculations
+        const isMeasureOrCalc = columnInfo.dataType !== "string" && columnInfo.aggregation !== "ATTR"
+        const conditionalSection = document.getElementById("conditional-formatting-section")
+        conditionalSection.style.display = isMeasureOrCalc ? "block" : "none"
+
+        if (isMeasureOrCalc && columnData.conditionalFormat) {
+          const cf = columnData.conditionalFormat
+          document.getElementById("enable-conditional-format").checked = cf.enabled || false
+          document.getElementById("conditional-format-config").style.display = cf.enabled ? "block" : "none"
+
+          document.getElementById("condition-operator").value = cf.operator || ">="
+          document.getElementById("condition-value").value = cf.value || ""
+
+          document.getElementById("format-cell-bg").checked = cf.cellBg || false
+          document.getElementById("format-cell-bg-color").value = cf.cellBgColor || "#ffeb3b"
+          document.getElementById("format-cell-bg-color").disabled = !cf.cellBg
+
+          document.getElementById("format-row-bg").checked = cf.rowBg || false
+          document.getElementById("format-row-bg-color").value = cf.rowBgColor || "#ffcdd2"
+          document.getElementById("format-row-bg-color").disabled = !cf.rowBg
+
+          document.getElementById("format-cell-text").checked = cf.cellText || false
+          document.getElementById("format-cell-text-color").value = cf.cellTextColor || "#d32f2f"
+          document.getElementById("format-cell-text-color").disabled = !cf.cellText
+
+          document.getElementById("format-row-text").checked = cf.rowText || false
+          document.getElementById("format-row-text-color").value = cf.rowTextColor || "#1976d2"
+          document.getElementById("format-row-text-color").disabled = !cf.rowText
+
+          document.getElementById("format-add-icon").checked = cf.addIcon || false
+          document.getElementById("icon-selection").style.display = cf.addIcon ? "block" : "none"
+          document.getElementById("selected-icon").value = cf.icon || ""
+          document.getElementById("icon-color").value = cf.iconColor || "#000000"
+
+          if (cf.icon) {
+            document.querySelectorAll(".icon-btn").forEach((btn) => {
+              if (btn.getAttribute("data-icon") === cf.icon) {
+                btn.classList.add("selected")
+              } else {
+                btn.classList.remove("selected")
+              }
+            })
+          }
+        } else {
+          // Reset conditional formatting
+          document.getElementById("enable-conditional-format").checked = false
+          document.getElementById("conditional-format-config").style.display = "none"
+        }
       }
 
-      function closeDialog() {
-        tableau.extensions.ui.closeDialog('cancelled');
+      function saveColumnConfig() {
+        if (!currentSelectedColumn) return
+
+        const settings = tableau.extensions.settings.getAll()
+        const columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
+
+        const columnData = columnsConfig[currentSelectedColumn] || {}
+
+        columnData.displayName = document.getElementById("column-display-name").value
+        columnData.visible = document.getElementById("column-visible").checked
+        columnData.includeInExport = document.getElementById("column-export").checked
+
+        // Save conditional formatting if enabled
+        const conditionalSection = document.getElementById("conditional-formatting-section")
+        if (conditionalSection.style.display !== "none") {
+          const enabledCF = document.getElementById("enable-conditional-format").checked
+
+          if (enabledCF) {
+            columnData.conditionalFormat = {
+              enabled: true,
+              operator: document.getElementById("condition-operator").value,
+              value: parseFloat(document.getElementById("condition-value").value) || 0,
+              cellBg: document.getElementById("format-cell-bg").checked,
+              cellBgColor: document.getElementById("format-cell-bg-color").value,
+              rowBg: document.getElementById("format-row-bg").checked,
+              rowBgColor: document.getElementById("format-row-bg-color").value,
+              cellText: document.getElementById("format-cell-text").checked,
+              cellTextColor: document.getElementById("format-cell-text-color").value,
+              rowText: document.getElementById("format-row-text").checked,
+              rowTextColor: document.getElementById("format-row-text-color").value,
+              addIcon: document.getElementById("format-add-icon").checked,
+              icon: document.getElementById("selected-icon").value,
+              iconColor: document.getElementById("icon-color").value,
+            }
+          } else {
+            delete columnData.conditionalFormat
+          }
+        }
+
+        columnsConfig[currentSelectedColumn] = columnData
+        tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig))
+        tableau.extensions.settings.saveAsync()
+      }
+
+      function autoSave() {
+        tableau.extensions.settings.set("tableTitle", document.getElementById("table-title").value)
+        tableau.extensions.settings.set(
+          "showSearch",
+          document.getElementById("show-search").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.set(
+          "showRowCount",
+          document.getElementById("show-row-count").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.set("exportButtonText", document.getElementById("export-button-text").value)
+        tableau.extensions.settings.set("exportFilename", document.getElementById("export-filename").value)
+        tableau.extensions.settings.set("exportButtonColor", document.getElementById("export-button-color").value)
+        tableau.extensions.settings.set(
+          "exportButtonTextColor",
+          document.getElementById("export-button-text-color").value,
+        )
+        tableau.extensions.settings.set(
+          "exportEnableExcel",
+          document.getElementById("export-enable-excel").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.set(
+          "exportEnableCSV",
+          document.getElementById("export-enable-csv").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.set(
+          "exportEnablePDF",
+          document.getElementById("export-enable-pdf").checked ? "true" : "false",
+        )
+        tableau.extensions.settings.saveAsync()
+      }
+
+      function filterColumns() {
+        const searchTerm = document.getElementById("column-search").value.toLowerCase()
+        document.querySelectorAll(".column-item").forEach((item) => {
+          const text = item.textContent.toLowerCase()
+          item.style.display = text.includes(searchTerm) ? "block" : "none"
+        })
+      }
+
+      function saveSettings() {
+        autoSave()
+        tableau.extensions.ui.closeDialog("saved")
       }
     </script>
   </body>

@@ -20,13 +20,15 @@ var config = {
   showExportButtons: true,
   showRefreshButton: true,
   showSettingsButton: true,
-  columns: {}, // { columnName: { visible: true, includeInExport: true, displayName: "" } }
+  columns: {}, // { columnName: { visible: true, includeInExport: true, displayName: "", conditionalFormat: { enabled: false, operator: '', value: '', cellBg: false, cellBgColor: '', cellText: false, cellTextColor: '', rowBg: false, rowBgColor: '', rowText: false, rowTextColor: '', addIcon: false, icon: '', iconColor: '' } }
   rowsPerPage: 100,
   exportButtonText: "Exportar",
+  exportButtonColor: "#2563eb", // Default color
+  exportButtonTextColor: "#ffffff", // Added exportButtonTextColor config
   exportEnableExcel: true,
   exportEnableCSV: true,
   exportEnablePDF: true,
-  exportButtonColor: "#2563eb", // Default color
+  exportFilename: "export", // Added exportFilename config
 }
 
 // Inicialización
@@ -180,6 +182,22 @@ async function loadWorksheetData(worksheet) {
           visible: true,
           includeInExport: true,
           displayName: "",
+          conditionalFormat: {
+            enabled: false,
+            operator: "",
+            value: "",
+            cellBg: false,
+            cellBgColor: "",
+            cellText: false,
+            cellTextColor: "",
+            rowBg: false,
+            rowBgColor: "",
+            rowText: false,
+            rowTextColor: "",
+            addIcon: false,
+            icon: "",
+            iconColor: "",
+          },
         }
         console.log("[v0]   ✓ Columna agregada:", colName, "visible:", true)
       }
@@ -295,31 +313,123 @@ function renderTable() {
 
   pageData.forEach((row, rowIdx) => {
     var tr = document.createElement("tr")
+    let rowFormattingApplied = false
+    let rowBgColor = null
+    let rowTextColor = null
 
     visibleColumns.forEach((col) => {
       var td = document.createElement("td")
       var cellData = row[col.index]
 
       var cellValue = ""
+      var numericValue = null
 
       if (cellData === null || cellData === undefined) {
         cellValue = ""
       } else if (typeof cellData === "object") {
-        // Es un objeto de Tableau con formattedValue, value, etc.
         cellValue = cellData.formattedValue || cellData.value || cellData.nativeValue || ""
+        numericValue = cellData.value || cellData.nativeValue
 
-        // Debug solo para primera fila
         if (rowIdx === 0) {
           console.log(`[v0] Celda [${col.fieldName}]:`, cellData, "→", cellValue)
         }
       } else {
-        // Es un valor primitivo (string, number, etc.)
         cellValue = cellData
+        numericValue = cellData
       }
 
-      td.textContent = cellValue
+      const colName = col.fieldName || col.name
+      const columnConfig = config.columns[colName]
+
+      if (columnConfig && columnConfig.conditionalFormat && columnConfig.conditionalFormat.enabled) {
+        const cf = columnConfig.conditionalFormat
+        const condValue = Number.parseFloat(cf.value)
+        const cellNumValue = Number.parseFloat(numericValue)
+
+        if (!isNaN(cellNumValue) && !isNaN(condValue)) {
+          let conditionMet = false
+
+          switch (cf.operator) {
+            case ">=":
+              conditionMet = cellNumValue >= condValue
+              break
+            case "<=":
+              conditionMet = cellNumValue <= condValue
+              break
+            case "=":
+              conditionMet = cellNumValue === condValue
+              break
+            case ">":
+              conditionMet = cellNumValue > condValue
+              break
+            case "<":
+              conditionMet = cellNumValue < condValue
+              break
+            case "!=":
+              conditionMet = cellNumValue !== condValue
+              break
+          }
+
+          if (conditionMet) {
+            // Apply cell formatting
+            if (cf.cellBg) {
+              td.style.backgroundColor = cf.cellBgColor
+            }
+            if (cf.cellText) {
+              td.style.color = cf.cellTextColor
+            }
+
+            // Track row formatting
+            if (cf.rowBg) {
+              rowFormattingApplied = true
+              rowBgColor = cf.rowBgColor
+            }
+            if (cf.rowText) {
+              rowFormattingApplied = true
+              rowTextColor = cf.rowTextColor
+            }
+
+            // Add icon if configured
+            if (cf.addIcon && cf.icon) {
+              const iconSpan = document.createElement("span")
+              iconSpan.style.marginRight = "6px"
+              iconSpan.style.color = cf.iconColor || "#000000"
+
+              // Map icon names to Unicode symbols
+              const iconMap = {
+                arrow_upward: "↑",
+                arrow_downward: "↓",
+                arrow_forward: "→",
+                arrow_back: "←",
+                circle: "⬤",
+                circle_outline: "○",
+                square: "■",
+                square_outline: "□",
+              }
+
+              iconSpan.textContent = iconMap[cf.icon] || ""
+              td.prepend(iconSpan)
+            }
+          }
+        }
+      }
+
+      td.appendChild(document.createTextNode(cellValue))
       tr.appendChild(td)
     })
+
+    if (rowFormattingApplied) {
+      if (rowBgColor) {
+        tr.style.backgroundColor = rowBgColor
+      }
+      if (rowTextColor) {
+        tr.querySelectorAll("td").forEach((cell) => {
+          if (!cell.style.color) {
+            cell.style.color = rowTextColor
+          }
+        })
+      }
+    }
 
     tbody.appendChild(tr)
   })
@@ -339,13 +449,11 @@ function renderTable() {
     })
   })
 
-  renderPagination()
+  updatePagination()
   updateTableInfo()
-
-  console.log("[v0] ✓ Tabla renderizada correctamente")
 }
 
-function renderPagination() {
+function updatePagination() {
   var container = document.getElementById("pagination")
   var totalPages = Math.ceil(visibleData.length / config.rowsPerPage)
 
@@ -418,6 +526,22 @@ async function openSettings() {
         visible: config.columns[colName]?.visible !== false,
         includeInExport: config.columns[colName]?.includeInExport !== false,
         displayName: config.columns[colName]?.displayName || "",
+        conditionalFormat: config.columns[colName]?.conditionalFormat || {
+          enabled: false,
+          operator: "",
+          value: "",
+          cellBg: false,
+          cellBgColor: "",
+          cellText: false,
+          cellTextColor: "",
+          rowBg: false,
+          rowBgColor: "",
+          rowText: false,
+          rowTextColor: "",
+          addIcon: false,
+          icon: "",
+          iconColor: "",
+        },
       }
     })
 
@@ -457,6 +581,8 @@ function saveSettings() {
   config.showRefreshButton = document.getElementById("settings-refresh").checked
   config.showSettingsButton = document.getElementById("settings-show-config").checked
   config.exportButtonColor = document.getElementById("settings-export-color").value.trim()
+  config.exportButtonTextColor = document.getElementById("settings-export-text-color").value.trim()
+  config.exportFilename = document.getElementById("settings-export-filename").value.trim()
 
   saveConfig()
   applyGeneralSettings()
@@ -488,18 +614,18 @@ function applyGeneralSettings() {
   if (exportBtnText) exportBtnText.textContent = config.exportButtonText || "Exportar"
 
   const exportBtn = document.getElementById("export-btn")
-  if (exportBtn && config.exportButtonColor) {
-    exportBtn.style.backgroundColor = config.exportButtonColor
-    exportBtn.style.borderColor = config.exportButtonColor
+  if (exportBtn) {
+    exportBtn.style.backgroundColor = config.exportButtonColor || "#2563eb"
+    exportBtn.style.color = config.exportButtonTextColor || "#ffffff"
   }
 
-  const exportExcel = document.getElementById("export-excel-opt")
-  const exportCSV = document.getElementById("export-csv-opt")
-  const exportPDF = document.getElementById("export-pdf-opt")
+  const excelOpt = document.getElementById("export-excel-opt")
+  const csvOpt = document.getElementById("export-csv-opt")
+  const pdfOpt = document.getElementById("export-pdf-opt")
 
-  if (exportExcel) exportExcel.style.display = config.exportEnableExcel ? "flex" : "none"
-  if (exportCSV) exportCSV.style.display = config.exportEnableCSV ? "flex" : "none"
-  if (exportPDF) exportPDF.style.display = config.exportEnablePDF ? "flex" : "none"
+  if (excelOpt) excelOpt.style.display = config.exportEnableExcel ? "flex" : "none"
+  if (csvOpt) csvOpt.style.display = config.exportEnableCSV ? "flex" : "none"
+  if (pdfOpt) pdfOpt.style.display = config.exportEnablePDF ? "flex" : "none"
 }
 
 function saveConfig() {
@@ -522,9 +648,11 @@ function loadConfig() {
     rowsPerPage: savedConfig.rowsPerPage || 100,
     exportButtonText: savedConfig.exportButtonText || "Exportar",
     exportButtonColor: savedConfig.exportButtonColor || "#2563eb",
+    exportButtonTextColor: savedConfig.exportButtonTextColor || "#ffffff",
     exportEnableExcel: savedConfig.exportEnableExcel !== false,
     exportEnableCSV: savedConfig.exportEnableCSV !== false,
     exportEnablePDF: savedConfig.exportEnablePDF !== false,
+    exportFilename: savedConfig.exportFilename || "export",
   }
 
   console.log("[v0] Configuración cargada, columnas:", Object.keys(config.columns).length)
@@ -549,13 +677,24 @@ function exportToExcel() {
   )
 
   visibleData.forEach((row) => {
-    exportData.push(exportColumns.map((col) => row[col.index]))
+    exportData.push(
+      exportColumns.map((col) => {
+        const cellData = row[col.index]
+        if (cellData === null || cellData === undefined) return ""
+        if (typeof cellData === "object") {
+          return cellData.formattedValue || cellData.value || cellData.nativeValue || ""
+        }
+        return cellData
+      }),
+    )
   })
 
   var ws = XLSX.utils.aoa_to_sheet(exportData)
   XLSX.utils.book_append_sheet(wb, ws, "Datos")
 
-  const fileName = currentWorksheet ? `${currentWorksheet.name}_${Date.now()}.xlsx` : `export_${Date.now()}.xlsx`
+  const customName = config.exportFilename || "export"
+  const timestamp = new Date().toISOString().split("T")[0]
+  const fileName = `${customName}_${timestamp}.xlsx`
   XLSX.writeFile(wb, fileName)
 }
 
@@ -578,14 +717,31 @@ function exportToCSV() {
   )
 
   visibleData.forEach((row) => {
-    csv.push(exportColumns.map((col) => escapeCSV(row[col.index])).join(","))
+    csv.push(
+      exportColumns
+        .map((col) => {
+          const cellData = row[col.index]
+          let value = ""
+          if (cellData === null || cellData === undefined) {
+            value = ""
+          } else if (typeof cellData === "object") {
+            value = cellData.formattedValue || cellData.value || cellData.nativeValue || ""
+          } else {
+            value = cellData
+          }
+          return escapeCSV(value)
+        })
+        .join(","),
+    )
   })
 
   var blob = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" })
   var link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
 
-  const fileName = currentWorksheet ? `${currentWorksheet.name}_${Date.now()}.csv` : `export_${Date.now()}.csv`
+  const customName = config.exportFilename || "export"
+  const timestamp = new Date().toISOString().split("T")[0]
+  const fileName = `${customName}_${timestamp}.csv`
   link.download = fileName
   link.click()
 }
