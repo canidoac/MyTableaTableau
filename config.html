@@ -782,10 +782,10 @@
 
     <div class="config-container">
       <header class="config-header">
-        <h1>SuperTables - Configuración</h1>
+        <h1>SuperTables - Configuración <span style="font-size: 14px; color: #666;">v8.0.0</span></h1>
         <div class="header-actions">
-          <button id="cancel-btn" class="btn btn-secondary">Cancelar</button>
-          <button id="save-btn" class="btn btn-primary">Guardar y Cerrar</button>
+          <button id="cancel-btn" class="btn btn-secondary" onclick="closeDialog()">Cancelar</button>
+          <button id="save-btn" class="btn btn-primary" onclick="saveAndClose()">Guardar y Cerrar</button>
         </div>
       </header>
 
@@ -1010,51 +1010,59 @@
 
             <div class="section-divider"></div>
 
-            <h3>Formatos de exportación disponibles</h3>
-            <div class="export-options">
-              <div class="checkbox-group">
-                <input type="checkbox" id="enable-excel" checked />
-                <label for="enable-excel">Habilitar exportación a Excel (.xlsx)</label>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="enable-csv" checked />
-                <label for="enable-csv">Habilitar exportación a CSV (.csv)</label>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="enable-pdf" />
-                <label for="enable-pdf">Habilitar exportación a PDF (.pdf)</label>
-              </div>
+            <h3>Formatos disponibles</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="export-enable-excel" checked />
+              <label for="export-enable-excel">Habilitar exportación a Excel (.xlsx)</label>
             </div>
-            <p class="help-text">Selecciona qué formatos estarán disponibles para los usuarios</p>
+            <div class="checkbox-group">
+              <input type="checkbox" id="export-enable-csv" checked />
+              <label for="export-enable-csv">Habilitar exportación a CSV</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="export-enable-pdf" checked />
+              <label for="export-enable-pdf">Habilitar exportación a PDF</label>
+            </div>
           </div>
         </div>
 
-        <!-- Información Tab -->
+        <!-- Information Tab -->
         <div id="info-tab" class="tab-content">
           <div class="content-section">
             <h2>Información de la Extensión</h2>
-            
+
             <div class="info-grid">
               <div class="info-item">
-                <strong>Versión:</strong> 7.2.0
+                <strong>Nombre:</strong>
+                <span>SuperTables Pro - MeliTable</span>
               </div>
               <div class="info-item">
-                <strong>Estado:</strong> <span class="status-online">● Online</span>
+                <strong>Versión:</strong>
+                <span>v8.0.0</span>
               </div>
               <div class="info-item">
-                <strong>Tipo:</strong> Dashboard Extension
+                <strong>Estado:</strong>
+                <span class="status-badge status-online">● Online</span>
+              </div>
+              <div class="info-item">
+                <strong>Descripción:</strong>
+                <span>Extensión de tabla mejorada para Tableau con exportación, búsqueda, configuración avanzada de columnas y formato condicional</span>
               </div>
             </div>
 
-            <h3>Características</h3>
+            <div class="section-divider"></div>
+
+            <h3>Características:</h3>
             <ul class="feature-list">
-              <li>Visualización de datos en tabla interactiva</li>
-              <li>Búsqueda y filtrado de datos</li>
-              <li>Exportación a múltiples formatos (Excel, CSV, PDF)</li>
-              <li>Personalización de columnas y estilos</li>
-              <li>Formato condicional para medidas</li>
-              <li>Paginación de datos</li>
-              <li>Configuración persistente</li>
+              <li>Exportación a Excel, CSV y PDF con nombres personalizables</li>
+              <li>Búsqueda y filtrado en tiempo real</li>
+              <li>Configuración personalizada de columnas</li>
+              <li>Nombres de visualización personalizables</li>
+              <li>Formato condicional con iconos y colores</li>
+              <li>Control de inclusión de columnas en exportaciones</li>
+              <li>Ordenamiento por columnas</li>
+              <li>Paginación configurable</li>
+              <li>Google Material Icons integrados</li>
             </ul>
           </div>
         </div>
@@ -1062,185 +1070,175 @@
     </div>
 
     <script>
-      console.log("[v0] config.html cargado - v7.0.0")
-
-      document.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        return false;
-      });
-
-      document.addEventListener('selectstart', (e) => {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-        }
-      });
-
+      console.log("[v0] Config.html script starting...")
+      
       let allColumns = []
-      let columnsConfig = {}
       let currentSelectedColumn = null
+      let columnsConfig = {}
 
-      tableau.extensions.initializeDialogAsync().then((openPayload) => {
-        console.log("[v0] Dialog initialized successfully")
-        console.log("[v0] Open payload:", openPayload)
+      document.addEventListener("DOMContentLoaded", function() {
+        console.log("[v0] DOM loaded, initializing Tableau Extensions...")
+        
+        tableau.extensions.initializeDialogAsync().then(function() {
+          console.log("[v0] Tableau Extensions initialized successfully")
+          
+          // Load settings
+          const settings = tableau.extensions.settings.getAll()
+          console.log("[v0] Current settings:", settings)
+          
+          // Load columns from settings
+          if (settings.dialogColumns) {
+            try {
+              allColumns = JSON.parse(settings.dialogColumns)
+              console.log("[v0] Loaded columns from settings:", allColumns)
+            } catch (e) {
+              console.error("[v0] Error parsing dialogColumns:", e)
+              allColumns = []
+            }
+          } else {
+            console.warn("[v0] No dialogColumns found in settings")
+          }
+          
+          // Load existing columnsConfig
+          if (settings.columnsConfig) {
+            try {
+              columnsConfig = JSON.parse(settings.columnsConfig)
+              console.log("[v0] Loaded columnsConfig:", columnsConfig)
+            } catch (e) {
+              console.error("[v0] Error parsing columnsConfig:", e)
+              columnsConfig = {}
+            }
+          }
+          
+          // Load general settings
+          loadSettings()
+          
+          // Render columns in Data tab
+          renderColumnList()
+          
+          // Setup all event listeners
+          setupEventListeners()
+          
+          console.log("[v0] Initialization complete")
+        }).catch(function(error) {
+          console.error("[v0] Error initializing Tableau Extensions:", error)
+        })
+      })
 
-        // Load settings
+      function loadSettings() {
+        console.log("[v0] Loading settings into form...")
         const settings = tableau.extensions.settings.getAll()
-        console.log("[v0] Loaded settings:", settings)
-
-        // Populate form fields
-        document.getElementById("worksheet-name").value = settings.worksheetName || "" // Load worksheet name
+        
+        // General tab
         document.getElementById("table-title").value = settings.tableTitle || ""
         document.getElementById("show-search").checked = settings.showSearch !== "false"
         document.getElementById("show-row-count").checked = settings.showRowCount !== "false"
-
-        // Export settings
+        
+        // Export tab
+        document.getElementById("export-filename").value = settings.exportFilename || "datos"
         document.getElementById("export-button-text").value = settings.exportButtonText || "Exportar"
-        document.getElementById("export-filename").value = settings.exportFilename || "datos" // Changed default filename
         document.getElementById("export-button-color").value = settings.exportButtonColor || "#2563eb"
         document.getElementById("export-button-text-color").value = settings.exportButtonTextColor || "#ffffff"
         document.getElementById("export-enable-excel").checked = settings.exportEnableExcel !== "false"
         document.getElementById("export-enable-csv").checked = settings.exportEnableCSV !== "false"
         document.getElementById("export-enable-pdf").checked = settings.exportEnablePDF !== "false"
-
-        columnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
         
-        // Get columns from dialogColumns setting
-        if (settings.dialogColumns) {
-          const dialogColumns = JSON.parse(settings.dialogColumns)
-          allColumns = Object.keys(dialogColumns).map(colName => ({
-            fieldName: colName,
-            name: colName,
-            dataType: dialogColumns[colName].dataType,
-            isDimension: dialogColumns[colName].dataType === "string" || dialogColumns[colName].dataType === "date-time" || dialogColumns[colName].dataType === "date"
-          }))
-          console.log("[v0] Loaded columns from dialogColumns:", allColumns)
-        } else {
-          console.warn("[v0] No dialogColumns found in settings")
-          allColumns = []
-        }
-
-        renderColumnList()
-        setupEventListeners()
-      }).catch((error) => {
-        console.error("[v0] Error initializing dialog:", error)
-      })
+        console.log("[v0] Settings loaded successfully")
+      }
 
       function setupEventListeners() {
-        console.log("[v0] Setting up event listeners")
+        console.log("[v0] Setting up event listeners...")
         
-        const saveBtn = document.getElementById("save-btn")
-        const cancelBtn = document.getElementById("cancel-btn")
-        
-        if (saveBtn) {
-          saveBtn.onclick = function() {
-            console.log("[v0] Save button clicked")
-            saveAndClose()
-          }
-          console.log("[v0] Save button listener attached")
-        } else {
-          console.error("[v0] Save button not found!")
-        }
-        
-        if (cancelBtn) {
-          cancelBtn.onclick = function() {
-            console.log("[v0] Cancel button clicked")
-            tableau.extensions.ui.closeDialog("cancelled")
-          }
-          console.log("[v0] Cancel button listener attached")
-        } else {
-          console.error("[v0] Cancel button not found!")
-        }
-
-        // Auto-save on input change
-        const autoSaveElements = [
-          "table-title",
-          "show-search",
-          "show-row-count",
-          "export-button-text",
-          "export-filename",
-          "export-button-color",
-          "export-button-text-color",
-          "export-enable-excel",
-          "export-enable-csv",
-          "export-enable-pdf"
-        ]
-
-        autoSaveElements.forEach(id => {
-          const element = document.getElementById(id)
-          if (element) {
-            const eventType = element.type === "checkbox" ? "change" : "input"
-            element.addEventListener(eventType, autoSave)
-          }
-        })
-
         // Column search
         const columnSearch = document.getElementById("column-search")
         if (columnSearch) {
           columnSearch.addEventListener("input", filterColumns)
         }
-
-        // Conditional formatting checkboxes
-        const cfCheckboxes = [
-          { id: "enable-conditional-format", toggle: "conditional-format-config" },
-          { id: "format-cell-bg", toggle: "format-cell-bg-color" },
-          { id: "format-row-bg", toggle: "format-row-bg-color" },
-          { id: "format-cell-text", toggle: "format-cell-text-color" },
-          { id: "format-row-text", toggle: "format-row-text-color" },
-          { id: "format-add-icon", toggle: "icon-selection" }
+        
+        // Conditional formatting toggles
+        const enableCF = document.getElementById("enable-conditional-format")
+        if (enableCF) {
+          enableCF.addEventListener("change", function() {
+            const configDiv = document.getElementById("conditional-format-config")
+            if (configDiv) {
+              configDiv.style.display = this.checked ? "block" : "none"
+            }
+            saveColumnConfig()
+          })
+        }
+        
+        // Format checkboxes to enable/disable color pickers
+        const formatToggles = [
+          { checkbox: "format-cell-bg", colorPicker: "format-cell-bg-color" },
+          { checkbox: "format-row-bg", colorPicker: "format-row-bg-color" },
+          { checkbox: "format-cell-text", colorPicker: "format-cell-text-color" },
+          { checkbox: "format-row-text", colorPicker: "format-row-text-color" },
+          { checkbox: "format-add-icon", targetDiv: "icon-selection" }
         ]
-
-        cfCheckboxes.forEach(({ id, toggle }) => {
-          const checkbox = document.getElementById(id)
+        
+        formatToggles.forEach(toggle => {
+          const checkbox = document.getElementById(toggle.checkbox)
           if (checkbox) {
             checkbox.addEventListener("change", function() {
-              if (toggle) {
-                const toggleElement = document.getElementById(toggle)
-                if (toggleElement) {
-                  if (toggleElement.tagName === "INPUT") {
-                    toggleElement.disabled = !this.checked
-                  } else {
-                    toggleElement.style.display = this.checked ? "block" : "none"
-                  }
+              if (toggle.colorPicker) {
+                const colorPicker = document.getElementById(toggle.colorPicker)
+                if (colorPicker) {
+                  colorPicker.disabled = !this.checked
+                }
+              } else if (toggle.targetDiv) {
+                const targetDiv = document.getElementById(toggle.targetDiv)
+                if (targetDiv) {
+                  targetDiv.style.display = this.checked ? "block" : "none"
                 }
               }
               saveColumnConfig()
             })
           }
         })
-
-        // Conditional formatting color pickers
-        const colorPickers = [
-          "format-cell-bg-color",
-          "format-row-bg-color",
-          "format-cell-text-color",
-          "format-row-text-color",
-          "icon-color"
+        
+        // Color pickers and inputs
+        const autoSaveInputs = [
+          "column-display-name", "column-visible", "column-export",
+          "condition-operator", "condition-value",
+          "format-cell-bg-color", "format-row-bg-color",
+          "format-cell-text-color", "format-row-text-color", "icon-color"
         ]
-
-        colorPickers.forEach(id => {
+        
+        autoSaveInputs.forEach(id => {
           const element = document.getElementById(id)
           if (element) {
             element.addEventListener("change", saveColumnConfig)
           }
         })
-
-        // Condition inputs
-        const conditionInputs = ["condition-operator", "condition-value"]
-        conditionInputs.forEach(id => {
-          const element = document.getElementById(id)
-          if (element) {
-            element.addEventListener(element.type === "number" ? "input" : "change", saveColumnConfig)
-          }
-        })
-
-        console.log("[v0] All event listeners set up successfully")
+        
+        console.log("[v0] All event listeners set up")
       }
 
       function switchTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'))
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'))
-        document.getElementById(tabName + '-tab').classList.add('active')
-        document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active')
+        console.log("[v0] Switching to tab:", tabName)
+        
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+          tab.classList.remove('active')
+        })
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.classList.remove('active')
+        })
+        
+        // Show selected tab
+        const selectedTab = document.getElementById(tabName + '-tab')
+        if (selectedTab) {
+          selectedTab.classList.add('active')
+        }
+        
+        // Mark button as active
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          if (btn.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+            btn.classList.add('active')
+          }
+        })
       }
 
       function renderColumnList() {
@@ -1248,58 +1246,78 @@
         const dimensionsList = document.getElementById("dimensions-list")
         const measuresList = document.getElementById("measures-list")
 
-        dimensionsList.innerHTML = ""
-        measuresList.innerHTML = ""
-
-        const settings = tableau.extensions.settings.getAll()
-        const currentColumnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
-
-        if (!allColumns || allColumns.length === 0) {
-          dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles.</div>'
-          measuresList.innerHTML = '<div class="empty-state">No hay medidas disponibles.</div>'
+        if (!dimensionsList || !measuresList) {
+          console.error("[v0] Column list containers not found")
           return
         }
 
+        dimensionsList.innerHTML = ""
+        measuresList.innerHTML = ""
+
+        if (!allColumns || allColumns.length === 0) {
+          console.warn("[v0] No columns to display")
+          dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles</div>'
+          measuresList.innerHTML = '<div class="empty-state">No hay medidas disponibles</div>'
+          return
+        }
+
+        console.log("[v0] Rendering", allColumns.length, "columns")
+        
+        let dimensionCount = 0
+        let measureCount = 0
+        
         allColumns.forEach((col) => {
           const colName = col.fieldName || col.name || col
-          const columnData = currentColumnsConfig[colName] || {}
-
+          
           const item = document.createElement("div")
           item.className = "column-item"
           item.textContent = colName
           item.setAttribute("data-column", colName)
-
+          
           item.addEventListener("click", function () {
+            console.log("[v0] Column clicked:", colName)
             selectColumn(colName, col)
           })
 
-          if (col.isDimension || col.aggregation === "NONE" || col.dataType === "string") {
+          // Determine if dimension or measure
+          const isDimension = col.isDimension || col.aggregation === "NONE" || col.dataType === "string"
+          
+          if (isDimension) {
             dimensionsList.appendChild(item)
+            dimensionCount++
           } else {
             measuresList.appendChild(item)
+            measureCount++
           }
         })
 
-        if (dimensionsList.children.length === 0) {
-          dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones disponibles.</div>'
+        console.log("[v0] Rendered", dimensionCount, "dimensions and", measureCount, "measures")
+        
+        if (dimensionCount === 0) {
+          dimensionsList.innerHTML = '<div class="empty-state">No hay dimensiones</div>'
         }
-        if (measuresList.children.length === 0) {
-          measuresList.innerHTML = '<div class="empty-state">No hay medidas disponibles.</div>'
+        if (measureCount === 0) {
+          measuresList.innerHTML = '<div class="empty-state">No hay medidas</div>'
         }
       }
 
       function selectColumn(colName, columnInfo) {
+        console.log("[v0] Selecting column:", colName, columnInfo)
         currentSelectedColumn = colName
 
+        // Update visual selection
         document.querySelectorAll(".column-item").forEach((item) => item.classList.remove("selected"))
-        document.querySelector(`[data-column="${colName}"]`).classList.add("selected")
+        const selectedItem = document.querySelector(`[data-column="${colName}"]`)
+        if (selectedItem) {
+          selectedItem.classList.add("selected")
+        }
 
+        // Show config panel
         document.getElementById("no-column-selected").style.display = "none"
         document.getElementById("column-config-content").style.display = "block"
 
-        const settings = tableau.extensions.settings.getAll()
-        const currentColumnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {}
-        const columnData = currentColumnsConfig[colName] || {
+        // Load column data
+        const columnData = columnsConfig[colName] || {
           visible: true,
           includeInExport: true,
         }
@@ -1309,71 +1327,66 @@
         document.getElementById("column-visible").checked = columnData.visible !== false
         document.getElementById("column-export").checked = columnData.includeInExport !== false
 
-        const isMeasureOrCalc = !columnInfo.isDimension 
+        // Show/hide conditional formatting section
+        const isMeasure = !columnInfo.isDimension && columnInfo.aggregation !== "NONE"
         const conditionalSection = document.getElementById("conditional-formatting-section")
-        conditionalSection.style.display = isMeasureOrCalc ? "block" : "none"
+        if (conditionalSection) {
+          conditionalSection.style.display = isMeasure ? "block" : "none"
+        }
 
-        if (isMeasureOrCalc && columnData.conditionalFormat) {
+        // Load conditional format settings if available
+        if (isMeasure && columnData.conditionalFormat) {
           const cf = columnData.conditionalFormat
           document.getElementById("enable-conditional-format").checked = cf.enabled || false
           document.getElementById("conditional-format-config").style.display = cf.enabled ? "block" : "none"
-
+          
           document.getElementById("condition-operator").value = cf.operator || ">="
-          document.getElementById("condition-value").value = cf.value || ""
-
+          document.getElementById("condition-value").value = cf.value || 0
+          
           document.getElementById("format-cell-bg").checked = cf.cellBg || false
           document.getElementById("format-cell-bg-color").value = cf.cellBgColor || "#ffeb3b"
           document.getElementById("format-cell-bg-color").disabled = !cf.cellBg
-
+          
           document.getElementById("format-row-bg").checked = cf.rowBg || false
           document.getElementById("format-row-bg-color").value = cf.rowBgColor || "#ffcdd2"
           document.getElementById("format-row-bg-color").disabled = !cf.rowBg
-
+          
           document.getElementById("format-cell-text").checked = cf.cellText || false
           document.getElementById("format-cell-text-color").value = cf.cellTextColor || "#d32f2f"
           document.getElementById("format-cell-text-color").disabled = !cf.cellText
-
+          
           document.getElementById("format-row-text").checked = cf.rowText || false
           document.getElementById("format-row-text-color").value = cf.rowTextColor || "#1976d2"
           document.getElementById("format-row-text-color").disabled = !cf.rowText
-
+          
           document.getElementById("format-add-icon").checked = cf.addIcon || false
           document.getElementById("icon-selection").style.display = cf.addIcon ? "block" : "none"
           document.getElementById("selected-icon").value = cf.icon || ""
           document.getElementById("icon-color").value = cf.iconColor || "#000000"
-
-          if (cf.icon) {
-            document.querySelectorAll(".icon-btn").forEach((btn) => {
-              if (btn.getAttribute("data-icon") === cf.icon) {
-                btn.classList.add("selected")
-              } else {
-                btn.classList.remove("selected")
-              }
-            })
-          }
         } else {
           document.getElementById("enable-conditional-format").checked = false
           document.getElementById("conditional-format-config").style.display = "none"
         }
+        
+        console.log("[v0] Column selection complete")
       }
 
       function saveColumnConfig() {
-        if (!currentSelectedColumn) return
+        if (!currentSelectedColumn) {
+          console.log("[v0] No column selected, skipping save")
+          return
+        }
 
-        const settings = tableau.extensions.settings.getAll();
-        const currentColumnsConfig = settings.columnsConfig ? JSON.parse(settings.columnsConfig) : {};
+        console.log("[v0] Saving config for column:", currentSelectedColumn)
 
-        const columnData = currentColumnsConfig[currentSelectedColumn] || {
-          visible: true,
-          includeInExport: true,
-        };
+        const columnData = columnsConfig[currentSelectedColumn] || {}
 
         columnData.displayName = document.getElementById("column-display-name").value
         columnData.visible = document.getElementById("column-visible").checked
         columnData.includeInExport = document.getElementById("column-export").checked
 
         const conditionalSection = document.getElementById("conditional-formatting-section")
-        if (conditionalSection.style.display !== "none") {
+        if (conditionalSection && conditionalSection.style.display !== "none") {
           const enabledCF = document.getElementById("enable-conditional-format").checked
 
           if (enabledCF) {
@@ -1398,9 +1411,8 @@
           }
         }
 
-        currentColumnsConfig[currentSelectedColumn] = columnData
-        tableau.extensions.settings.set("columnsConfig", JSON.stringify(currentColumnsConfig))
-        tableau.extensions.settings.saveAsync()
+        columnsConfig[currentSelectedColumn] = columnData
+        console.log("[v0] Column config saved:", columnsConfig)
       }
 
       function autoSave() {
@@ -1409,42 +1421,25 @@
         try {
           // General settings
           tableau.extensions.settings.set("tableTitle", document.getElementById("table-title").value || "")
-          tableau.extensions.settings.set(
-            "showSearch",
-            document.getElementById("show-search").checked ? "true" : "false"
-          )
-          tableau.extensions.settings.set(
-            "showRowCount",
-            document.getElementById("show-row-count").checked ? "true" : "false"
-          )
+          tableau.extensions.settings.set("showSearch", document.getElementById("show-search").checked ? "true" : "false")
+          tableau.extensions.settings.set("showRowCount", document.getElementById("show-row-count").checked ? "true" : "false")
           
           // Export settings
           tableau.extensions.settings.set("exportButtonText", document.getElementById("export-button-text").value || "Exportar")
-          tableau.extensions.settings.set("exportFilename", document.getElementById("export-filename").value || "datos") // Changed default filename
+          tableau.extensions.settings.set("exportFilename", document.getElementById("export-filename").value || "datos")
           tableau.extensions.settings.set("exportButtonColor", document.getElementById("export-button-color").value || "#2563eb")
-          tableau.extensions.settings.set(
-            "exportButtonTextColor",
-            document.getElementById("export-button-text-color").value || "#ffffff"
-          )
-          tableau.extensions.settings.set(
-            "exportEnableExcel",
-            document.getElementById("export-enable-excel").checked ? "true" : "false"
-          )
-          tableau.extensions.settings.set(
-            "exportEnableCSV",
-            document.getElementById("export-enable-csv").checked ? "true" : "false"
-          )
-          tableau.extensions.settings.set(
-            "exportEnablePDF",
-            document.getElementById("export-enable-pdf").checked ? "true" : "false"
-          )
+          tableau.extensions.settings.set("exportButtonTextColor", document.getElementById("export-button-text-color").value || "#ffffff")
+          tableau.extensions.settings.set("exportEnableExcel", document.getElementById("export-enable-excel").checked ? "true" : "false")
+          tableau.extensions.settings.set("exportEnableCSV", document.getElementById("export-enable-csv").checked ? "true" : "false")
+          tableau.extensions.settings.set("exportEnablePDF", document.getElementById("export-enable-pdf").checked ? "true" : "false")
           
-          // Save columns configuration if exists
+          // Save columns configuration
           if (columnsConfig && Object.keys(columnsConfig).length > 0) {
             tableau.extensions.settings.set("columnsConfig", JSON.stringify(columnsConfig))
+            console.log("[v0] Saved columnsConfig:", columnsConfig)
           }
           
-          console.log("[v0] Settings saved to tableau.extensions.settings")
+          console.log("[v0] All settings saved to tableau.extensions.settings")
           return tableau.extensions.settings.saveAsync()
         } catch (error) {
           console.error("[v0] Error in autoSave:", error)
@@ -1454,6 +1449,8 @@
 
       function filterColumns() {
         const searchTerm = document.getElementById("column-search").value.toLowerCase()
+        console.log("[v0] Filtering columns with term:", searchTerm)
+        
         document.querySelectorAll(".column-item").forEach((item) => {
           const text = item.textContent.toLowerCase()
           item.style.display = text.includes(searchTerm) ? "block" : "none"
@@ -1465,8 +1462,7 @@
         
         autoSave()
           .then(() => {
-            console.log("[v0] Settings saved successfully")
-            console.log("[v0] Closing dialog with 'saved' payload")
+            console.log("[v0] Settings saved successfully, closing dialog")
             tableau.extensions.ui.closeDialog("saved")
           })
           .catch((error) => {
@@ -1475,15 +1471,23 @@
           })
       }
 
+      function closeDialog() {
+        console.log("[v0] CloseDialog called without saving")
+        tableau.extensions.ui.closeDialog("cancelled")
+      }
+
       function selectIcon(icon) {
+        console.log("[v0] Icon selected:", icon)
         document.getElementById("selected-icon").value = icon
-        document.querySelectorAll(".icon-btn").forEach(btn => {
+        
+        document.querySelectorAll(".icon-btn").forEach((btn) => {
           if (btn.getAttribute("data-icon") === icon) {
             btn.classList.add("selected")
           } else {
             btn.classList.remove("selected")
           }
         })
+        
         saveColumnConfig()
       }
     </script>
