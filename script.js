@@ -340,9 +340,9 @@ function renderTable() {
 
   pageData.forEach((row, rowIdx) => {
     var tr = document.createElement("tr")
-    const rowFormattingApplied = false
-    const rowBgColor = null
-    const rowTextColor = null
+    let rowFormattingApplied = false
+    let rowBgColor = null
+    let rowTextColor = null
 
     visibleColumns.forEach((col) => {
       var td = document.createElement("td")
@@ -367,13 +367,37 @@ function renderTable() {
 
       td.textContent = cellValue
 
-      applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx)
+      const formatResult = applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx)
+
+      if (formatResult && formatResult.type === "row") {
+        rowFormattingApplied = true
+        if (formatResult.bgColor) rowBgColor = formatResult.bgColor
+        if (formatResult.textColor) rowTextColor = formatResult.textColor
+
+        if (rowIdx === 0) {
+          console.log(`[v0] 🎨 ROW FORMAT will be applied - bg: ${rowBgColor}, text: ${rowTextColor}`)
+        }
+      }
+
       tr.appendChild(td)
     })
 
     if (rowFormattingApplied) {
-      if (rowBgColor) tr.style.backgroundColor = rowBgColor
-      if (rowTextColor) tr.style.color = rowTextColor
+      tr.dataset.rowFormatApplied = "true"
+      tr.classList.add("row-formatted")
+
+      tr.querySelectorAll("td").forEach((cell) => {
+        if (rowBgColor) {
+          cell.style.setProperty("background-color", rowBgColor, "important")
+        }
+        if (rowTextColor) {
+          cell.style.setProperty("color", rowTextColor, "important")
+        }
+      })
+
+      if (rowIdx === 0) {
+        console.log(`[v0] ✅ ROW FORMAT APPLIED to entire row`)
+      }
     }
 
     tbody.appendChild(tr)
