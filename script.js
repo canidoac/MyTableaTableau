@@ -26,6 +26,7 @@ var config = {
   exportEnableExcel: true,
   exportEnableCSV: true,
   exportEnablePDF: true,
+  exportButtonColor: "#2563eb", // Default color
 }
 
 // Inicialización
@@ -455,6 +456,7 @@ function saveSettings() {
   config.showExportButtons = document.getElementById("settings-export").checked
   config.showRefreshButton = document.getElementById("settings-refresh").checked
   config.showSettingsButton = document.getElementById("settings-show-config").checked
+  config.exportButtonColor = document.getElementById("settings-export-color").value.trim()
 
   saveConfig()
   applyGeneralSettings()
@@ -469,6 +471,7 @@ function applyGeneralSettings() {
   const refreshBtn = document.getElementById("refresh-btn")
   const settingsBtn = document.getElementById("settings-btn")
   const rowCount = document.getElementById("row-count")
+  const mainTitle = document.getElementById("main-title")
 
   if (searchBox) searchBox.style.display = config.showSearch ? "flex" : "none"
   if (rowCount) rowCount.style.display = config.showRowCount ? "block" : "none"
@@ -476,8 +479,19 @@ function applyGeneralSettings() {
   if (refreshBtn) refreshBtn.style.display = config.showRefreshButton ? "inline-flex" : "none"
   if (settingsBtn) settingsBtn.style.display = config.showSettingsButton ? "inline-flex" : "none"
 
+  if (mainTitle) {
+    const displayTitle = config.tableTitle || (currentWorksheet ? currentWorksheet.name : "Mi Tabla")
+    mainTitle.textContent = displayTitle
+  }
+
   const exportBtnText = document.getElementById("export-btn-text")
   if (exportBtnText) exportBtnText.textContent = config.exportButtonText || "Exportar"
+
+  const exportBtn = document.getElementById("export-btn")
+  if (exportBtn && config.exportButtonColor) {
+    exportBtn.style.backgroundColor = config.exportButtonColor
+    exportBtn.style.borderColor = config.exportButtonColor
+  }
 
   const exportExcel = document.getElementById("export-excel-opt")
   const exportCSV = document.getElementById("export-csv-opt")
@@ -507,6 +521,7 @@ function loadConfig() {
     columns: savedConfig.columns || {},
     rowsPerPage: savedConfig.rowsPerPage || 100,
     exportButtonText: savedConfig.exportButtonText || "Exportar",
+    exportButtonColor: savedConfig.exportButtonColor || "#2563eb",
     exportEnableExcel: savedConfig.exportEnableExcel !== false,
     exportEnableCSV: savedConfig.exportEnableCSV !== false,
     exportEnablePDF: savedConfig.exportEnablePDF !== false,

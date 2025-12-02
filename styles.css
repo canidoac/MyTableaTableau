@@ -35,6 +35,14 @@ body {
   gap: 12px;
 }
 
+/* Adding version-badge style to make version visible */
+.main-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
 .toolbar h1 {
   font-size: 18px;
   font-weight: 700;
@@ -50,7 +58,6 @@ body {
   border-radius: 4px;
 }
 
-/* Adding version-badge style to make version visible */
 .version-badge {
   font-size: 11px;
   font-weight: 600;
@@ -1160,11 +1167,69 @@ body {
 
 .status-online {
   color: #16a34a;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .features-list {
   list-style: none;
   padding: 0;
   margin: 12px 0 0 0;
+}
+
+.features-list li {
+  padding: 8px 0;
+  font-size: 13px;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+/* Export dropdown styles */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  z-index: 1000;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: #f8fafc;
+}
+
+.dropdown-item:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.dropdown-item:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+.dropdown-item svg {
+  color: #64748b;
+  flex-shrink: 0;
 }

@@ -408,6 +408,37 @@
         color: #999;
         font-style: italic;
       }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .status-badge {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: green;
+      }
+
+      .features-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .features-list li {
+        margin-bottom: 5px;
+        color: #28a745;
+      }
     </style>
   </head>
   <body>
@@ -425,6 +456,7 @@
         <button class="tab-btn active" data-tab="general" onclick="switchTab('general')">General</button>
         <button class="tab-btn" data-tab="data" onclick="switchTab('data')">Data</button>
         <button class="tab-btn" data-tab="export" onclick="switchTab('export')">Export</button>
+        <button class="tab-btn" data-tab="info" onclick="switchTab('info')">Información</button>
       </div>
     </div>
 
@@ -477,6 +509,21 @@
               <input type="number" id="rows-per-page" value="10" min="5" max="100" />
               <p class="help-text">Número de filas a mostrar por página (5-100)</p>
             </div>
+
+            <div class="section-divider"></div>
+
+            <div class="form-group">
+              <label>Opciones de visualización</label>
+              <div class="checkbox-group">
+                <input type="checkbox" id="show-search" checked />
+                <label for="show-search">Mostrar buscador</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="show-row-count" checked />
+                <label for="show-row-count">Mostrar contador de filas</label>
+              </div>
+              <p class="help-text">Controla qué elementos se muestran en la interfaz</p>
+            </div>
           </div>
         </div>
 
@@ -522,6 +569,15 @@
               <p class="help-text">Personaliza el texto que aparece en el botón de exportación</p>
             </div>
 
+            <div class="form-group">
+              <label>Color del botón:</label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="color" id="export-button-color" value="#0066cc" class="color-input">
+                <input type="text" id="export-button-color-text" value="#0066cc" class="form-input" style="width: 100px;" placeholder="#0066cc">
+              </div>
+              <p class="help-text">Selecciona el color del botón de exportación</p>
+            </div>
+
             <div class="section-divider"></div>
 
             <div class="form-group">
@@ -542,6 +598,48 @@
             </div>
           </div>
         </div>
+
+        <!-- Added Info tab -->
+        <div id="info-tab" class="tab-content">
+          <div class="content-section">
+            <h2>Información de la Extensión</h2>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Nombre:</strong>
+                <span>SuperTables Pro - MeliTable</span>
+              </div>
+              <div class="info-item">
+                <strong>Versión:</strong>
+                <span>v6.8.0</span>
+              </div>
+              <div class="info-item">
+                <strong>Estado:</strong>
+                <span class="status-badge">● Online</span>
+              </div>
+              <div class="info-item">
+                <strong>Descripción:</strong>
+                <span>Extensión de tabla mejorada para Tableau con exportación, búsqueda y configuración avanzada de columnas</span>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="info-section">
+              <h3>Características</h3>
+              <ul class="features-list">
+                <li>✓ Exportación a Excel, CSV y PDF</li>
+                <li>✓ Búsqueda y filtrado en tiempo real</li>
+                <li>✓ Configuración personalizada de columnas</li>
+                <li>✓ Nombres de visualización personalizables</li>
+                <li>✓ Ordenamiento por columnas</li>
+                <li>✓ Paginación configurable</li>
+                <li>✓ Selector de hojas de trabajo</li>
+                <li>✓ Botón de exportación personalizable</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -549,8 +647,11 @@
       let config = {
         title: '',
         rowsPerPage: 10,
+        showSearch: true,
+        showRowCount: true,
         columns: {},
         exportButtonText: 'Exportar',
+        exportButtonColor: '#0066cc',
         exportEnableExcel: true,
         exportEnableCSV: true,
         exportEnablePDF: true,
@@ -577,8 +678,11 @@
         config = {
           title: savedConfig.tableTitle || '',
           rowsPerPage: savedConfig.rowsPerPage || 10,
+          showSearch: savedConfig.showSearch !== 'false',
+          showRowCount: savedConfig.showRowCount !== 'false',
           columns: dialogColumns, // Objeto
           exportButtonText: savedConfig.exportButtonText || 'Exportar',
+          exportButtonColor: savedConfig.exportButtonColor || '#0066cc',
           exportEnableExcel: savedConfig.exportEnableExcel !== false,
           exportEnableCSV: savedConfig.exportEnableCSV !== false,
           exportEnablePDF: savedConfig.exportEnablePDF !== false,
@@ -587,11 +691,17 @@
         console.log('[v0] Config loaded:');
         console.log('[v0]   - title:', config.title);
         console.log('[v0]   - rowsPerPage:', config.rowsPerPage);
+        console.log('[v0]   - showSearch:', config.showSearch);
+        console.log('[v0]   - showRowCount:', config.showRowCount);
         console.log('[v0]   - columns keys:', Object.keys(config.columns));
 
         document.getElementById('table-title').value = config.title;
         document.getElementById('rows-per-page').value = config.rowsPerPage;
+        document.getElementById('show-search').checked = config.showSearch;
+        document.getElementById('show-row-count').checked = config.showRowCount;
         document.getElementById('export-button-text').value = config.exportButtonText;
+        document.getElementById('export-button-color').value = config.exportButtonColor;
+        document.getElementById('export-button-color-text').value = config.exportButtonColor;
         document.getElementById('export-enable-excel').checked = config.exportEnableExcel;
         document.getElementById('export-enable-csv').checked = config.exportEnableCSV;
         document.getElementById('export-enable-pdf').checked = config.exportEnablePDF;
@@ -746,12 +856,12 @@
       }
 
       function switchTab(tabName) {
+        // Remove active class from all tabs
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-        document.querySelectorAll('.content-area .tab-content').forEach(content =>
-          content.classList.remove('active')
-        );
+        // Add active class to selected tab
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
         document.getElementById(`${tabName}-tab`).classList.add('active');
 
         const dataSidebar = document.getElementById('data-sidebar');
@@ -770,7 +880,10 @@
 
         config.title = document.getElementById('table-title').value;
         config.rowsPerPage = parseInt(document.getElementById('rows-per-page').value) || 10;
+        config.showSearch = document.getElementById('show-search').checked;
+        config.showRowCount = document.getElementById('show-row-count').checked;
         config.exportButtonText = document.getElementById('export-button-text').value || 'Exportar';
+        config.exportButtonColor = document.getElementById('export-button-color').value || '#0066cc';
         config.exportEnableExcel = document.getElementById('export-enable-excel').checked;
         config.exportEnableCSV = document.getElementById('export-enable-csv').checked;
         config.exportEnablePDF = document.getElementById('export-enable-pdf').checked;
@@ -778,8 +891,11 @@
         const savedConfig = {
           tableTitle: config.title,
           rowsPerPage: config.rowsPerPage,
+          showSearch: config.showSearch.toString(),
+          showRowCount: config.showRowCount.toString(),
           columns: config.columns,
           exportButtonText: config.exportButtonText,
+          exportButtonColor: config.exportButtonColor,
           exportEnableExcel: config.exportEnableExcel,
           exportEnableCSV: config.exportEnableCSV,
           exportEnablePDF: config.exportEnablePDF,
