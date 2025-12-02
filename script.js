@@ -365,6 +365,8 @@ function renderTable() {
         numericValue = cellData
       }
 
+      td.textContent = cellValue
+
       applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx)
       tr.appendChild(td)
     })
@@ -900,54 +902,54 @@ function applyGeneralSettings() {
 
 function applyDesignSettings() {
   const settings = tableau.extensions.settings.getAll()
-  
+
   // Apply header colors
-  const headerBg = settings.headerBackgroundColor || '#f3f4f6'
-  const headerText = settings.headerTextColor || '#111827'
-  const headerFont = settings.headerFont || 'Arial, sans-serif'
-  const headerFontSize = settings.headerFontSize || '14px'
-  
-  const headers = document.querySelectorAll('#table-header th')
-  headers.forEach(th => {
+  const headerBg = settings.headerBackgroundColor || "#f3f4f6"
+  const headerText = settings.headerTextColor || "#111827"
+  const headerFont = settings.headerFont || "Arial, sans-serif"
+  const headerFontSize = settings.headerFontSize || "14px"
+
+  const headers = document.querySelectorAll("#table-header th")
+  headers.forEach((th) => {
     th.style.backgroundColor = headerBg
     th.style.color = headerText
     th.style.fontFamily = headerFont
     th.style.fontSize = headerFontSize
   })
-  
+
   // Apply body colors
-  const bodyFont = settings.bodyFont || 'Arial, sans-serif'
-  const bodyFontSize = settings.bodyFontSize || '13px'
-  const bodyTextColor = settings.bodyTextColor || '#374151'
-  const rowEvenBg = settings.rowEvenColor || '#ffffff'
-  const rowOddBg = settings.rowOddColor || '#f9fafb'
-  
-  const rows = document.querySelectorAll('#table-body tr')
+  const bodyFont = settings.bodyFont || "Arial, sans-serif"
+  const bodyFontSize = settings.bodyFontSize || "13px"
+  const bodyTextColor = settings.bodyTextColor || "#374151"
+  const rowEvenBg = settings.rowEvenColor || "#ffffff"
+  const rowOddBg = settings.rowOddColor || "#f9fafb"
+
+  const rows = document.querySelectorAll("#table-body tr")
   rows.forEach((tr, index) => {
-    const cells = tr.querySelectorAll('td')
-    cells.forEach(td => {
+    const cells = tr.querySelectorAll("td")
+    cells.forEach((td) => {
       td.style.fontFamily = bodyFont
       td.style.fontSize = bodyFontSize
       td.style.color = bodyTextColor
     })
-    
+
     // Apply row background if no conditional formatting applied
     if (!tr.style.backgroundColor) {
       tr.style.backgroundColor = index % 2 === 0 ? rowEvenBg : rowOddBg
     }
   })
-  
+
   // Apply border styling
-  const borderColor = settings.borderColor || '#e5e7eb'
-  const borderWidth = settings.borderWidth || '1px'
-  
-  const table = document.querySelector('.data-table')
+  const borderColor = settings.borderColor || "#e5e7eb"
+  const borderWidth = settings.borderWidth || "1px"
+
+  const table = document.querySelector(".data-table")
   if (table) {
-    table.style.setProperty('--border-color', borderColor)
-    table.style.setProperty('--border-width', borderWidth)
+    table.style.setProperty("--border-color", borderColor)
+    table.style.setProperty("--border-width", borderWidth)
   }
-  
-  console.log('[v0] Design settings applied')
+
+  console.log("[v0] Design settings applied")
 }
 
 if (document.readyState === "loading") {
