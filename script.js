@@ -13,22 +13,10 @@ var sortState = { column: null, ascending: true }
 var currentPage = 0
 
 // Configuración simplificada
-var config = {
-  tableTitle: "",
-  showSearch: true,
-  showRowCount: true,
-  showExportButtons: true,
-  showRefreshButton: true,
-  showSettingsButton: true,
-  columns: {}, // { columnName: { visible: true, includeInExport: true, displayName: "", conditionalRules: [], conditionalFormat: { enabled: false, operator: '', value: '', value2: '', cellBg: false, cellBgColor: '', cellText: false, cellTextColor: '', rowBg: false, rowBgColor: '', rowText: false, rowTextColor: '', addIcon: false, icon: '', iconColor: '' } } }
-  rowsPerPage: 100,
-  exportButtonText: "Exportar",
-  exportButtonColor: "#2563eb", // Default color
-  exportButtonTextColor: "#ffffff", // Added exportButtonTextColor config
-  exportEnableExcel: true,
-  exportEnableCSV: true,
-  exportEnablePDF: true,
-  exportFilename: "export", // Added exportFilename config
+let config = {
+  rowsPerPage: 50,
+  columns: {},
+  conditionalFormats: [], // Array of format rules
 }
 
 let isSaving = false
@@ -72,7 +60,6 @@ function initializeExtension() {
 
       setupEventListeners()
       setupTableauEventListeners()
-      applyGeneralSettings() // Ensure this function is declared before use
     })
     .catch((err) => {
       console.error("[v0] Error:", err)
@@ -290,7 +277,7 @@ function renderTable() {
   const tableContainer = document.getElementById("table-container")
   if (tableContainer) tableContainer.style.display = "block"
 
-  var visibleColumns = fullData.columns.filter((col) => {
+  const visibleColumns = fullData.columns.filter((col) => {
     const colName = col.fieldName || col.name
     return config.columns[colName]?.visible === true
   })
@@ -304,161 +291,38 @@ function renderTable() {
   }
 
   // Header
-  var thead = document.getElementById("table-header")
+  const thead = document.getElementById("table-header")
   thead.innerHTML = ""
-  var headerRow = document.createElement("tr")
+  const headerRow = document.createElement("tr")
 
-  visibleColumns.forEach((col, idx) => {
-    var th = document.createElement("th")
-    var sortIcon = sortState.column === col.index ? (sortState.ascending ? "↑" : "↓") : "↕"
-
+  visibleColumns.forEach((col) => {
+    const th = document.createElement("th")
     const colName = col.fieldName || col.name
     const displayName = config.columns[colName]?.displayName || colName
 
-    th.innerHTML = `
-      <div class="th-content">
-        <span>${escapeHtml(displayName)}</span>
-        <button class="sort-btn" data-index="${col.index}">${sortIcon}</button>
-      </div>
-    `
+    th.innerHTML = `<span>${escapeHtml(displayName)}</span>`
     headerRow.appendChild(th)
   })
 
   thead.appendChild(headerRow)
 
   // Body
-  var tbody = document.getElementById("table-body")
+  const tbody = document.getElementById("table-body")
   tbody.innerHTML = ""
 
-  var start = currentPage * config.rowsPerPage
-  var end = Math.min(start + config.rowsPerPage, visibleData.length)
-  var pageData = visibleData.slice(start, end)
+  const start = currentPage * config.rowsPerPage
+  const end = Math.min(start + config.rowsPerPage, visibleData.length)
+  const pageData = visibleData.slice(start, end)
 
-  if (pageData.length > 0) {
-    console.log("[v0] Primera fila a renderizar:", pageData[0])
-  }
+  pageData.forEach((row) => {
+    const tr = document.createElement("tr")
 
-  pageData.forEach((row, rowIdx) => {
-    var tr = document.createElement("tr")
-    let rowFormat = null
-
-    // First pass: check if ANY column has a row-level format rule for this row
     visibleColumns.forEach((col) => {
-      if (rowFormat) return // Already found row format
+      const td = document.createElement("td")
+      const cellData = row[col.index]
 
-      var cellData = row[col.index]
-      var cellValue = ""
-      var numericValue = null
-
-      if (cellData === null || cellData === undefined) {
-        cellValue = ""
-      } else if (typeof cellData === "object") {
-        cellValue = cellData.formattedValue || cellData.value || cellData.nativeValue || ""
-        numericValue = cellData.value || cellData.nativeValue
-      } else {
-        cellValue = cellData
-        numericValue = cellData
-      }
-
-      // Check for row-level conditional formatting
-      const colName = col.fieldName || col.name
-      const columnConfig = config.columns[colName]
-
-      if (columnConfig && columnConfig.conditionalRules && Array.isArray(columnConfig.conditionalRules)) {
-        const sortedRules = [...columnConfig.conditionalRules].sort((a, b) => {
-          const priorityA = a.priority !== undefined ? a.priority : 999
-          const priorityB = b.priority !== undefined ? b.priority : 999
-          return priorityA - priorityB
-        })
-
-        for (const cf of sortedRules) {
-          if (cf.rowBg || cf.rowText) {
-            // This is a row-level rule, check if condition is met
-            let conditionMet = false
-            const isTextValue = typeof cellValue === "string" || col.dataType === "string"
-
-            if (isTextValue) {
-              const strValue = String(cellValue)
-              switch (cf.operator) {
-                case "equals":
-                  conditionMet = strValue === cf.value
-                  break
-                case "notEquals":
-                  conditionMet = strValue !== cf.value
-                  break
-                case "contains":
-                  conditionMet = strValue.includes(cf.value)
-                  break
-                case "notContains":
-                  conditionMet = !strValue.includes(cf.value)
-                  break
-                case "startsWith":
-                  conditionMet = strValue.startsWith(cf.value)
-                  break
-                case "endsWith":
-                  conditionMet = strValue.endsWith(cf.value)
-                  break
-                case "isEmpty":
-                  conditionMet = strValue === "" || strValue === null || strValue === undefined
-                  break
-                case "isNotEmpty":
-                  conditionMet = strValue !== "" && strValue !== null && strValue !== undefined
-                  break
-              }
-            } else {
-              const cellNumValue = Number.parseFloat(numericValue)
-              const condValue = Number.parseFloat(cf.value)
-              const condValue2 = Number.parseFloat(cf.value2)
-
-              if (!isNaN(cellNumValue)) {
-                switch (cf.operator) {
-                  case ">=":
-                    conditionMet = cellNumValue >= condValue
-                    break
-                  case "<=":
-                    conditionMet = cellNumValue <= condValue
-                    break
-                  case "=":
-                    conditionMet = cellNumValue === condValue
-                    break
-                  case ">":
-                    conditionMet = cellNumValue > condValue
-                    break
-                  case "<":
-                    conditionMet = cellNumValue < condValue
-                    break
-                  case "!=":
-                    conditionMet = cellNumValue !== condValue
-                    break
-                  case "between":
-                    conditionMet = cellNumValue >= condValue && cellNumValue <= condValue2
-                    break
-                }
-              }
-            }
-
-            if (conditionMet) {
-              rowFormat = {
-                bgColor: cf.rowBg && cf.rowBgColor ? cf.rowBgColor : null,
-                textColor: cf.rowText && cf.rowTextColor ? cf.rowTextColor : null,
-              }
-              if (rowIdx === 0) {
-                console.log(`[v0] 🎨 ROW FORMAT FOUND for column [${colName}]:`, rowFormat)
-              }
-              break
-            }
-          }
-        }
-      }
-    })
-
-    // Now create cells and apply row format if found
-    visibleColumns.forEach((col) => {
-      var td = document.createElement("td")
-      var cellData = row[col.index]
-
-      var cellValue = ""
-      var numericValue = null
+      let cellValue = ""
+      let numericValue = null
 
       if (cellData === null || cellData === undefined) {
         cellValue = ""
@@ -472,52 +336,109 @@ function renderTable() {
 
       td.textContent = cellValue
 
-      // Apply row format if found, otherwise check cell-level formatting
-      if (rowFormat) {
-        if (rowFormat.bgColor) {
-          td.style.setProperty("background-color", rowFormat.bgColor, "important")
-        }
-        if (rowFormat.textColor) {
-          td.style.setProperty("color", rowFormat.textColor, "important")
-        }
-        tr.classList.add("row-formatted")
-      } else {
-        // Apply cell-level conditional formatting
-        applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx)
-      }
+      applyConditionalFormatting(td, tr, col, cellValue, numericValue)
 
       tr.appendChild(td)
     })
 
-    if (rowFormat && rowIdx === 0) {
-      console.log(`[v0] ✓ ROW FORMAT APPLIED to all cells`)
-    }
-
     tbody.appendChild(tr)
   })
 
-  document.querySelectorAll(".sort-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      var idx = Number.parseInt(this.getAttribute("data-index"))
-      if (sortState.column === idx) {
-        sortState.ascending = !sortState.ascending
-      } else {
-        sortState.column = idx
-        sortState.ascending = true
-      }
-      applyFiltersAndSort()
-      renderTable()
-      updateTableInfo()
-    })
-  })
-
-  updatePagination()
-  updateTableInfo()
+  setupPagination()
 }
 
-function updatePagination() {
-  var container = document.getElementById("pagination")
-  var totalPages = Math.ceil(visibleData.length / config.rowsPerPage)
+function applyConditionalFormatting(td, tr, col, cellValue, numericValue) {
+  if (!config.conditionalFormats || config.conditionalFormats.length === 0) {
+    return
+  }
+
+  const colName = col.fieldName || col.name
+
+  // Check each format rule
+  for (const format of config.conditionalFormats) {
+    // Check if this rule applies to this column
+    if (format.column !== colName) continue
+
+    let conditionMet = false
+    const isTextValue = typeof cellValue === "string" || col.dataType === "string"
+
+    // Evaluate condition
+    if (isTextValue) {
+      const strValue = String(cellValue)
+      switch (format.operator) {
+        case "equals":
+          conditionMet = strValue === format.value
+          break
+        case "contains":
+          conditionMet = strValue.includes(format.value)
+          break
+        case "startsWith":
+          conditionMet = strValue.startsWith(format.value)
+          break
+        case "isEmpty":
+          conditionMet = !strValue
+          break
+      }
+    } else {
+      const cellNum = Number.parseFloat(numericValue)
+      const condValue = Number.parseFloat(format.value)
+
+      if (!isNaN(cellNum)) {
+        switch (format.operator) {
+          case ">":
+            conditionMet = cellNum > condValue
+            break
+          case "<":
+            conditionMet = cellNum < condValue
+            break
+          case "=":
+            conditionMet = cellNum === condValue
+            break
+          case ">=":
+            conditionMet = cellNum >= condValue
+            break
+          case "<=":
+            conditionMet = cellNum <= condValue
+            break
+        }
+      }
+    }
+
+    // Apply format if condition is met
+    if (conditionMet) {
+      if (format.backgroundColor) {
+        if (format.applyToRow) {
+          tr.style.setProperty("background-color", format.backgroundColor, "important")
+        } else {
+          td.style.setProperty("background-color", format.backgroundColor, "important")
+        }
+      }
+
+      if (format.textColor) {
+        if (format.applyToRow) {
+          Array.from(tr.children).forEach((cell) => {
+            cell.style.setProperty("color", format.textColor, "important")
+          })
+        } else {
+          td.style.setProperty("color", format.textColor, "important")
+        }
+      }
+
+      if (format.showIndicator) {
+        const indicator = document.createElement("span")
+        indicator.className = "format-indicator"
+        indicator.style.backgroundColor = format.indicatorColor || format.backgroundColor
+        td.insertBefore(indicator, td.firstChild)
+      }
+
+      break // Apply only first matching rule
+    }
+  }
+}
+
+function setupPagination() {
+  const container = document.getElementById("pagination")
+  const totalPages = Math.ceil(visibleData.length / config.rowsPerPage)
 
   if (totalPages <= 1) {
     container.innerHTML = ""
@@ -532,7 +453,7 @@ function updatePagination() {
 }
 
 function goToPage(page) {
-  var totalPages = Math.ceil(visibleData.length / config.rowsPerPage)
+  const totalPages = Math.ceil(visibleData.length / config.rowsPerPage)
   if (page < 0 || page >= totalPages) return
 
   currentPage = page
@@ -623,7 +544,6 @@ async function openSettings() {
       if (closePayload === "saved") {
         console.log("[v0] Configuración guardada, recargando...")
         loadConfig()
-        applyGeneralSettings()
         renderTable()
       }
     })
@@ -649,9 +569,6 @@ function saveSettings() {
   config.exportFilename = document.getElementById("settings-export-filename").value.trim()
 
   saveConfig()
-  applyGeneralSettings()
-
-  document.getElementById("settings-modal").style.display = "none"
   renderTable()
 }
 
@@ -676,21 +593,9 @@ function loadConfig() {
   }
 
   config = {
-    tableTitle: settings.tableTitle || "",
-    showSearch: settings.showSearch !== "false",
-    showRowCount: settings.showRowCount !== "false",
-    showExportButtons: settings.showExportButtons !== "false",
-    showRefreshButton: settings.showRefreshButton !== "false",
-    showSettingsButton: settings.showSettingsButton !== "false",
+    rowsPerPage: Number.parseInt(settings.rowsPerPage) || 50,
     columns: columnsConfig, // Use the parsed columnsConfig
-    rowsPerPage: Number.parseInt(settings.rowsPerPage) || 100,
-    exportButtonText: settings.exportButtonText || "Exportar",
-    exportButtonColor: settings.exportButtonColor || "#2563eb",
-    exportButtonTextColor: settings.exportButtonTextColor || "#ffffff",
-    exportEnableExcel: settings.exportEnableExcel !== "false",
-    exportEnableCSV: settings.exportEnableCSV !== "false",
-    exportEnablePDF: settings.exportEnablePDF !== "false",
-    exportFilename: settings.exportFilename || "export",
+    conditionalFormats: settings.conditionalFormats ? JSON.parse(settings.conditionalFormats) : [], // Use the parsed conditionalFormats
   }
 
   console.log("[v0] Configuración cargada, columnas:", Object.keys(config.columns).length)
@@ -828,11 +733,11 @@ function handleExport(format) {
   const menu = document.getElementById("export-dropdown-menu")
   if (menu) menu.style.display = "none"
 
-  if (format === "excel" && config.exportEnableExcel) {
+  if (format === "excel") {
     exportToExcel()
-  } else if (format === "csv" && config.exportEnableCSV) {
+  } else if (format === "csv") {
     exportToCSV()
-  } else if (format === "pdf" && config.exportEnablePDF) {
+  } else if (format === "pdf") {
     alert("Exportación a PDF próximamente")
   }
 }
@@ -876,156 +781,6 @@ function setupTableauEventListeners() {
   })
 
   console.log("[v0] ✅ Tableau event listeners setup complete")
-}
-
-function applyConditionalFormatting(td, col, cellValue, numericValue, config, rowIdx) {
-  const colName = col.fieldName || col.name
-  const columnConfig = config.columns[colName]
-
-  if (!columnConfig || !columnConfig.conditionalRules || !Array.isArray(columnConfig.conditionalRules)) {
-    return
-  }
-
-  const sortedRules = [...columnConfig.conditionalRules].sort((a, b) => {
-    const priorityA = a.priority !== undefined ? a.priority : 999
-    const priorityB = b.priority !== undefined ? b.priority : 999
-    return priorityA - priorityB
-  })
-
-  for (const cf of sortedRules) {
-    // Skip row-level rules
-    if (cf.rowBg || cf.rowText) {
-      continue
-    }
-
-    let conditionMet = false
-    const isTextValue = typeof cellValue === "string" || col.dataType === "string"
-
-    if (isTextValue) {
-      const strValue = String(cellValue)
-      switch (cf.operator) {
-        case "equals":
-          conditionMet = strValue === cf.value
-          break
-        case "notEquals":
-          conditionMet = strValue !== cf.value
-          break
-        case "contains":
-          conditionMet = strValue.includes(cf.value)
-          break
-        case "notContains":
-          conditionMet = !strValue.includes(cf.value)
-          break
-        case "startsWith":
-          conditionMet = strValue.startsWith(cf.value)
-          break
-        case "endsWith":
-          conditionMet = strValue.endsWith(cf.value)
-          break
-        case "isEmpty":
-          conditionMet = strValue === "" || strValue === null || strValue === undefined
-          break
-        case "isNotEmpty":
-          conditionMet = strValue !== "" && strValue !== null && strValue !== undefined
-          break
-      }
-    } else {
-      const cellNumValue = Number.parseFloat(numericValue)
-      const condValue = Number.parseFloat(cf.value)
-      const condValue2 = Number.parseFloat(cf.value2)
-
-      if (!isNaN(cellNumValue)) {
-        switch (cf.operator) {
-          case ">=":
-            conditionMet = cellNumValue >= condValue
-            break
-          case "<=":
-            conditionMet = cellNumValue <= condValue
-            break
-          case "=":
-            conditionMet = cellNumValue === condValue
-            break
-          case ">":
-            conditionMet = cellNumValue > condValue
-            break
-          case "<":
-            conditionMet = cellNumValue < condValue
-            break
-          case "!=":
-            conditionMet = cellNumValue !== condValue
-            break
-          case "between":
-            conditionMet = cellNumValue >= condValue && cellNumValue <= condValue2
-            break
-        }
-      }
-    }
-
-    if (conditionMet) {
-      if (cf.cellBg && cf.cellBgColor) {
-        td.style.setProperty("background-color", cf.cellBgColor, "important")
-      }
-
-      if (cf.cellText && cf.cellTextColor) {
-        td.style.setProperty("color", cf.cellTextColor, "important")
-      }
-
-      if (cf.icon && cf.iconType) {
-        var iconSpan = document.createElement("span")
-        iconSpan.textContent = cf.iconType
-        iconSpan.className = "icon-" + (cf.iconType === "✓" ? "positive" : cf.iconType === "✗" ? "negative" : "neutral")
-        td.insertBefore(iconSpan, td.firstChild)
-      }
-
-      return
-    }
-  }
-}
-
-function applyGeneralSettings() {
-  console.log("[v0] Applying general settings...")
-
-  // Show/hide search box
-  const searchBox = document.getElementById("search-box")
-  if (searchBox) {
-    searchBox.style.display = config.showSearch ? "flex" : "none"
-    console.log("[v0] Search box display:", config.showSearch ? "visible" : "hidden")
-  }
-
-  // Show/hide row count
-  const rowCount = document.getElementById("row-count")
-  if (rowCount) {
-    rowCount.style.display = config.showRowCount ? "block" : "none"
-    console.log("[v0] Row count display:", config.showRowCount ? "visible" : "hidden")
-  }
-
-  // Show/hide export button
-  const exportBtn = document.getElementById("export-btn")
-  if (exportBtn) {
-    exportBtn.style.display = config.showExportButtons ? "inline-flex" : "none"
-    console.log("[v0] Export button display:", config.showExportButtons ? "visible" : "hidden")
-  }
-
-  // Show/hide refresh button
-  const refreshBtn = document.getElementById("refresh-btn")
-  if (refreshBtn) {
-    refreshBtn.style.display = config.showRefreshButton ? "inline-flex" : "none"
-    console.log("[v0] Refresh button display:", config.showRefreshButton ? "visible" : "hidden")
-  }
-
-  // Show/hide settings button
-  const settingsBtn = document.getElementById("settings-btn")
-  if (settingsBtn) {
-    settingsBtn.style.display = config.showSettingsButton ? "inline-flex" : "none"
-    console.log("[v0] Settings button display:", config.showSettingsButton ? "visible" : "hidden")
-  }
-
-  // Update table title
-  const mainTitle = document.getElementById("main-title")
-  if (mainTitle) {
-    mainTitle.textContent = config.tableTitle || currentWorksheet?.name || "Mi Tabla"
-    console.log("[v0] Table title:", mainTitle.textContent)
-  }
 }
 
 if (document.readyState === "loading") {
